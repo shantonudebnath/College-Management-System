@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ClipboardList, BarChart2, BookOpen, FileText, HelpCircle, Upload, CreditCard, Bell, UserCheck, ChevronLeft, ChevronRight, GraduationCap, LogOut } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, BarChart2, BookOpen, FileText, HelpCircle, Upload, CreditCard, Bell, UserCheck, ChevronLeft, ChevronRight, GraduationCap, LogOut, User, X } from 'lucide-react';
 
 const MENU = [
   { label: 'ড্যাশবোর্ড', href: '/teacher/dashboard', icon: LayoutDashboard },
@@ -15,14 +15,13 @@ const MENU = [
   { label: 'ফি বিবরণ', href: '/teacher/fees', icon: CreditCard },
   { label: 'নিজের উপস্থিতি', href: '/teacher/my-attendance', icon: UserCheck },
   { label: 'নোটিশ', href: '/teacher/notice', icon: Bell },
+  { label: 'আমার প্রোফাইল', href: '/teacher/profile', icon: User },
 ];
 
-export default function TeacherSidebar() {
-  const [collapsed, setCollapsed] = useState(false);
+function SidebarContent({ collapsed, setCollapsed, onClose }: { collapsed: boolean; setCollapsed: (v: boolean) => void; onClose?: () => void }) {
   const pathname = usePathname();
-
   return (
-    <aside className={`${collapsed ? 'w-16' : 'w-64'} transition-all duration-300 bg-white border-r border-gray-200 flex flex-col h-screen sticky top-0 overflow-y-auto scrollbar-thin shrink-0`}>
+    <>
       <div className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'} p-4 border-b border-gray-100`}>
         {!collapsed && (
           <div className="flex items-center gap-2">
@@ -35,16 +34,23 @@ export default function TeacherSidebar() {
             </div>
           </div>
         )}
-        <button onClick={() => setCollapsed(!collapsed)} className="p-1 rounded-lg hover:bg-purple-50 transition-colors text-gray-500">
-          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-        </button>
+        <div className="flex items-center gap-1">
+          {onClose && (
+            <button onClick={onClose} className="p-1 rounded-lg hover:bg-purple-50 transition-colors text-gray-500 lg:hidden">
+              <X size={16} />
+            </button>
+          )}
+          <button onClick={() => setCollapsed(!collapsed)} className="p-1 rounded-lg hover:bg-purple-50 transition-colors text-gray-500 hidden lg:flex">
+            {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          </button>
+        </div>
       </div>
 
-      <nav className="flex-1 p-2 space-y-0.5">
+      <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
         {MENU.map(({ label, href, icon: Icon }) => {
           const active = pathname === href;
           return (
-            <Link key={href} href={href} title={collapsed ? label : undefined}
+            <Link key={href} href={href} title={collapsed ? label : undefined} onClick={onClose}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all ${active ? 'bg-purple-600 text-white shadow-sm' : 'text-gray-600 hover:bg-purple-50 hover:text-purple-600'}`}>
               <Icon size={16} className="shrink-0" />
               {!collapsed && <span>{label}</span>}
@@ -54,11 +60,40 @@ export default function TeacherSidebar() {
       </nav>
 
       <div className="p-3 border-t border-gray-100">
-        <Link href="/" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all">
+        <Link href="/" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all">
           <LogOut size={16} />
           {!collapsed && <span>লগআউট</span>}
         </Link>
       </div>
-    </aside>
+    </>
+  );
+}
+
+export default function TeacherSidebar() {
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  return (
+    <>
+      <aside className={`${collapsed ? 'w-16' : 'w-64'} transition-all duration-300 bg-white border-r border-gray-200 flex-col h-screen sticky top-0 overflow-y-auto scrollbar-thin shrink-0 hidden lg:flex`}>
+        <SidebarContent collapsed={collapsed} setCollapsed={setCollapsed} />
+      </aside>
+
+      <button
+        onClick={() => setMobileOpen(true)}
+        className="lg:hidden fixed bottom-5 right-5 z-40 gradient-primary rounded-2xl flex items-center justify-center shadow-xl text-white hover:scale-105 transition-transform p-3"
+      >
+        <GraduationCap size={22} />
+      </button>
+
+      {mobileOpen && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-50 lg:hidden" onClick={() => setMobileOpen(false)} />
+          <aside className="fixed left-0 top-0 h-full w-72 bg-white z-50 flex flex-col shadow-2xl lg:hidden animate-slideIn">
+            <SidebarContent collapsed={false} setCollapsed={() => {}} onClose={() => setMobileOpen(false)} />
+          </aside>
+        </>
+      )}
+    </>
   );
 }

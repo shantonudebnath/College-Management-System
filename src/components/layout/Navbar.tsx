@@ -6,6 +6,7 @@ import { COLLEGE_INFO } from '@/lib/data';
 
 const NAV_LINKS = [
   { label: 'হোম', href: '/' },
+  { label: 'আমাদের পরিচয়', href: '/about' },
   { label: 'শিক্ষক মণ্ডলী', href: '/teachers' },
   { label: 'নোটিশ বোর্ড', href: '/notice' },
   { label: 'ফলাফল', href: '/result' },
