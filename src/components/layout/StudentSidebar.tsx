@@ -1,0 +1,63 @@
+'use client';
+import { useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { LayoutDashboard, Award, CreditCard, IdCard, Calendar, BookOpen, FileDown, Bell, ChevronLeft, ChevronRight, GraduationCap, LogOut, ClipboardList } from 'lucide-react';
+
+const MENU = [
+  { label: 'ড্যাশবোর্ড', href: '/student/dashboard', icon: LayoutDashboard },
+  { label: 'ফলাফল', href: '/student/result', icon: Award },
+  { label: 'ফি বিবরণ', href: '/student/fees', icon: CreditCard },
+  { label: 'এডমিট কার্ড', href: '/student/admit-card', icon: IdCard },
+  { label: 'পরীক্ষার সময়সূচী', href: '/student/exam-schedule', icon: Calendar },
+  { label: 'সিলেবাস', href: '/student/syllabus', icon: BookOpen },
+  { label: 'নোট ও সাজেশন', href: '/student/notes', icon: FileDown },
+  { label: 'নোটিশ', href: '/student/notice', icon: Bell },
+  { label: 'ফর্ম ফিলআপ', href: '/student/forms', icon: ClipboardList },
+];
+
+export default function StudentSidebar() {
+  const [collapsed, setCollapsed] = useState(false);
+  const pathname = usePathname();
+
+  return (
+    <aside className={`${collapsed ? 'w-16' : 'w-64'} transition-all duration-300 bg-white border-r border-gray-200 flex flex-col h-screen sticky top-0 overflow-y-auto scrollbar-thin shrink-0`}>
+      <div className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'} p-4 border-b border-gray-100`}>
+        {!collapsed && (
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center">
+              <GraduationCap size={16} className="text-white" />
+            </div>
+            <div>
+              <p className="font-bold text-xs text-gray-900 leading-tight">ছাত্র পোর্টাল</p>
+              <p className="text-[9px] text-purple-600">Student Portal</p>
+            </div>
+          </div>
+        )}
+        <button onClick={() => setCollapsed(!collapsed)} className="p-1 rounded-lg hover:bg-purple-50 transition-colors text-gray-500">
+          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        </button>
+      </div>
+
+      <nav className="flex-1 p-2 space-y-0.5">
+        {MENU.map(({ label, href, icon: Icon }) => {
+          const active = pathname === href;
+          return (
+            <Link key={href} href={href} title={collapsed ? label : undefined}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all ${active ? 'bg-purple-600 text-white shadow-sm' : 'text-gray-600 hover:bg-purple-50 hover:text-purple-600'}`}>
+              <Icon size={16} className="shrink-0" />
+              {!collapsed && <span>{label}</span>}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="p-3 border-t border-gray-100">
+        <Link href="/" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all">
+          <LogOut size={16} />
+          {!collapsed && <span>লগআউট</span>}
+        </Link>
+      </div>
+    </aside>
+  );
+}
