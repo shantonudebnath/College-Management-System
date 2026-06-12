@@ -11,11 +11,15 @@ create table if not exists public.profiles (
 );
 alter table public.profiles enable row level security;
 create policy "Users can view their own profile" on public.profiles for select using (auth.uid() = id);
+-- Use JWT metadata for admin checks to avoid infinite recursion
 create policy "Admins can view all profiles" on public.profiles for select using (
-  exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
+  (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
 );
 create policy "Admins can insert profiles" on public.profiles for insert with check (
-  exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
+  (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
+);
+create policy "Admins can update profiles" on public.profiles for update using (
+  (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
 );
 
 -- AUTO-CREATE PROFILE ON SIGNUP
