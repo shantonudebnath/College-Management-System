@@ -30,12 +30,14 @@ export default function LoginPage() {
     });
 
     if (authError || !data.user) {
-      setError('আইডি বা পাসওয়ার্ড ভুল হয়েছে। আবার চেষ্টা করুন।');
+      setError(authError?.message === 'Email not confirmed'
+        ? 'ইমেইল কনফার্ম হয়নি। অ্যাডমিনের সাথে যোগাযোগ করুন।'
+        : 'আইডি বা পাসওয়ার্ড ভুল হয়েছে। আবার চেষ্টা করুন।');
       setLoading(false);
       return;
     }
 
-    // Fetch profile to determine role-based redirect
+    // Fetch profile for role-based redirect
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
@@ -43,11 +45,10 @@ export default function LoginPage() {
       .single();
 
     const userRole = profile?.role ?? role;
-    if (userRole === 'student') router.push('/student/dashboard');
-    else if (userRole === 'teacher') router.push('/teacher/dashboard');
-    else router.push('/admin/dashboard');
-
-    router.refresh();
+    // Hard redirect so middleware picks up the fresh session cookies
+    if (userRole === 'student') window.location.href = '/student/dashboard';
+    else if (userRole === 'teacher') window.location.href = '/teacher/dashboard';
+    else window.location.href = '/admin/dashboard';
   };
 
   const ROLE_LABELS = { student: 'ছাত্র', teacher: 'শিক্ষক', admin: 'অ্যাডমিন' };
