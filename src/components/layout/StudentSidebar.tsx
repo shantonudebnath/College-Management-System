@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Award, CreditCard, IdCard, Calendar, BookOpen, FileDown, Bell, ChevronLeft, ChevronRight, GraduationCap, LogOut, ClipboardList, User, CheckSquare, X } from 'lucide-react';
+import { LayoutDashboard, Award, CreditCard, IdCard, Calendar, BookOpen, FileDown, Bell, ChevronLeft, ChevronRight, GraduationCap, LogOut, ClipboardList, User, CheckSquare, X, LayoutGrid } from 'lucide-react';
 
 const MENU = [
   { label: 'ড্যাশবোর্ড', href: '/student/dashboard', icon: LayoutDashboard },
@@ -11,6 +11,7 @@ const MENU = [
   { label: 'ফি বিবরণ', href: '/student/fees', icon: CreditCard },
   { label: 'এডমিট কার্ড', href: '/student/admit-card', icon: IdCard },
   { label: 'পরীক্ষার সময়সূচী', href: '/student/exam-schedule', icon: Calendar },
+  { label: 'ক্লাস রুটিন', href: '/student/routine', icon: LayoutGrid },
   { label: 'সিলেবাস', href: '/student/syllabus', icon: BookOpen },
   { label: 'নোট ও সাজেশন', href: '/student/notes', icon: FileDown },
   { label: 'নোটিশ', href: '/student/notice', icon: Bell },

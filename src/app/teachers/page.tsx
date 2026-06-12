@@ -1,10 +1,16 @@
+'use client';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { TEACHERS } from '@/lib/data';
+import { useTeachers } from '@/context/TeachersContext';
 import { User, Phone, Mail, GraduationCap, Briefcase } from 'lucide-react';
 
 export default function TeachersPage() {
-  const departments = [...new Set(TEACHERS.map(t => t.department))];
+  const { teachers, departmentOrder } = useTeachers();
+  const allDepts = [...new Set(teachers.map(t => t.department))];
+  const departments = [
+    ...departmentOrder.filter(d => allDepts.includes(d)),
+    ...allDepts.filter(d => !departmentOrder.includes(d)),
+  ];
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -22,7 +28,7 @@ export default function TeachersPage() {
 
           {/* By department */}
           {departments.map(dept => {
-            const deptTeachers = TEACHERS.filter(t => t.department === dept);
+            const deptTeachers = teachers.filter(t => t.department === dept);
             return (
               <div key={dept} className="mb-10">
                 <div className="flex items-center gap-3 mb-5">
@@ -38,8 +44,12 @@ export default function TeachersPage() {
                       <div className="gradient-hero p-6 text-center relative">
                         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, white 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
                         <div className="relative z-10">
-                          <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-3 border-2 border-white/30">
-                            <User size={32} className="text-white" />
+                          <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-3 border-2 border-white/30 bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                            {teacher.image ? (
+                              <img src={teacher.image} alt={teacher.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <User size={32} className="text-white" />
+                            )}
                           </div>
                           <h3 className="font-bold text-white">{teacher.name}</h3>
                           <p className="text-white/70 text-xs mt-0.5">{teacher.nameBn}</p>
@@ -53,32 +63,40 @@ export default function TeachersPage() {
                         </div>
 
                         <div className="space-y-2 text-xs text-gray-600">
-                          <div className="flex items-center gap-2">
-                            <Briefcase size={13} className="text-purple-400 shrink-0" />
-                            <span>{teacher.qualification}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Phone size={13} className="text-purple-400 shrink-0" />
-                            <span>{teacher.phone}</span>
-                          </div>
-                          <div className="flex items-center gap-2 truncate">
-                            <Mail size={13} className="text-purple-400 shrink-0" />
-                            <span className="truncate">{teacher.email}</span>
-                          </div>
+                          {teacher.qualification && (
+                            <div className="flex items-center gap-2">
+                              <Briefcase size={13} className="text-purple-400 shrink-0" />
+                              <span>{teacher.qualification}</span>
+                            </div>
+                          )}
+                          {teacher.phone && (
+                            <div className="flex items-center gap-2">
+                              <Phone size={13} className="text-purple-400 shrink-0" />
+                              <span>{teacher.phone}</span>
+                            </div>
+                          )}
+                          {teacher.email && (
+                            <div className="flex items-center gap-2 truncate">
+                              <Mail size={13} className="text-purple-400 shrink-0" />
+                              <span className="truncate">{teacher.email}</span>
+                            </div>
+                          )}
                           <div className="flex items-center gap-2">
                             <GraduationCap size={13} className="text-purple-400 shrink-0" />
                             <span>যোগদান: {teacher.joinDate}</span>
                           </div>
                         </div>
 
-                        <div className="mt-4 pt-3 border-t border-gray-100">
-                          <p className="text-[10px] font-semibold text-gray-400 uppercase mb-2">বিষয়সমূহ</p>
-                          <div className="flex flex-wrap gap-1">
-                            {teacher.subject.map(s => (
-                              <span key={s} className="text-[10px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full border border-purple-100">{s}</span>
-                            ))}
+                        {teacher.subject.length > 0 && (
+                          <div className="mt-4 pt-3 border-t border-gray-100">
+                            <p className="text-[10px] font-semibold text-gray-400 uppercase mb-2">বিষয়সমূহ</p>
+                            <div className="flex flex-wrap gap-1">
+                              {teacher.subject.map(s => (
+                                <span key={s} className="text-[10px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full border border-purple-100">{s}</span>
+                              ))}
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </div>
                     </div>
                   ))}

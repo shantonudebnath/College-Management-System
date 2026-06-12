@@ -64,12 +64,14 @@ export default function Navbar() {
                       {link.label} <ChevronDown size={14} />
                     </button>
                     {dropdown && (
-                      <div className="absolute top-full left-0 mt-1 w-44 bg-white rounded-xl shadow-xl border border-purple-100 overflow-hidden z-50">
-                        {link.children.map((child) => (
-                          <Link key={child.href} href={child.href} className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors">
-                            {child.label}
-                          </Link>
-                        ))}
+                      <div className="absolute top-full left-0 w-44 pt-1.5 z-50">
+                        <div className="bg-white rounded-xl shadow-xl border border-purple-100 overflow-hidden">
+                          {link.children.map((child) => (
+                            <Link key={child.href} href={child.href} className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors">
+                              {child.label}
+                            </Link>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>

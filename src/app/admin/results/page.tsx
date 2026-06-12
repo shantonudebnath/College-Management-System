@@ -1,12 +1,45 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { EXAM_RESULTS, MADRASHA_CLASSES } from '@/lib/data';
-import { Award, CheckCircle, Download, Printer, Eye, Search } from 'lucide-react';
+import { Award, CheckCircle, Download, Printer, Eye, Search, EyeOff } from 'lucide-react';
+import { useNotices } from '@/context/NoticesContext';
+
+const LS_KEY = 'published_results_v1';
+
+function getPublished(): string[] {
+  try { return JSON.parse(localStorage.getItem(LS_KEY) ?? '[]'); } catch { return []; }
+}
 
 export default function AdminResultsPage() {
-  const [published, setPublished] = useState(false);
+  const { addNotice } = useNotices();
+  const [publishedExams, setPublishedExams] = useState<string[]>([]);
   const [search, setSearch] = useState('');
+
+  useEffect(() => { setPublishedExams(getPublished()); }, []);
+
+  const examName = EXAM_RESULTS[0]?.examName ?? '';
+  const published = publishedExams.includes(examName);
+
+  const togglePublish = () => {
+    const isPublishing = !published;
+    const next = published
+      ? publishedExams.filter(e => e !== examName)
+      : [...publishedExams, examName];
+    setPublishedExams(next);
+    try { localStorage.setItem(LS_KEY, JSON.stringify(next)); } catch {}
+    if (isPublishing) {
+      const passCount = EXAM_RESULTS.filter(r => r.status === 'pass').length;
+      const pRate = Math.round((passCount / EXAM_RESULTS.length) * 100);
+      addNotice({
+        id: `n${Date.now()}`,
+        title: `${examName} — ফলাফল প্রকাশিত`,
+        content: `${examName} পরীক্ষার ফলাফল প্রকাশিত হয়েছে। মোট ${EXAM_RESULTS.length} জনের মধ্যে ${passCount} জন উত্তীর্ণ (পাশের হার: ${pRate}%)। শিক্ষার্থীরা নিজেদের পোর্টাল থেকে ফলাফল দেখতে পারবে।`,
+        date: new Date().toISOString().split('T')[0],
+        type: 'result', target: 'all', isImportant: true, postedBy: 'Admin',
+      });
+    }
+  };
 
   const filtered = EXAM_RESULTS.filter(r =>
     !search || r.studentName.toLowerCase().includes(search.toLowerCase()) || String(r.roll).includes(search)
@@ -55,13 +88,18 @@ export default function AdminResultsPage() {
               <Download size={14} /> PDF Export
             </button>
             {!published ? (
-              <button onClick={() => setPublished(true)} className="flex items-center gap-2 btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold">
+              <button onClick={togglePublish} className="flex items-center gap-2 btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold">
                 <Award size={15} /> ফলাফল প্রকাশ করুন
               </button>
             ) : (
-              <span className="flex items-center gap-2 bg-green-100 text-green-700 px-5 py-2.5 rounded-xl text-sm font-semibold">
-                <CheckCircle size={15} /> প্রকাশিত হয়েছে!
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2.5 rounded-xl text-sm font-semibold">
+                  <CheckCircle size={15} /> প্রকাশিত
+                </span>
+                <button onClick={togglePublish} className="flex items-center gap-2 border border-red-200 text-red-600 hover:bg-red-50 px-4 py-2.5 rounded-xl text-sm font-medium">
+                  <EyeOff size={14} /> প্রত্যাহার
+                </button>
+              </div>
             )}
           </div>
         </div>

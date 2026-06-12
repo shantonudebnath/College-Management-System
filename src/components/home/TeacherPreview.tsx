@@ -1,9 +1,11 @@
+'use client';
 import Link from 'next/link';
-import { TEACHERS } from '@/lib/data';
+import { useTeachers } from '@/context/TeachersContext';
 import { Phone, Mail, ArrowRight, User } from 'lucide-react';
 
 export default function TeacherPreview() {
-  const featured = TEACHERS.slice(0, 4);
+  const { teachers } = useTeachers();
+  const featured = teachers.slice(0, 4);
   return (
     <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4">
@@ -21,9 +23,10 @@ export default function TeacherPreview() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {featured.map(teacher => (
             <div key={teacher.id} className="bg-[#f8f7ff] rounded-2xl p-6 text-center card-hover border border-gray-100 hover:border-purple-200">
-              {/* Avatar */}
-              <div className="w-20 h-20 gradient-primary rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <User size={32} className="text-white" />
+              <div className="w-20 h-20 gradient-primary rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg overflow-hidden">
+                {teacher.image
+                  ? <img src={teacher.image} alt={teacher.name} className="w-full h-full object-cover" />
+                  : <User size={32} className="text-white" />}
               </div>
               <h3 className="font-semibold text-gray-900 text-sm leading-tight">{teacher.name}</h3>
               <p className="text-purple-600 text-xs font-medium mt-1">{teacher.designation}</p>

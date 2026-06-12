@@ -23,7 +23,10 @@ export interface Student {
   gender: string;
   religion: string;
   phone: string;
+  guardianPhone?: string;
   address: string;
+  bloodGroup?: string;
+  birthCertNo?: string;
   image?: string;
   registrationStatus: 'pending' | 'approved' | 'rejected';
   feeStatus: 'paid' | 'due' | 'partial';
@@ -39,6 +42,7 @@ export interface Teacher {
   department: string;
   subject: string[];
   classes: string[];
+  classSubjects?: Record<string, string[]>;
   phone: string;
   email: string;
   address: string;
@@ -102,6 +106,8 @@ export interface Notice {
   target: 'all' | 'student' | 'teacher';
   isImportant: boolean;
   postedBy: string;
+  attachmentName?: string;
+  attachmentData?: string;
 }
 
 export interface ExamSchedule {

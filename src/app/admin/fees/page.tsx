@@ -1,24 +1,62 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import { FEES, MADRASHA_CLASSES } from '@/lib/data';
-import { CreditCard, Plus, CheckCircle, AlertCircle, Download } from 'lucide-react';
+import { FEES, MADRASHA_CLASSES, STUDENTS } from '@/lib/data';
+import { Plus, CheckCircle, AlertCircle, Download, Trash2 } from 'lucide-react';
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
+import { useNotices } from '@/context/NoticesContext';
+import type { Fee } from '@/lib/types';
 
 export default function AdminFeesPage() {
-  const [fees, setFees] = useState(FEES);
+  const [fees, setFees] = useState<Fee[]>(() => {
+    if (typeof window === 'undefined') return FEES;
+    try {
+      const stored = localStorage.getItem('fees_store');
+      return stored ? JSON.parse(stored) : FEES;
+    } catch { return FEES; }
+  });
+  const { addNotice } = useNotices();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ feeType: '', class: 'class-10', amount: '', dueDate: '' });
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [payConfirm, setPayConfirm] = useState<{ id: string; name: string } | null>(null);
+  const [unpayConfirm, setUnpayConfirm] = useState<{ id: string; name: string } | null>(null);
+
+  useEffect(() => {
+    localStorage.setItem('fees_store', JSON.stringify(fees));
+  }, [fees]);
 
   const totalCollected = fees.filter(f => f.status === 'paid').reduce((s, f) => s + f.amount, 0);
   const totalDue = fees.filter(f => f.status !== 'paid').reduce((s, f) => s + f.amount, 0);
 
   const addFee = () => {
     if (!form.feeType || !form.amount) return;
+    const className = MADRASHA_CLASSES.find(c => c.id === form.class)?.nameBn ?? form.class;
+    const classStudents = STUDENTS.filter(s => s.class === form.class);
+    const newFees = classStudents.map(s => ({
+      id: `f${Date.now()}-${s.id}`,
+      studentId: s.id,
+      studentName: s.name,
+      class: form.class,
+      feeType: form.feeType,
+      amount: Number(form.amount),
+      dueDate: form.dueDate || '—',
+      status: 'due' as const,
+    }));
+    setFees(p => [...p, ...newFees]);
+    addNotice({
+      id: `n${Date.now()}`,
+      title: `${form.feeType} ফি নির্ধারণ — ${className}`,
+      content: `${className} শ্রেণির ${classStudents.length} জন শিক্ষার্থীর জন্য ${form.feeType} বাবদ ৳${form.amount} নির্ধারণ করা হয়েছে।${form.dueDate ? ` পরিশোধের শেষ তারিখ: ${form.dueDate}।` : ''} নির্ধারিত সময়ের মধ্যে পরিশোধ করার অনুরোধ করা হচ্ছে।`,
+      date: new Date().toISOString().split('T')[0],
+      type: 'fee', target: 'student', isImportant: false, postedBy: 'Admin',
+    });
     setShowForm(false);
     setForm({ feeType: '', class: 'class-10', amount: '', dueDate: '' });
   };
 
-  const markPaid = (id: string) => setFees(p => p.map(f => f.id === id ? { ...f, status: 'paid', paidDate: new Date().toISOString().split('T')[0], receiptNo: `RCP-2024-${Math.random().toFixed(3).slice(2)}` } : f));
+  const markPaid = (id: string) => setFees(p => p.map(f => f.id === id ? { ...f, status: 'paid' as const, paidDate: new Date().toISOString().split('T')[0], receiptNo: `RCP-2024-${Math.random().toFixed(3).slice(2)}` } : f));
+  const markDue = (id: string) => setFees(p => p.map(f => f.id === id ? { ...f, status: 'due' as const, paidDate: undefined, receiptNo: undefined } : f));
 
   return (
     <div>
@@ -101,7 +139,7 @@ export default function AdminFeesPage() {
                 {fees.map(fee => (
                   <tr key={fee.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-5 py-3 font-medium text-gray-900">{fee.studentName}</td>
-                    <td className="px-5 py-3 text-gray-500 text-xs">{fee.class}</td>
+                    <td className="px-5 py-3 text-gray-500 text-xs">{MADRASHA_CLASSES.find(c => c.id === fee.class)?.nameBn ?? fee.class}</td>
                     <td className="px-5 py-3 text-gray-600">{fee.feeType}</td>
                     <td className="px-5 py-3 text-right font-bold">৳ {fee.amount}</td>
                     <td className="px-5 py-3 text-center text-gray-500 text-xs">{fee.dueDate}</td>
@@ -111,9 +149,14 @@ export default function AdminFeesPage() {
                       </span>
                     </td>
                     <td className="px-5 py-3 text-center">
-                      {fee.status !== 'paid' && (
-                        <button onClick={() => markPaid(fee.id)} className="text-xs text-purple-600 font-semibold hover:underline">পরিশোধ চিহ্নিত করুন</button>
-                      )}
+                      <div className="flex items-center justify-center gap-2">
+                        {fee.status !== 'paid' ? (
+                          <button onClick={() => setPayConfirm({ id: fee.id, name: `${fee.studentName} — ${fee.feeType}` })} className="text-xs text-purple-600 font-semibold hover:underline whitespace-nowrap">পরিশোধ চিহ্নিত করুন</button>
+                        ) : (
+                          <button onClick={() => setUnpayConfirm({ id: fee.id, name: `${fee.studentName} — ${fee.feeType}` })} className="text-xs text-amber-600 font-semibold hover:underline whitespace-nowrap">বকেয়া করুন</button>
+                        )}
+                        <button onClick={() => setDeleteTarget({ id: fee.id, name: `${fee.studentName} — ${fee.feeType}` })} className="w-7 h-7 bg-red-50 text-red-600 rounded-lg flex items-center justify-center hover:bg-red-100 ml-1"><Trash2 size={13} /></button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -122,6 +165,52 @@ export default function AdminFeesPage() {
           </div>
         </div>
       </div>
+
+      {deleteTarget && (
+        <ConfirmDeleteModal
+          itemName={deleteTarget.name}
+          onConfirm={() => { setFees(p => p.filter(f => f.id !== deleteTarget.id)); setDeleteTarget(null); }}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+
+      {payConfirm && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
+            <div className="p-6 text-center">
+              <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle size={24} className="text-green-600" />
+              </div>
+              <h3 className="font-bold text-gray-900 text-lg mb-2">পরিশোধ নিশ্চিত করবেন?</h3>
+              <p className="text-sm text-gray-500 mb-1"><span className="font-semibold text-gray-700">&ldquo;{payConfirm.name}&rdquo;</span></p>
+              <p className="text-sm text-gray-400">এই ফি পরিশোধিত হিসেবে চিহ্নিত হবে।</p>
+            </div>
+            <div className="flex gap-3 px-6 pb-6">
+              <button onClick={() => setPayConfirm(null)} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors">বাতিল</button>
+              <button onClick={() => { markPaid(payConfirm.id); setPayConfirm(null); }} className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-bold transition-colors">হ্যাঁ, পরিশোধিত</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {unpayConfirm && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
+            <div className="p-6 text-center">
+              <div className="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertCircle size={24} className="text-amber-600" />
+              </div>
+              <h3 className="font-bold text-gray-900 text-lg mb-2">বকেয়া করবেন?</h3>
+              <p className="text-sm text-gray-500 mb-1"><span className="font-semibold text-gray-700">&ldquo;{unpayConfirm.name}&rdquo;</span></p>
+              <p className="text-sm text-gray-400">এই ফি-এর পরিশোধ বাতিল হয়ে বকেয়া হিসেবে চিহ্নিত হবে।</p>
+            </div>
+            <div className="flex gap-3 px-6 pb-6">
+              <button onClick={() => setUnpayConfirm(null)} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors">বাতিল</button>
+              <button onClick={() => { markDue(unpayConfirm.id); setUnpayConfirm(null); }} className="flex-1 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-bold transition-colors">হ্যাঁ, বকেয়া করুন</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

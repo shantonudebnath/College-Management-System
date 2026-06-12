@@ -4,21 +4,50 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { GraduationCap, Eye, EyeOff, User, Lock, ArrowRight } from 'lucide-react';
 import { COLLEGE_INFO } from '@/lib/data';
+import { createClient } from '@/lib/supabase/client';
+
+const DOMAIN = 'noorislammadrasha.edu.bd';
 
 export default function LoginPage() {
   const router = useRouter();
   const [role, setRole] = useState<'student' | 'teacher' | 'admin'>('student');
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [form, setForm] = useState({ id: '', password: '' });
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1200));
-    if (role === 'student') router.push('/student/dashboard');
-    else if (role === 'teacher') router.push('/teacher/dashboard');
+    setError('');
+
+    const email = `${form.id.toLowerCase().replace(/\s+/g, '')}@${DOMAIN}`;
+    const supabase = createClient();
+
+    const { data, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password: form.password,
+    });
+
+    if (authError || !data.user) {
+      setError('আইডি বা পাসওয়ার্ড ভুল হয়েছে। আবার চেষ্টা করুন।');
+      setLoading(false);
+      return;
+    }
+
+    // Fetch profile to determine role-based redirect
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', data.user.id)
+      .single();
+
+    const userRole = profile?.role ?? role;
+    if (userRole === 'student') router.push('/student/dashboard');
+    else if (userRole === 'teacher') router.push('/teacher/dashboard');
     else router.push('/admin/dashboard');
+
+    router.refresh();
   };
 
   const ROLE_LABELS = { student: 'ছাত্র', teacher: 'শিক্ষক', admin: 'অ্যাডমিন' };
@@ -80,6 +109,12 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
+
+            {error && (
+              <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                {error}
+              </p>
+            )}
 
             <div className="flex items-center justify-between text-xs">
               <label className="flex items-center gap-2 text-gray-600 cursor-pointer">

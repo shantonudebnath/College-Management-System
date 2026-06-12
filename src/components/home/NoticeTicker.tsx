@@ -1,8 +1,11 @@
-import { NOTICES } from '@/lib/data';
+'use client';
+import { useNotices } from '@/context/NoticesContext';
 import { AlertCircle } from 'lucide-react';
 
 export default function NoticeTicker() {
-  const urgent = NOTICES.filter(n => n.isImportant);
+  const { notices } = useNotices();
+  const urgent = notices.filter(n => n.isImportant);
+  if (urgent.length === 0) return null;
   return (
     <div className="bg-amber-50 border-b border-amber-200 py-2 overflow-hidden">
       <div className="flex items-center max-w-full">

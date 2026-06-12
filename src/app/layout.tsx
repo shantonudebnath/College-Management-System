@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { TeachersProvider } from '@/context/TeachersContext';
+import { NoticesProvider } from '@/context/NoticesContext';
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -15,7 +17,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
       </head>
-      <body className="min-h-screen bg-[#f8f7ff] antialiased">{children}</body>
+      <body className="min-h-screen bg-[#f8f7ff] antialiased">
+        <TeachersProvider><NoticesProvider>{children}</NoticesProvider></TeachersProvider>
+      </body>
     </html>
   );
 }

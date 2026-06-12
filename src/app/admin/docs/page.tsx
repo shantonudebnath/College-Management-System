@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { FolderOpen, FileText, Upload, Trash2, Download, Plus } from 'lucide-react';
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
 
 const INITIAL_DOCS = [
   { id: 'd1', name: 'মাদ্রাসার অনুমোদনপত্র ২০২৪', type: 'PDF', size: '2.4 MB', date: '2024-01-10', category: 'অফিশিয়াল' },
@@ -21,6 +22,7 @@ export default function AdminDocsPage() {
   const [docs, setDocs] = useState(INITIAL_DOCS);
   const [showUpload, setShowUpload] = useState(false);
   const [form, setForm] = useState({ name: '', category: 'অফিশিয়াল' });
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   const addDoc = () => {
     if (!form.name) return;
@@ -78,13 +80,21 @@ export default function AdminDocsPage() {
                 <span>{doc.date} · {doc.size}</span>
                 <div className="flex gap-1">
                   <button className="w-7 h-7 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center hover:bg-blue-100"><Download size={12} /></button>
-                  <button onClick={() => setDocs(p => p.filter(d => d.id !== doc.id))} className="w-7 h-7 bg-red-50 text-red-600 rounded-lg flex items-center justify-center hover:bg-red-100"><Trash2 size={12} /></button>
+                  <button onClick={() => setDeleteTarget({ id: doc.id, name: doc.name })} className="w-7 h-7 bg-red-50 text-red-600 rounded-lg flex items-center justify-center hover:bg-red-100"><Trash2 size={12} /></button>
                 </div>
               </div>
             </div>
           ))}
         </div>
       </div>
+
+      {deleteTarget && (
+        <ConfirmDeleteModal
+          itemName={deleteTarget.name}
+          onConfirm={() => { setDocs(p => p.filter(d => d.id !== deleteTarget.id)); setDeleteTarget(null); }}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
     </div>
   );
 }

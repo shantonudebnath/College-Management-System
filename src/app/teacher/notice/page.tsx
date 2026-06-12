@@ -1,6 +1,7 @@
+'use client';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import { NOTICES } from '@/lib/data';
-import { Bell, AlertCircle } from 'lucide-react';
+import { useNotices } from '@/context/NoticesContext';
+import { Bell, AlertCircle, Paperclip } from 'lucide-react';
 
 const TYPE_COLORS: Record<string, string> = {
   exam: 'bg-blue-100 text-blue-700', fee: 'bg-amber-100 text-amber-700',
@@ -10,13 +11,17 @@ const TYPE_LABELS: Record<string, string> = {
   exam: 'পরীক্ষা', fee: 'ফি', result: 'ফলাফল', holiday: 'ছুটি', general: 'সাধারণ',
 };
 
-const teacherNotices = NOTICES.filter(n => n.target === 'all' || n.target === 'teacher');
-
 export default function TeacherNoticePage() {
+  const { notices } = useNotices();
+  const teacherNotices = notices.filter(n => n.target === 'all' || n.target === 'teacher');
+
   return (
     <div>
       <DashboardHeader title="নোটিশ বোর্ড" subtitle="অ্যাডমিনের পাঠানো নোটিশ" userName="Md. Shafiqul Islam" role="শিক্ষক" />
       <div className="p-6 space-y-4">
+        {teacherNotices.length === 0 && (
+          <div className="text-center py-10 text-gray-400 text-sm">কোনো নোটিশ নেই।</div>
+        )}
         {teacherNotices.map(notice => (
           <div key={notice.id} className={`bg-white rounded-2xl border p-5 transition-all hover:shadow-md ${notice.isImportant ? 'border-red-200 bg-red-50/30' : 'border-gray-100 hover:border-purple-200'}`}>
             <div className="flex items-start gap-3">
@@ -31,6 +36,12 @@ export default function TeacherNoticePage() {
                   </span>
                 </div>
                 <p className="text-sm text-gray-600 mt-2 leading-relaxed">{notice.content}</p>
+                {notice.attachmentData && (
+                  <a href={notice.attachmentData} download={notice.attachmentName ?? 'file'}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 mt-2 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-100 transition-colors">
+                    <Paperclip size={11} /> PDF — {notice.attachmentName}
+                  </a>
+                )}
                 <p className="text-[11px] text-gray-400 mt-3">📅 {notice.date} · 👤 {notice.postedBy}</p>
               </div>
             </div>

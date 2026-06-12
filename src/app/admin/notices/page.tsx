@@ -1,25 +1,43 @@
 'use client';
 import { useState } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import { NOTICES } from '@/lib/data';
-import { Bell, Plus, Trash2, Edit, AlertCircle, Send } from 'lucide-react';
+import { useNotices } from '@/context/NoticesContext';
+import { Bell, Plus, Trash2, Edit, AlertCircle, Send, Paperclip, X } from 'lucide-react';
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
 import type { Notice } from '@/lib/types';
 
 export default function AdminNoticesPage() {
-  const [notices, setNotices] = useState(NOTICES);
+  const { notices, addNotice, deleteNotice } = useNotices();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: '', content: '', type: 'general', target: 'all', isImportant: false });
+  const [attachFile, setAttachFile] = useState<{ name: string; data: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
-  const addNotice = () => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) { setAttachFile(null); return; }
+    if (file.size > 512 * 1024) {
+      alert('ফাইল সাইজ ৫০০KB এর বেশি হতে পারবে না।');
+      e.target.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setAttachFile({ name: file.name, data: reader.result as string });
+    reader.readAsDataURL(file);
+  };
+
+  const handleAdd = () => {
     if (!form.title || !form.content) return;
     const n: Notice = {
       id: `n${Date.now()}`, title: form.title, content: form.content,
-      date: new Date().toISOString().split('T')[0], type: form.type as any,
-      target: form.target as any, isImportant: form.isImportant, postedBy: 'Admin',
+      date: new Date().toISOString().split('T')[0], type: form.type as Notice['type'],
+      target: form.target as Notice['target'], isImportant: form.isImportant, postedBy: 'Admin',
+      ...(attachFile ? { attachmentName: attachFile.name, attachmentData: attachFile.data } : {}),
     };
-    setNotices(p => [n, ...p]);
+    addNotice(n);
     setShowForm(false);
     setForm({ title: '', content: '', type: 'general', target: 'all', isImportant: false });
+    setAttachFile(null);
   };
 
   const TYPE_LABELS: Record<string, string> = { exam: 'পরীক্ষা', fee: 'ফি', result: 'ফলাফল', holiday: 'ছুটি', general: 'সাধারণ' };
@@ -46,6 +64,25 @@ export default function AdminNoticesPage() {
             <textarea value={form.content} onChange={e => setForm(p => ({ ...p, content: e.target.value }))}
               placeholder="নোটিশের বিষয়বস্তু *" rows={4}
               className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400 resize-none" />
+
+            {/* File attachment */}
+            <div>
+              <label className="text-xs font-semibold text-gray-600 block mb-1.5">ফাইল সংযুক্ত করুন <span className="text-gray-400 font-normal">(ঐচ্ছিক · সর্বোচ্চ ৫০০KB)</span></label>
+              {attachFile ? (
+                <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-xl">
+                  <Paperclip size={14} className="text-blue-600 shrink-0" />
+                  <span className="text-sm text-blue-700 flex-1 truncate">{attachFile.name}</span>
+                  <button onClick={() => setAttachFile(null)} className="text-xs text-red-500 hover:text-red-700 shrink-0 flex items-center gap-1">
+                    <X size={12} /> সরান
+                  </button>
+                </div>
+              ) : (
+                <input type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                  onChange={handleFileChange}
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400 file:mr-3 file:text-xs file:font-semibold file:text-purple-700 file:bg-purple-50 file:border-0 file:rounded-lg file:px-2.5 file:py-1.5 file:cursor-pointer" />
+              )}
+            </div>
+
             <div className="flex flex-wrap gap-3">
               <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))}
                 className="px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400">
@@ -61,8 +98,8 @@ export default function AdminNoticesPage() {
               </label>
             </div>
             <div className="flex gap-2">
-              <button onClick={addNotice} className="flex items-center gap-2 btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold"><Send size={14} /> প্রকাশ করুন</button>
-              <button onClick={() => setShowForm(false)} className="px-5 py-2.5 border border-gray-200 rounded-xl text-sm hover:bg-gray-50">বাতিল</button>
+              <button onClick={handleAdd} className="flex items-center gap-2 btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold"><Send size={14} /> প্রকাশ করুন</button>
+              <button onClick={() => { setShowForm(false); setAttachFile(null); }} className="px-5 py-2.5 border border-gray-200 rounded-xl text-sm hover:bg-gray-50">বাতিল</button>
             </div>
           </div>
         )}
@@ -80,16 +117,30 @@ export default function AdminNoticesPage() {
                   <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full shrink-0">{TARGET_LABELS[notice.target]}</span>
                 </div>
                 <p className="text-sm text-gray-600 line-clamp-2">{notice.content}</p>
+                {notice.attachmentData && (
+                  <a href={notice.attachmentData} download={notice.attachmentName ?? 'file'}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 mt-2 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-100 transition-colors">
+                    <Paperclip size={11} /> PDF — {notice.attachmentName}
+                  </a>
+                )}
                 <p className="text-xs text-gray-400 mt-2">📅 {notice.date}</p>
               </div>
               <div className="flex gap-1 shrink-0">
                 <button className="w-8 h-8 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center hover:bg-purple-100"><Edit size={14} /></button>
-                <button onClick={() => setNotices(p => p.filter(n => n.id !== notice.id))} className="w-8 h-8 bg-red-50 text-red-600 rounded-lg flex items-center justify-center hover:bg-red-100"><Trash2 size={14} /></button>
+                <button onClick={() => setDeleteTarget({ id: notice.id, name: notice.title })} className="w-8 h-8 bg-red-50 text-red-600 rounded-lg flex items-center justify-center hover:bg-red-100"><Trash2 size={14} /></button>
               </div>
             </div>
           ))}
         </div>
       </div>
+
+      {deleteTarget && (
+        <ConfirmDeleteModal
+          itemName={deleteTarget.name}
+          onConfirm={() => { deleteNotice(deleteTarget.id); setDeleteTarget(null); }}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
     </div>
   );
 }

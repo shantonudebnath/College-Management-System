@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { EXAM_RESULTS, MADRASHA_CLASSES, GRADE_SCALE } from '@/lib/data';
+import { EXAM_RESULTS, MADRASHA_CLASSES, getGradeScale } from '@/lib/data';
 import { Search, Award, Download, Printer, CheckCircle, XCircle } from 'lucide-react';
 import type { ExamResult } from '@/lib/types';
 
@@ -13,6 +13,85 @@ export default function ResultPage() {
   const [result, setResult] = useState<ExamResult | null>(null);
   const [searched, setSearched] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const downloadPdf = () => {
+    if (!result) return;
+    const className = MADRASHA_CLASSES.find(c => c.id === result.class)?.nameBn ?? result.class;
+    const subjectRows = result.subjects.map((s, i) =>
+      `<tr style="background:${i % 2 === 0 ? '#fff' : '#f5f4ff'}">
+        <td style="text-align:left;padding:5px 8px;border:1px solid #ddd">${s.name}</td>
+        <td style="text-align:center;padding:5px 8px;border:1px solid #ddd;font-weight:600">${s.marks}</td>
+        <td style="text-align:center;padding:5px 8px;border:1px solid #ddd;font-weight:700;color:#1e1b4b">${s.grade}</td>
+      </tr>`
+    ).join('');
+    const statusColor = result.status === 'pass' ? '#15803d' : '#dc2626';
+    const html = `<!DOCTYPE html><html lang="bn"><head>
+<meta charset="utf-8"><title>ফলাফল — ${result.studentName}</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:Arial,sans-serif;padding:24px 28px;font-size:11px;color:#111}
+  .hdr{text-align:center;border-bottom:3px double #1e1b4b;padding-bottom:10px;margin-bottom:14px}
+  .inst-name{font-size:20px;font-weight:900;color:#1e1b4b}
+  .inst-en{font-size:9px;color:#666;font-style:italic;margin-top:2px}
+  .inst-addr{font-size:9px;color:#555;margin-top:3px}
+  .result-box{border:2px solid #1e1b4b;border-radius:4px;padding:8px 16px;text-align:center;margin:10px 0 14px;background:#f8f7ff}
+  .result-title{font-size:15px;font-weight:bold;color:#1e1b4b}
+  .result-sub{font-size:10px;color:#444;margin-top:3px}
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 20px;margin-bottom:14px;border:1px solid #ddd;padding:10px;border-radius:3px;background:#fafafa}
+  .info-row{display:flex;gap:6px;font-size:10.5px;padding:2px 0}
+  .info-lbl{color:#666;min-width:80px}
+  .info-val{font-weight:600}
+  table{width:100%;border-collapse:collapse;font-size:10.5px;margin-bottom:12px}
+  thead th{background:#1e1b4b;color:#fff;padding:6px 8px;border:1px solid #1e1b4b}
+  .summary{display:flex;gap:0;border:1px solid #ddd;border-radius:3px;overflow:hidden;margin-bottom:14px;text-align:center}
+  .summary-item{flex:1;padding:10px 6px;border-right:1px solid #ddd}
+  .summary-item:last-child{border-right:none}
+  .summary-val{font-size:18px;font-weight:900;color:#1e1b4b}
+  .summary-lbl{font-size:9px;color:#666;margin-top:2px}
+  .status{display:inline-block;padding:4px 14px;border-radius:20px;font-weight:700;font-size:12px;color:#fff;background:${statusColor};margin-bottom:14px}
+  .footer{margin-top:24px;border-top:1px solid #ccc;padding-top:12px;display:flex;justify-content:space-between}
+  .sig-col{text-align:center;min-width:120px}
+  .sig-line{border-top:1px solid #333;padding-top:4px;font-size:9.5px;font-weight:600}
+  .sig-sub{font-size:8.5px;color:#666;margin-top:2px}
+  @media print{@page{size:A4 portrait;margin:1.2cm}}
+</style>
+</head><body>
+<div class="hdr">
+  <div class="inst-name">নূরে ইসলাম মাদ্রাসা</div>
+  <div class="inst-en">Noor-e-Islam Madrasha</div>
+  <div class="inst-addr">ঢাকা, বাংলাদেশ</div>
+</div>
+<div class="result-box">
+  <div class="result-title">পরীক্ষার ফলাফল</div>
+  <div class="result-sub">${result.examName} | শিক্ষাবর্ষ: ${result.year} | ${className}</div>
+</div>
+<div class="info-grid">
+  <div class="info-row"><span class="info-lbl">শিক্ষার্থীর নাম</span><span class="info-val">${result.studentName}</span></div>
+  <div class="info-row"><span class="info-lbl">রোল নম্বর</span><span class="info-val">${result.roll}</span></div>
+  <div class="info-row"><span class="info-lbl">শ্রেণি</span><span class="info-val">${className}</span></div>
+  <div class="info-row"><span class="info-lbl">পরীক্ষার নাম</span><span class="info-val">${result.examName}</span></div>
+</div>
+<div class="summary">
+  <div class="summary-item"><div class="summary-val">${result.totalMarks}</div><div class="summary-lbl">মোট নম্বর</div></div>
+  <div class="summary-item"><div class="summary-val" style="color:#7c3aed">${result.gpa.toFixed(2)}</div><div class="summary-lbl">GPA</div></div>
+  <div class="summary-item"><div class="summary-val" style="color:${statusColor}">${result.grade}</div><div class="summary-lbl">গ্রেড</div></div>
+</div>
+<div style="text-align:center"><span class="status">${result.status === 'pass' ? '✓ উত্তীর্ণ' : '✗ অনুত্তীর্ণ'}</span></div>
+<table>
+  <thead><tr><th style="text-align:left">বিষয়</th><th>নম্বর</th><th>গ্রেড</th></tr></thead>
+  <tbody>${subjectRows}</tbody>
+</table>
+<div class="footer">
+  <div class="sig-col"><div class="sig-line">পরীক্ষা নিয়ন্ত্রক</div><div class="sig-sub">নূরে ইসলাম মাদ্রাসা</div></div>
+  <div class="sig-col"><div class="sig-line">অধ্যক্ষ</div><div class="sig-sub">নূরে ইসলাম মাদ্রাসা</div></div>
+</div>
+<script>window.addEventListener('load', function() { setTimeout(function() { window.print(); }, 400); });<\/script>
+</body></html>`;
+    const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,7 +227,7 @@ export default function ResultPage() {
                   <button onClick={() => window.print()} className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors">
                     <Printer size={15} /> প্রিন্ট
                   </button>
-                  <button className="flex-1 flex items-center justify-center gap-2 py-2.5 btn-primary rounded-xl text-sm font-semibold">
+                  <button onClick={downloadPdf} className="flex-1 flex items-center justify-center gap-2 py-2.5 btn-primary rounded-xl text-sm font-semibold">
                     <Download size={15} /> PDF ডাউনলোড
                   </button>
                 </div>
@@ -158,13 +237,18 @@ export default function ResultPage() {
 
           {/* Grade scale reference */}
           <div className="mt-6 bg-white rounded-2xl p-5 border border-gray-100">
-            <h3 className="font-semibold text-sm text-gray-900 mb-3">গ্রেডিং স্কেল</h3>
+            <h3 className="font-semibold text-sm text-gray-900 mb-1">গ্রেডিং স্কেল</h3>
+            <p className="text-xs text-gray-400 mb-3">
+              {['class-1','class-2','class-3','class-4','class-5'].includes(classId)
+                ? 'ইবতেদায়ি (১ম–৫ম শ্রেণি) — পাসমার্ক ৪০%'
+                : 'দাখিল / আলিম — BMEB মান অনুযায়ী, পাসমার্ক ৩৩'}
+            </p>
             <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
-              {GRADE_SCALE.map(g => (
+              {getGradeScale(classId).map(g => (
                 <div key={g.grade} className={`text-center p-2 rounded-xl ${getGradeColor(g.grade)}`}>
                   <p className="font-bold text-sm">{g.grade}</p>
                   <p className="text-[10px] mt-0.5">{g.min}–{g.max}</p>
-                  <p className="text-[10px] font-medium">{g.gpa}</p>
+                  {'gpa' in g && <p className="text-[10px] font-medium">{(g as {gpa: number}).gpa}</p>}
                 </div>
               ))}
             </div>

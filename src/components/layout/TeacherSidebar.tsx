@@ -2,10 +2,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ClipboardList, BarChart2, BookOpen, FileText, HelpCircle, Upload, CreditCard, Bell, UserCheck, ChevronLeft, ChevronRight, GraduationCap, LogOut, User, X } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, BarChart2, BookOpen, FileText, HelpCircle, Upload, CreditCard, Bell, UserCheck, ChevronLeft, ChevronRight, GraduationCap, LogOut, User, X, LayoutGrid, ChevronDown } from 'lucide-react';
+import { useTeachers } from '@/context/TeachersContext';
+import { useCurrentTeacher } from '@/context/CurrentTeacherContext';
+import { MADRASHA_CLASSES } from '@/lib/data';
 
 const MENU = [
   { label: 'ড্যাশবোর্ড', href: '/teacher/dashboard', icon: LayoutDashboard },
+  { label: 'ক্লাস রুটিন', href: '/teacher/routine', icon: LayoutGrid },
   { label: 'উপস্থিতি গ্রহণ', href: '/teacher/attendance', icon: ClipboardList },
   { label: 'নম্বর প্রদান', href: '/teacher/marks', icon: BarChart2 },
   { label: 'সিলেবাস তৈরি', href: '/teacher/syllabus', icon: BookOpen },
@@ -17,6 +21,64 @@ const MENU = [
   { label: 'নোটিশ', href: '/teacher/notice', icon: Bell },
   { label: 'আমার প্রোফাইল', href: '/teacher/profile', icon: User },
 ];
+
+function TeacherSelector({ collapsed }: { collapsed: boolean }) {
+  const { teachers } = useTeachers();
+  const { currentTeacherId, assignedClassId, setCurrentTeacher, clearCurrentTeacher } = useCurrentTeacher();
+  const [open, setOpen] = useState(false);
+
+  const currentTeacher = teachers.find(t => t.id === currentTeacherId);
+  const assignedClass = MADRASHA_CLASSES.find(c => c.id === assignedClassId);
+
+  if (collapsed) return null;
+
+  return (
+    <div className="px-3 py-3 border-b border-gray-100 relative">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs transition-colors ${currentTeacher ? 'bg-purple-50 hover:bg-purple-100' : 'bg-amber-50 hover:bg-amber-100 border border-amber-200'}`}
+      >
+        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-white text-xs font-bold ${currentTeacher ? 'gradient-primary' : 'bg-amber-400'}`}>
+          {currentTeacher ? (currentTeacher.nameBn || currentTeacher.name)[0] : '?'}
+        </div>
+        <div className="flex-1 text-left min-w-0">
+          {currentTeacher ? (
+            <>
+              <p className="font-semibold text-gray-800 truncate">{currentTeacher.nameBn || currentTeacher.name}</p>
+              <p className="text-[10px] text-purple-500 truncate">{assignedClass ? assignedClass.nameBn : 'কোনো শ্রেণি নেই'}</p>
+            </>
+          ) : (
+            <p className="font-semibold text-amber-700">শিক্ষক নির্বাচন করুন</p>
+          )}
+        </div>
+        <ChevronDown size={13} className={`shrink-0 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="absolute left-3 right-3 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-56 overflow-y-auto">
+          {currentTeacher && (
+            <button
+              onClick={() => { clearCurrentTeacher(); setOpen(false); }}
+              className="w-full px-3 py-2 text-left text-xs text-red-500 hover:bg-red-50 transition-colors border-b border-gray-100"
+            >
+              লগআউট
+            </button>
+          )}
+          {teachers.map(t => (
+            <button
+              key={t.id}
+              onClick={() => { setCurrentTeacher(t.id); setOpen(false); }}
+              className={`w-full px-3 py-2.5 text-left text-xs hover:bg-purple-50 transition-colors ${t.id === currentTeacherId ? 'bg-purple-50 text-purple-700 font-semibold' : 'text-gray-700'}`}
+            >
+              <p className="font-medium">{t.nameBn || t.name}</p>
+              <p className="text-[10px] text-gray-400">{t.designation}</p>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function SidebarContent({ collapsed, setCollapsed, onClose }: { collapsed: boolean; setCollapsed: (v: boolean) => void; onClose?: () => void }) {
   const pathname = usePathname();
@@ -45,6 +107,8 @@ function SidebarContent({ collapsed, setCollapsed, onClose }: { collapsed: boole
           </button>
         </div>
       </div>
+
+      <TeacherSelector collapsed={collapsed} />
 
       <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
         {MENU.map(({ label, href, icon: Icon }) => {

@@ -1,14 +1,28 @@
+'use client';
+import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { FEES } from '@/lib/data';
 import { CreditCard, CheckCircle, Clock, AlertCircle, Download } from 'lucide-react';
+import type { Fee } from '@/lib/types';
 
-const studentFees = FEES.filter(f => f.studentId === 's1');
-const paid = studentFees.filter(f => f.status === 'paid');
-const due = studentFees.filter(f => f.status !== 'paid');
-const totalPaid = paid.reduce((s, f) => s + f.amount, 0);
-const totalDue = due.reduce((s, f) => s + f.amount, 0);
+const STUDENT_ID = 's1';
 
 export default function StudentFeesPage() {
+  const [allFees, setAllFees] = useState<Fee[]>(FEES);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('fees_store');
+      if (stored) setAllFees(JSON.parse(stored));
+    } catch { /* ignore */ }
+  }, []);
+
+  const studentFees = allFees.filter(f => f.studentId === STUDENT_ID);
+  const paid = studentFees.filter(f => f.status === 'paid');
+  const due = studentFees.filter(f => f.status !== 'paid');
+  const totalPaid = paid.reduce((s, f) => s + f.amount, 0);
+  const totalDue = due.reduce((s, f) => s + f.amount, 0);
+
   return (
     <div>
       <DashboardHeader title="ফি বিবরণ" subtitle="আপনার ফি পরিশোধের তথ্য" userName="Mohammad Rafiqul Islam" role="ছাত্র" />
