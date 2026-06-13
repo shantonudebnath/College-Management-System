@@ -1,102 +1,310 @@
+'use client';
+import { useState, useMemo } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import { TEACHERS, MADRASHA_CLASSES } from '@/lib/data';
-import { ClipboardList, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { TEACHERS, STUDENTS } from '@/lib/data';
+import { CheckCircle, XCircle, Clock, Calendar, Users, GraduationCap, ChevronLeft, ChevronRight } from 'lucide-react';
 
-const TEACHER_ATTENDANCE = TEACHERS.map(t => ({
-  ...t,
-  todayStatus: ['present', 'present', 'present', 'absent', 'present', 'present'][TEACHERS.indexOf(t)] as 'present' | 'absent' | 'late',
-  monthPresent: [22, 20, 21, 18, 22, 19][TEACHERS.indexOf(t)],
-  monthTotal: 22,
-}));
+const MONTHS = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
+const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+const WEEK_DAYS = ['শনি', 'রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহ', 'শুক্র'];
+
+type DayStatus = 'present' | 'absent' | 'late' | 'holiday';
+
+const seed = (id: string, month: number, year: number, day: number) => {
+  let h = 0;
+  const str = `${id}-${year}-${month}-${day}`;
+  for (let i = 0; i < str.length; i++) h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
+  return Math.abs(h) / 2147483647;
+};
+
+const getStatus = (id: string, month: number, year: number, day: number): DayStatus => {
+  const r = seed(id, month, year, day);
+  if (r < 0.04) return 'holiday';
+  if (r < 0.10) return 'absent';
+  if (r < 0.16) return 'late';
+  return 'present';
+};
+
+const STATUS_STYLE: Record<DayStatus, string> = {
+  present: 'bg-green-100 text-green-700 border-green-200',
+  absent: 'bg-red-100 text-red-700 border-red-200',
+  late: 'bg-amber-100 text-amber-700 border-amber-200',
+  holiday: 'bg-gray-100 text-gray-400 border-gray-200',
+};
+
+const CURRENT_YEAR = new Date().getFullYear();
+const YEARS = [CURRENT_YEAR - 1, CURRENT_YEAR, CURRENT_YEAR + 1];
 
 export default function AdminAttendancePage() {
-  const present = TEACHER_ATTENDANCE.filter(t => t.todayStatus === 'present').length;
-  const absent = TEACHER_ATTENDANCE.filter(t => t.todayStatus === 'absent').length;
+  const [section, setSection] = useState<'teacher' | 'student'>('teacher');
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(CURRENT_YEAR);
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+
+  const people = section === 'teacher' ? TEACHERS : STUDENTS;
+  const totalDays = DAYS_IN_MONTH[selectedMonth];
+
+  const calendarOffset = useMemo(() => {
+    const d = new Date(selectedYear, selectedMonth, 1).getDay();
+    return (d + 1) % 7;
+  }, [selectedMonth, selectedYear]);
+
+  const dayStats = useMemo(() => {
+    return Array.from({ length: totalDays }, (_, i) => {
+      const day = i + 1;
+      const statuses = people.map(p => getStatus(p.id, selectedMonth, selectedYear, day));
+      return {
+        day,
+        present: statuses.filter(s => s === 'present').length,
+        absent: statuses.filter(s => s === 'absent').length,
+        late: statuses.filter(s => s === 'late').length,
+        holiday: statuses.filter(s => s === 'holiday').length,
+        total: people.length,
+      };
+    });
+  }, [people, selectedMonth, selectedYear, totalDays]);
+
+  const monthSummary = useMemo(() => {
+    const allStatuses = people.flatMap(p =>
+      Array.from({ length: totalDays }, (_, i) => getStatus(p.id, selectedMonth, selectedYear, i + 1))
+    );
+    return {
+      present: allStatuses.filter(s => s === 'present').length,
+      absent: allStatuses.filter(s => s === 'absent').length,
+      late: allStatuses.filter(s => s === 'late').length,
+    };
+  }, [people, selectedMonth, selectedYear, totalDays]);
+
+  const selectedDayData = selectedDay
+    ? people.map(p => ({ ...p, status: getStatus(p.id, selectedMonth, selectedYear, selectedDay) }))
+    : null;
+
+  const getDayBg = (stat: typeof dayStats[0]) => {
+    const presentRate = (stat.present + stat.late) / stat.total;
+    if (presentRate >= 0.9) return 'bg-green-100 border-green-300 text-green-800';
+    if (presentRate >= 0.7) return 'bg-amber-100 border-amber-300 text-amber-800';
+    return 'bg-red-100 border-red-300 text-red-800';
+  };
 
   return (
     <div>
-      <DashboardHeader title="উপস্থিতি ব্যবস্থাপনা" subtitle="শিক্ষক ও শিক্ষার্থীর উপস্থিতি দেখুন" userName="Admin" role="Super Admin" />
-      <div className="p-6 space-y-6">
-        {/* Today summary */}
-        <div className="grid grid-cols-3 gap-4">
+      <DashboardHeader
+        title="উপস্থিতি ব্যবস্থাপনা"
+        subtitle="শিক্ষক ও শিক্ষার্থীর মাসভিত্তিক উপস্থিতি"
+        userName="Admin"
+        role="Super Admin"
+      />
+      <div className="p-6 space-y-5">
+
+        {/* Section toggle */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => { setSection('teacher'); setSelectedDay(null); }}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all ${section === 'teacher' ? 'bg-purple-600 text-white shadow-md shadow-purple-200' : 'bg-white border border-gray-200 text-gray-600 hover:border-purple-300 hover:text-purple-600'}`}
+          >
+            <Users size={16} /> শিক্ষক
+          </button>
+          <button
+            onClick={() => { setSection('student'); setSelectedDay(null); }}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all ${section === 'student' ? 'bg-purple-600 text-white shadow-md shadow-purple-200' : 'bg-white border border-gray-200 text-gray-600 hover:border-purple-300 hover:text-purple-600'}`}
+          >
+            <GraduationCap size={16} /> শিক্ষার্থী
+          </button>
+        </div>
+
+        {/* Year + Month filter */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 space-y-3">
+          {/* Year */}
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-semibold text-gray-500 w-10 shrink-0">সাল</span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setSelectedYear(y => Math.max(YEARS[0], y - 1))}
+                className="w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 text-gray-500"
+              >
+                <ChevronLeft size={14} />
+              </button>
+              {YEARS.map(y => (
+                <button key={y} onClick={() => setSelectedYear(y)}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${selectedYear === y ? 'bg-purple-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-purple-50 hover:text-purple-600'}`}>
+                  {y}
+                </button>
+              ))}
+              <button
+                onClick={() => setSelectedYear(y => Math.min(YEARS[YEARS.length - 1], y + 1))}
+                className="w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 text-gray-500"
+              >
+                <ChevronRight size={14} />
+              </button>
+            </div>
+          </div>
+          {/* Month */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="text-xs font-semibold text-gray-500 w-10 shrink-0">মাস</span>
+            <div className="flex flex-wrap gap-1.5">
+              {MONTHS.map((m, i) => (
+                <button key={i} onClick={() => { setSelectedMonth(i); setSelectedDay(null); }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${selectedMonth === i ? 'bg-purple-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-purple-50 hover:text-purple-600'}`}>
+                  {m}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Monthly summary cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
-            { label: 'আজ উপস্থিত', value: present, color: 'bg-green-50 text-green-700 border-green-200' },
-            { label: 'আজ অনুপস্থিত', value: absent, color: 'bg-red-50 text-red-700 border-red-200' },
-            { label: 'মোট শিক্ষক', value: TEACHERS.length, color: 'bg-purple-50 text-purple-700 border-purple-200' },
-          ].map(({ label, value, color }) => (
-            <div key={label} className={`rounded-2xl border p-5 text-center ${color}`}>
-              <p className="text-3xl font-bold">{value}</p>
-              <p className="text-xs font-medium mt-1 opacity-70">{label}</p>
+            { label: `মোট ${section === 'teacher' ? 'শিক্ষক' : 'শিক্ষার্থী'}`, value: people.length, icon: section === 'teacher' ? Users : GraduationCap, color: 'bg-purple-50 text-purple-700 border-purple-200' },
+            { label: 'মোট উপস্থিত (দিন)', value: monthSummary.present, icon: CheckCircle, color: 'bg-green-50 text-green-700 border-green-200' },
+            { label: 'মোট অনুপস্থিত', value: monthSummary.absent, icon: XCircle, color: 'bg-red-50 text-red-700 border-red-200' },
+            { label: 'দেরিতে উপস্থিত', value: monthSummary.late, icon: Clock, color: 'bg-amber-50 text-amber-700 border-amber-200' },
+          ].map(({ label, value, icon: Icon, color }) => (
+            <div key={label} className={`rounded-2xl border p-4 ${color}`}>
+              <div className="flex items-center gap-2 mb-2">
+                <Icon size={15} />
+                <span className="text-xs opacity-70">{label}</span>
+              </div>
+              <p className="text-2xl font-bold">{value}</p>
             </div>
           ))}
         </div>
 
-        {/* Teacher attendance */}
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100">
-            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-              <ClipboardList size={16} className="text-purple-600" /> শিক্ষকদের উপস্থিতি — আজ
+        {/* Calendar view */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Calendar size={16} className="text-purple-600" />
+            <h3 className="font-semibold text-gray-900">
+              {MONTHS[selectedMonth]}, {selectedYear} — {section === 'teacher' ? 'শিক্ষক' : 'শিক্ষার্থী'} উপস্থিতি
             </h3>
+            {selectedDay && (
+              <button onClick={() => setSelectedDay(null)} className="ml-auto text-xs text-purple-600 hover:underline">
+                সব দিন দেখুন ✕
+              </button>
+            )}
           </div>
-          <div className="divide-y divide-gray-50">
-            {TEACHER_ATTENDANCE.map(t => {
-              const pct = Math.round((t.monthPresent / t.monthTotal) * 100);
-              return (
-                <div key={t.id} className="px-5 py-4 flex items-center gap-4 hover:bg-gray-50 transition-colors">
-                  <div className="w-9 h-9 gradient-primary rounded-xl flex items-center justify-center text-white text-sm font-bold shrink-0">
-                    {t.name[0]}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{t.name}</p>
-                    <p className="text-xs text-gray-400">{t.designation} · {t.department}</p>
-                    <div className="flex items-center gap-2 mt-1.5">
-                      <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full bg-purple-500" style={{ width: `${pct}%` }}></div>
-                      </div>
-                      <span className="text-[10px] text-gray-500">{t.monthPresent}/{t.monthTotal} ({pct}%)</span>
-                    </div>
-                  </div>
-                  <span className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full ${t.todayStatus === 'present' ? 'bg-green-100 text-green-700' : t.todayStatus === 'absent' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
-                    {t.todayStatus === 'present' ? <><CheckCircle size={12} /> উপস্থিত</> : t.todayStatus === 'absent' ? <><XCircle size={12} /> অনুপস্থিত</> : <><Clock size={12} /> দেরিতে</>}
-                  </span>
-                </div>
-              );
-            })}
+
+          {/* Weekday headers */}
+          <div className="grid grid-cols-7 gap-1.5 mb-1.5">
+            {WEEK_DAYS.map(d => (
+              <div key={d} className="text-center text-[10px] font-semibold text-gray-400 py-1">{d}</div>
+            ))}
+          </div>
+
+          {/* Day cells */}
+          <div className="grid grid-cols-7 gap-1.5">
+            {Array.from({ length: calendarOffset }).map((_, i) => (
+              <div key={`e-${i}`} className="h-14 rounded-xl bg-gray-50/50 border border-dashed border-gray-100" />
+            ))}
+            {dayStats.map(stat => (
+              <button
+                key={stat.day}
+                onClick={() => setSelectedDay(selectedDay === stat.day ? null : stat.day)}
+                className={`h-14 rounded-xl border flex flex-col items-center justify-center transition-all hover:scale-105 hover:shadow-sm ${selectedDay === stat.day ? 'ring-2 ring-purple-500 scale-105 shadow-sm' : ''} ${getDayBg(stat)}`}
+              >
+                <span className="text-xs font-bold">{stat.day}</span>
+                <span className="text-[9px] opacity-75 leading-tight">{stat.present}✓ {stat.absent}✗</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Legend */}
+          <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-gray-100">
+            {[
+              { label: '≥ ৯০% উপস্থিত', color: 'bg-green-100 border-green-300' },
+              { label: '৭০–৯০%', color: 'bg-amber-100 border-amber-300' },
+              { label: '< ৭০%', color: 'bg-red-100 border-red-300' },
+            ].map(({ label, color }) => (
+              <div key={label} className="flex items-center gap-1.5">
+                <div className={`w-4 h-4 rounded border ${color}`} />
+                <span className="text-[11px] text-gray-500">{label}</span>
+              </div>
+            ))}
+            <span className="text-[11px] text-gray-400 ml-auto">দিনে ক্লিক করুন বিস্তারিত দেখতে</span>
           </div>
         </div>
 
-        {/* Class assignment info */}
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100">
-            <h3 className="font-semibold text-gray-900">ক্লাস অ্যাসাইনমেন্ট</h3>
+        {/* Selected day detail OR full list */}
+        {selectedDayData ? (
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+              <Calendar size={15} className="text-purple-600" />
+              <h3 className="font-semibold text-gray-900">
+                {selectedDay} {MONTHS[selectedMonth]}, {selectedYear} — উপস্থিতি বিবরণ
+              </h3>
+            </div>
+            <div className="divide-y divide-gray-50">
+              {selectedDayData.map(p => (
+                <div key={p.id} className="px-5 py-3.5 flex items-center gap-3 hover:bg-gray-50">
+                  <div className="w-8 h-8 gradient-primary rounded-xl flex items-center justify-center text-white text-xs font-bold shrink-0">
+                    {p.name[0]}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{p.nameBn || p.name}</p>
+                    <p className="text-xs text-gray-400 truncate">
+                      {section === 'teacher'
+                        ? `${'designation' in p ? p.designation : ''} · ${'department' in p ? p.department : ''}`
+                        : `${'class' in p ? p.class : ''} · Roll: ${'roll' in p ? p.roll : ''}`}
+                    </p>
+                  </div>
+                  <span className={`flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full border ${STATUS_STYLE[p.status]}`}>
+                    {p.status === 'present' && <><CheckCircle size={11} /> উপস্থিত</>}
+                    {p.status === 'absent' && <><XCircle size={11} /> অনুপস্থিত</>}
+                    {p.status === 'late' && <><Clock size={11} /> দেরিতে</>}
+                    {p.status === 'holiday' && <>ছুটি</>}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
-                <tr>
-                  <th className="px-5 py-3 text-left">শিক্ষকের নাম</th>
-                  {MADRASHA_CLASSES.slice(5).map(c => <th key={c.id} className="px-3 py-3 text-center">{c.nameBn.slice(0,3)}</th>)}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {TEACHERS.map(t => (
-                  <tr key={t.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-5 py-3 font-medium text-gray-900">{t.name}</td>
-                    {MADRASHA_CLASSES.slice(5).map(c => (
-                      <td key={c.id} className="px-3 py-3 text-center">
-                        {t.classes.includes(c.id) ? (
-                          <span className="w-5 h-5 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center text-xs mx-auto">✓</span>
-                        ) : (
-                          <span className="text-gray-200">—</span>
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        ) : (
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h3 className="font-semibold text-gray-900">
+                {MONTHS[selectedMonth]} মাসের সারসংক্ষেপ — {section === 'teacher' ? 'শিক্ষক' : 'শিক্ষার্থী'}
+              </h3>
+            </div>
+            <div className="divide-y divide-gray-50">
+              {people.map(p => {
+                const statuses = Array.from({ length: totalDays }, (_, i) => getStatus(p.id, selectedMonth, selectedYear, i + 1));
+                const presentCount = statuses.filter(s => s === 'present').length;
+                const absentCount = statuses.filter(s => s === 'absent').length;
+                const lateCount = statuses.filter(s => s === 'late').length;
+                const pct = Math.round(((presentCount + lateCount) / totalDays) * 100);
+                return (
+                  <div key={p.id} className="px-5 py-4 flex items-center gap-3 hover:bg-gray-50 transition-colors">
+                    <div className="w-9 h-9 gradient-primary rounded-xl flex items-center justify-center text-white text-sm font-bold shrink-0">
+                      {p.name[0]}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900">{p.nameBn || p.name}</p>
+                      <p className="text-xs text-gray-400">
+                        {section === 'teacher'
+                          ? `${'designation' in p ? p.designation : ''} · ${'department' in p ? p.department : ''}`
+                          : `${'class' in p ? p.class : ''} · Roll: ${'roll' in p ? p.roll : ''}`}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${pct >= 85 ? 'bg-green-500' : pct >= 75 ? 'bg-amber-400' : 'bg-red-500'}`}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <span className="text-[10px] text-gray-500 shrink-0">{pct}%</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 shrink-0 text-[11px] font-semibold">
+                      <span className="px-2 py-1 bg-green-100 text-green-700 rounded-lg">{presentCount}✓</span>
+                      <span className="px-2 py-1 bg-red-100 text-red-700 rounded-lg">{absentCount}✗</span>
+                      {lateCount > 0 && <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded-lg">{lateCount}~</span>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
+
       </div>
     </div>
   );
