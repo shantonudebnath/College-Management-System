@@ -2,7 +2,7 @@
 import { useState, useMemo } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { TEACHERS, STUDENTS } from '@/lib/data';
-import { CheckCircle, XCircle, Clock, Calendar, Users, GraduationCap, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Calendar, Users, GraduationCap, ChevronLeft, ChevronRight, Download } from 'lucide-react';
 
 const MONTHS = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
 const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
@@ -86,6 +86,98 @@ export default function AdminAttendancePage() {
     return 'bg-red-100 border-red-300 text-red-800';
   };
 
+  const downloadPDF = async () => {
+    const { jsPDF } = await import('jspdf');
+    const autoTable = (await import('jspdf-autotable')).default;
+
+    const doc = new jsPDF();
+    const sectionLabel = section === 'teacher' ? 'Teachers' : 'Students';
+
+    // Header
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Noor-E-Islam Madrasha', 14, 18);
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+
+    if (selectedDay) {
+      doc.text(`Attendance Report — ${selectedDay} ${MONTHS[selectedMonth]} ${selectedYear}`, 14, 27);
+      doc.text(`Section: ${sectionLabel}`, 14, 34);
+
+      const rows = (selectedDayData ?? []).map((p, i) => {
+        const statusText = p.status === 'present' ? 'Present' : p.status === 'absent' ? 'Absent' : p.status === 'late' ? 'Late' : 'Holiday';
+        const subInfo = section === 'teacher'
+          ? ('designation' in p ? p.designation : '')
+          : ('class' in p ? `${p.class} | Roll: ${'roll' in p ? p.roll : ''}` : '');
+        return [i + 1, p.name, subInfo, statusText];
+      });
+
+      autoTable(doc, {
+        head: [['#', 'Name', section === 'teacher' ? 'Designation' : 'Class', 'Status']],
+        body: rows,
+        startY: 40,
+        headStyles: { fillColor: [109, 40, 217], textColor: 255, fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [248, 245, 255] },
+        columnStyles: {
+          0: { cellWidth: 12 },
+          3: { cellWidth: 28 },
+        },
+        didDrawCell: (data: Parameters<NonNullable<Parameters<typeof autoTable>[1]['didDrawCell']>>[0]) => {
+          if (data.section === 'body' && data.column.index === 3) {
+            const val = data.cell.text[0];
+            if (val === 'Present') (data.cell.styles as { textColor: number[] }).textColor = [22, 163, 74];
+            else if (val === 'Absent') (data.cell.styles as { textColor: number[] }).textColor = [220, 38, 38];
+            else if (val === 'Late') (data.cell.styles as { textColor: number[] }).textColor = [217, 119, 6];
+          }
+        },
+      });
+
+      // Summary box
+      const finalY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8;
+      const present = (selectedDayData ?? []).filter(p => p.status === 'present').length;
+      const absent = (selectedDayData ?? []).filter(p => p.status === 'absent').length;
+      const late = (selectedDayData ?? []).filter(p => p.status === 'late').length;
+      doc.setFontSize(10);
+      doc.text(`Total: ${people.length}   Present: ${present}   Absent: ${absent}   Late: ${late}`, 14, finalY);
+
+      doc.save(`attendance-${selectedDay}-${String(selectedMonth + 1).padStart(2, '0')}-${selectedYear}.pdf`);
+    } else {
+      // Monthly summary
+      doc.text(`Monthly Attendance Summary — ${MONTHS[selectedMonth]} ${selectedYear}`, 14, 27);
+      doc.text(`Section: ${sectionLabel}`, 14, 34);
+
+      const rows = people.map((p, i) => {
+        const statuses = Array.from({ length: totalDays }, (_, d) => getStatus(p.id, selectedMonth, selectedYear, d + 1));
+        const presentCount = statuses.filter(s => s === 'present').length;
+        const absentCount = statuses.filter(s => s === 'absent').length;
+        const lateCount = statuses.filter(s => s === 'late').length;
+        const pct = Math.round(((presentCount + lateCount) / totalDays) * 100);
+        const subInfo = section === 'teacher'
+          ? ('designation' in p ? p.designation : '')
+          : ('class' in p ? `${p.class}` : '');
+        return [i + 1, p.name, subInfo, presentCount, absentCount, lateCount, `${pct}%`];
+      });
+
+      autoTable(doc, {
+        head: [['#', 'Name', section === 'teacher' ? 'Designation' : 'Class', 'Present', 'Absent', 'Late', '%']],
+        body: rows,
+        startY: 40,
+        headStyles: { fillColor: [109, 40, 217], textColor: 255, fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [248, 245, 255] },
+        columnStyles: {
+          0: { cellWidth: 12 },
+          3: { halign: 'center', cellWidth: 20 },
+          4: { halign: 'center', cellWidth: 20 },
+          5: { halign: 'center', cellWidth: 15 },
+          6: { halign: 'center', cellWidth: 15 },
+        },
+      });
+
+      doc.save(`attendance-summary-${String(selectedMonth + 1).padStart(2, '0')}-${selectedYear}.pdf`);
+    }
+  };
+
   return (
     <div>
       <DashboardHeader
@@ -96,8 +188,8 @@ export default function AdminAttendancePage() {
       />
       <div className="p-6 space-y-5">
 
-        {/* Section toggle */}
-        <div className="flex items-center gap-3">
+        {/* Section toggle + Download */}
+        <div className="flex items-center gap-3 flex-wrap">
           <button
             onClick={() => { setSection('teacher'); setSelectedDay(null); }}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all ${section === 'teacher' ? 'bg-purple-600 text-white shadow-md shadow-purple-200' : 'bg-white border border-gray-200 text-gray-600 hover:border-purple-300 hover:text-purple-600'}`}
@@ -109,6 +201,14 @@ export default function AdminAttendancePage() {
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all ${section === 'student' ? 'bg-purple-600 text-white shadow-md shadow-purple-200' : 'bg-white border border-gray-200 text-gray-600 hover:border-purple-300 hover:text-purple-600'}`}
           >
             <GraduationCap size={16} /> শিক্ষার্থী
+          </button>
+
+          <button
+            onClick={downloadPDF}
+            className="ml-auto flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm shadow-emerald-200 transition-all"
+          >
+            <Download size={16} />
+            {selectedDay ? `${selectedDay} ${MONTHS[selectedMonth]} PDF` : `${MONTHS[selectedMonth]} সারসংক্ষেপ PDF`}
           </button>
         </div>
 
