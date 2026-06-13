@@ -5,6 +5,105 @@ import { EXAM_RESULTS, MADRASHA_CLASSES } from '@/lib/data';
 import { Award, CheckCircle, Download, Printer, Eye, Search, EyeOff } from 'lucide-react';
 import { useNotices } from '@/context/NoticesContext';
 
+async function downloadResultsPDF() {
+  const { jsPDF } = await import('jspdf');
+  const autoTable = (await import('jspdf-autotable')).default;
+
+  const doc = new jsPDF({ orientation: 'landscape' });
+  const examName = EXAM_RESULTS[0]?.examName ?? 'পরীক্ষা';
+  const passCount = EXAM_RESULTS.filter(r => r.status === 'pass').length;
+  const passRate = Math.round((passCount / EXAM_RESULTS.length) * 100);
+  const avgGpa = (EXAM_RESULTS.reduce((s, r) => s + r.gpa, 0) / EXAM_RESULTS.length).toFixed(2);
+  const today = new Date().toLocaleDateString('en-GB');
+
+  // --- Header ---
+  doc.setFillColor(109, 40, 217);
+  doc.rect(0, 0, 297, 22, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Noor-E-Islam Madrasha', 148, 10, { align: 'center' });
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Result Sheet — ' + examName, 148, 17, { align: 'center' });
+
+  // --- Sub-header info ---
+  doc.setTextColor(60, 60, 60);
+  doc.setFontSize(9);
+  doc.text(`Total Students: ${EXAM_RESULTS.length}`, 14, 29);
+  doc.text(`Passed: ${passCount}`, 70, 29);
+  doc.text(`Pass Rate: ${passRate}%`, 110, 29);
+  doc.text(`Average GPA: ${avgGpa}`, 155, 29);
+  doc.text(`Generated: ${today}`, 230, 29);
+
+  // --- Subjects header row ---
+  const subjectNames = EXAM_RESULTS[0]?.subjects.map(s => s.name) ?? [];
+  const fixedCols = ['Roll', 'Student Name', 'Class'];
+  const subjectCols = subjectNames.map(s => s.length > 12 ? s.slice(0, 10) + '..' : s);
+  const tailCols = ['Total', 'GPA', 'Grade', 'Result'];
+
+  const head = [[...fixedCols, ...subjectCols, ...tailCols]];
+
+  const body = EXAM_RESULTS.map(r => {
+    const subMarks = r.subjects.map(s => String(s.marks));
+    return [
+      String(r.roll),
+      r.studentName,
+      r.class,
+      ...subMarks,
+      String(r.totalMarks),
+      r.gpa.toFixed(2),
+      r.grade,
+      r.status === 'pass' ? 'Pass' : 'Fail',
+    ];
+  });
+
+  // Sort by roll
+  body.sort((a, b) => Number(a[0]) - Number(b[0]));
+
+  autoTable(doc, {
+    head,
+    body,
+    startY: 34,
+    styles: { fontSize: 7.5, cellPadding: 2.5 },
+    headStyles: { fillColor: [109, 40, 217], textColor: 255, fontStyle: 'bold', fontSize: 7 },
+    alternateRowStyles: { fillColor: [248, 245, 255] },
+    columnStyles: {
+      0: { cellWidth: 12, halign: 'center' },
+      1: { cellWidth: 38 },
+      2: { cellWidth: 20 },
+      [fixedCols.length + subjectNames.length]: { cellWidth: 14, halign: 'center', fontStyle: 'bold' },
+      [fixedCols.length + subjectNames.length + 1]: { cellWidth: 13, halign: 'center', fontStyle: 'bold', textColor: [109, 40, 217] },
+      [fixedCols.length + subjectNames.length + 2]: { cellWidth: 14, halign: 'center', fontStyle: 'bold' },
+      [fixedCols.length + subjectNames.length + 3]: { cellWidth: 14, halign: 'center', fontStyle: 'bold' },
+    },
+    didParseCell: (data: Parameters<NonNullable<Parameters<typeof autoTable>[1]['didParseCell']>>[0]) => {
+      const lastCols = fixedCols.length + subjectNames.length;
+      if (data.section === 'body') {
+        if (data.column.index === lastCols + 2) {
+          const grade = (data.row.raw as string[])[lastCols + 2];
+          if (grade === 'A+') (data.cell.styles as { textColor: number[] }).textColor = [22, 163, 74];
+          else if (grade?.startsWith('A')) (data.cell.styles as { textColor: number[] }).textColor = [37, 99, 235];
+          else if (grade === 'B') (data.cell.styles as { textColor: number[] }).textColor = [217, 119, 6];
+        }
+        if (data.column.index === lastCols + 3) {
+          const res = (data.row.raw as string[])[lastCols + 3];
+          (data.cell.styles as { textColor: number[] }).textColor = res === 'Pass' ? [22, 163, 74] : [220, 38, 38];
+        }
+      }
+    },
+  });
+
+  // Footer
+  const pageH = doc.internal.pageSize.height;
+  doc.setFontSize(8);
+  doc.setTextColor(150);
+  doc.text('Noor-E-Islam Madrasha | Confidential', 14, pageH - 8);
+  doc.text(`Page 1`, 280, pageH - 8, { align: 'right' });
+
+  doc.save(`result-sheet-${examName.replace(/\s+/g, '-')}.pdf`);
+}
+
 const LS_KEY = 'published_results_v1';
 
 function getPublished(): string[] {
@@ -84,7 +183,7 @@ export default function AdminResultsPage() {
             <button className="flex items-center gap-2 border border-gray-200 bg-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50">
               <Printer size={14} /> প্রিন্ট করুন
             </button>
-            <button className="flex items-center gap-2 border border-gray-200 bg-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50">
+            <button onClick={downloadResultsPDF} className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-emerald-700 shadow-sm">
               <Download size={14} /> PDF Export
             </button>
             {!published ? (

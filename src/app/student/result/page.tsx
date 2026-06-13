@@ -4,6 +4,159 @@ import DashboardHeader from '@/components/layout/DashboardHeader';
 import { EXAM_RESULTS } from '@/lib/data';
 import { Award, CheckCircle, Download, Printer, Lock } from 'lucide-react';
 
+async function downloadMarksheetPDF(result: typeof EXAM_RESULTS[0]) {
+  const { jsPDF } = await import('jspdf');
+  const autoTable = (await import('jspdf-autotable')).default;
+
+  const doc = new jsPDF();
+  const pageW = doc.internal.pageSize.width;
+  const today = new Date().toLocaleDateString('en-GB');
+
+  // ── Top border stripe ──
+  doc.setFillColor(109, 40, 217);
+  doc.rect(0, 0, pageW, 3, 'F');
+
+  // ── Institution header ──
+  doc.setFontSize(20);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(60, 30, 120);
+  doc.text('Noor-E-Islam Madrasha', pageW / 2, 18, { align: 'center' });
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(120, 120, 120);
+  doc.text('Dhaka, Bangladesh | noorislammadrasha.edu.bd', pageW / 2, 24, { align: 'center' });
+
+  // ── Title banner ──
+  doc.setFillColor(245, 240, 255);
+  doc.roundedRect(14, 28, pageW - 28, 10, 2, 2, 'F');
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(109, 40, 217);
+  doc.text('ACADEMIC RESULT — MARKSHEET', pageW / 2, 35, { align: 'center' });
+
+  // ── Divider ──
+  doc.setDrawColor(200, 180, 255);
+  doc.setLineWidth(0.4);
+  doc.line(14, 41, pageW - 14, 41);
+
+  // ── Student info block ──
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(60, 60, 60);
+
+  const infoLeft = [
+    ['Student Name', result.studentName],
+    ['Class', result.class],
+    ['Roll No.', String(result.roll)],
+  ];
+  const infoRight = [
+    ['Exam', result.examName],
+    ['Year', result.year],
+    ['Issue Date', today],
+  ];
+
+  let y = 48;
+  infoLeft.forEach(([label, val]) => {
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${label}:`, 14, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(val, 50, y);
+    y += 7;
+  });
+
+  y = 48;
+  infoRight.forEach(([label, val]) => {
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${label}:`, 120, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(val, 148, y);
+    y += 7;
+  });
+
+  // ── Subject table ──
+  doc.setDrawColor(200, 180, 255);
+  doc.line(14, 70, pageW - 14, 70);
+
+  autoTable(doc, {
+    head: [['#', 'Subject', 'Full Marks', 'Obtained Marks', 'Percentage', 'Grade']],
+    body: result.subjects.map((s, i) => [
+      i + 1,
+      s.name,
+      100,
+      s.marks,
+      `${s.marks}%`,
+      s.grade,
+    ]),
+    foot: [['', 'TOTAL', result.subjects.length * 100, result.totalMarks, `${Math.round((result.totalMarks / (result.subjects.length * 100)) * 100)}%`, result.grade]],
+    startY: 74,
+    styles: { fontSize: 9, cellPadding: 3.5 },
+    headStyles: { fillColor: [109, 40, 217], textColor: 255, fontStyle: 'bold' },
+    footStyles: { fillColor: [240, 235, 255], textColor: [60, 30, 120], fontStyle: 'bold', fontSize: 10 },
+    alternateRowStyles: { fillColor: [252, 250, 255] },
+    columnStyles: {
+      0: { cellWidth: 12, halign: 'center' },
+      1: { cellWidth: 65 },
+      2: { cellWidth: 28, halign: 'center' },
+      3: { cellWidth: 32, halign: 'center', fontStyle: 'bold' },
+      4: { cellWidth: 22, halign: 'center' },
+      5: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
+    },
+    didParseCell: (data: Parameters<NonNullable<Parameters<typeof autoTable>[1]['didParseCell']>>[0]) => {
+      if (data.section === 'body' && data.column.index === 5) {
+        const g = (data.row.raw as string[])[5];
+        const styles = data.cell.styles as { textColor: number[] };
+        if (g === 'A+') styles.textColor = [22, 163, 74];
+        else if (g?.startsWith('A')) styles.textColor = [37, 99, 235];
+        else if (g === 'B') styles.textColor = [217, 119, 6];
+        else styles.textColor = [220, 38, 38];
+      }
+    },
+  });
+
+  // ── Result verdict ──
+  const tableBottom = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
+  const isPass = result.status === 'pass';
+
+  doc.setFillColor(...(isPass ? [220, 252, 231] : [254, 226, 226]) as [number, number, number]);
+  doc.roundedRect(14, tableBottom, pageW - 28, 22, 3, 3, 'F');
+  doc.setDrawColor(...(isPass ? [134, 239, 172] : [252, 165, 165]) as [number, number, number]);
+  doc.setLineWidth(0.5);
+  doc.roundedRect(14, tableBottom, pageW - 28, 22, 3, 3, 'S');
+
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...(isPass ? [21, 128, 61] : [185, 28, 28]) as [number, number, number]);
+  doc.text(isPass ? 'RESULT: PASSED' : 'RESULT: FAILED', pageW / 2, tableBottom + 9, { align: 'center' });
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`GPA: ${result.gpa.toFixed(2)} / 5.00   |   Grade: ${result.grade}   |   ${result.examName}`, pageW / 2, tableBottom + 17, { align: 'center' });
+
+  // ── Signature line ──
+  const sigY = tableBottom + 38;
+  doc.setDrawColor(180, 180, 180);
+  doc.setLineWidth(0.3);
+  doc.line(14, sigY, 65, sigY);
+  doc.line(pageW - 65, sigY, pageW - 14, sigY);
+
+  doc.setFontSize(8);
+  doc.setTextColor(130, 130, 130);
+  doc.setFont('helvetica', 'normal');
+  doc.text("Student's Signature", 39, sigY + 5, { align: 'center' });
+  doc.text("Principal's Signature", pageW - 39, sigY + 5, { align: 'center' });
+
+  // ── Footer ──
+  const pageH = doc.internal.pageSize.height;
+  doc.setFillColor(109, 40, 217);
+  doc.rect(0, pageH - 8, pageW, 8, 'F');
+  doc.setFontSize(7.5);
+  doc.setTextColor(255, 255, 255);
+  doc.text('This is a computer-generated marksheet. Noor-E-Islam Madrasha', pageW / 2, pageH - 3, { align: 'center' });
+
+  doc.save(`marksheet-${result.studentName.replace(/\s+/g, '-')}-${result.examName.replace(/\s+/g, '-')}.pdf`);
+}
+
 const LS_KEY = 'published_results_v1';
 
 const result = EXAM_RESULTS[0];
@@ -65,11 +218,11 @@ export default function StudentResultPage() {
                   <Award size={18} className="text-purple-600" /> বিষয়ভিত্তিক নম্বর
                 </h3>
                 <div className="flex gap-2">
-                  <button className="flex items-center gap-1.5 text-xs border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors">
+                  <button onClick={() => window.print()} className="flex items-center gap-1.5 text-xs border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors">
                     <Printer size={12} /> প্রিন্ট
                   </button>
-                  <button className="flex items-center gap-1.5 text-xs btn-primary rounded-lg px-3 py-1.5">
-                    <Download size={12} /> PDF
+                  <button onClick={() => downloadMarksheetPDF(result)} className="flex items-center gap-1.5 text-xs btn-primary rounded-lg px-3 py-1.5">
+                    <Download size={12} /> PDF ডাউনলোড
                   </button>
                 </div>
               </div>
