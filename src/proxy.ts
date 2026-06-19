@@ -1,10 +1,9 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
-  // Skip middleware if env vars not set (prevents hard crash during build/dev)
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!supabaseUrl || !supabaseAnonKey) {
@@ -28,7 +27,6 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  // Refresh session — must be called before any route check
   const { data: { user } } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;

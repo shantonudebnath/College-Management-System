@@ -97,6 +97,19 @@ export interface Fee {
   receiptNo?: string;
 }
 
+export interface Waiver {
+  id: string;
+  studentId: string;
+  studentName: string;
+  class: string;
+  waiverType: 'fixed' | 'percentage';
+  waiverValue: number;
+  reason: string;
+  feeTypes: string[];  // empty array = applies to ALL fee types
+  appliedDate: string;
+  isActive: boolean;
+}
+
 export interface Notice {
   id: string;
   title: string;
