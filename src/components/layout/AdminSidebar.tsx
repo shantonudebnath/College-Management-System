@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Users, UserCheck, BookOpen, BarChart2, Calendar,
   FileText, Bell, CreditCard, Award, MapPin, Shield, FolderOpen,
   ClipboardList, ChevronLeft, ChevronRight, GraduationCap, LogOut,
-  IdCard, TrendingUp, LayoutGrid, User, X
+  IdCard, TrendingUp, LayoutGrid, User, X, HelpCircle
 } from 'lucide-react';
 
 const MENU = [
@@ -22,6 +22,7 @@ const MENU = [
   { label: 'পরীক্ষা সময়সূচী', href: '/admin/exam-schedule', icon: Calendar },
   { label: 'আসন পরিকল্পনা', href: '/admin/seat-plan', icon: MapPin },
   { label: 'গার্ড তালিকা', href: '/admin/guard-list', icon: Shield },
+  { label: 'প্রশ্নপত্র', href: '/admin/questions', icon: HelpCircle },
   { label: 'নোটিশ বোর্ড', href: '/admin/notices', icon: Bell },
   { label: 'উপস্থিতি', href: '/admin/attendance', icon: ClipboardList },
   { label: 'ডকুমেন্ট স্টোর', href: '/admin/docs', icon: FolderOpen },
