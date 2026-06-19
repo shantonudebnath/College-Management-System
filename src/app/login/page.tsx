@@ -16,18 +16,49 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [form, setForm] = useState({ id: '', password: '' });
 
+  // Validate credential format to avoid creating random Supabase users
+  const isValidCredentialFormat = (id: string, password: string, r: string): boolean => {
+    if (r === 'student') {
+      const m = id.match(/^STD-\d{4}-(\d{3})$/i);
+      return !!m && password === `NIM@${m[1]}`;
+    }
+    if (r === 'teacher') {
+      return /^TCH-\d+$/i.test(id) && /^NIM@Teacher#\d{4}$/.test(password);
+    }
+    return false;
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
-    const email = `${form.id.toLowerCase().replace(/\s+/g, '')}@${DOMAIN}`;
+    const cleanId = form.id.trim();
+    const email = `${cleanId.toLowerCase().replace(/\s+/g, '')}@${DOMAIN}`;
     const supabase = createClient();
 
-    const { data, error: authError } = await supabase.auth.signInWithPassword({
+    let { data, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password: form.password,
     });
+
+    // If login fails for student/teacher and credentials match the formula, auto-create Supabase user and retry
+    if ((authError || !data.user) && role !== 'admin') {
+      if (isValidCredentialFormat(cleanId, form.password, role)) {
+        try {
+          await fetch('/api/create-user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ displayId: cleanId, password: form.password, role }),
+          });
+        } catch { /* ignore */ }
+
+        // Retry login after ensuring user exists
+        const retry = await supabase.auth.signInWithPassword({ email, password: form.password });
+        data = retry.data;
+        authError = retry.error;
+      }
+    }
 
     if (authError || !data.user) {
       setError(authError?.message === 'Email not confirmed'
