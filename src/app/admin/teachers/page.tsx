@@ -1,11 +1,30 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { MADRASHA_CLASSES, STUDENTS } from '@/lib/data';
 import { useTeachers } from '@/context/TeachersContext';
-import { Plus, Search, Edit, Trash2, Phone, Mail, Camera, X, Save, ChevronDown, ChevronUp, ArrowUpDown } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Phone, Mail, Camera, X, Save, ChevronDown, ChevronUp, ArrowUpDown, Key, Copy, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
 import type { Teacher } from '@/lib/types';
+
+interface Credential { username: string; password: string; }
+
+function makeTchCred(teacherId: string): Credential {
+  return {
+    username: teacherId,
+    password: `NIM@Teacher#${new Date().getFullYear()}`,
+  };
+}
+
+async function createSupabaseUser(displayId: string, password: string, role: string) {
+  try {
+    await fetch('/api/create-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ displayId, password, role }),
+    });
+  } catch { /* non-blocking */ }
+}
 
 const FIXED_DESIGNATIONS = ['অধ্যক্ষ (Principal)', 'সিনিয়র শিক্ষক (Senior Teacher)', 'সহকারী শিক্ষক (Assistant Teacher)'];
 
@@ -27,7 +46,25 @@ export default function AdminTeachersPage() {
   const [form, setForm] = useState({ ...emptyForm });
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [saved, setSaved] = useState(false);
+  const [credsMap, setCredsMap] = useState<Record<string, Credential>>({});
+  const [credModal, setCredModal] = useState<(Credential & { name: string }) | null>(null);
+  const [showCredId, setShowCredId] = useState<string | null>(null);
+  const [showPass, setShowPass] = useState(false);
+  const [copied, setCopied] = useState('');
+  const [creating, setCreating] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    try {
+      const c = localStorage.getItem('teacher_credentials');
+      if (c) setCredsMap(JSON.parse(c));
+    } catch { /* ignore */ }
+  }, []);
+
+  const copyText = (text: string, key: string) => {
+    navigator.clipboard.writeText(text).catch(() => {});
+    setCopied(key); setTimeout(() => setCopied(''), 2000);
+  };
 
   const isCustomDesig = form.designation === '__custom__';
   const finalDesignation = isCustomDesig ? form.designationCustom : form.designation;
@@ -91,7 +128,7 @@ export default function AdminTeachersPage() {
     setShowForm(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.name) return;
     if (editId) {
       setTeachers(teachers.map(t => t.id === editId ? {
@@ -102,7 +139,10 @@ export default function AdminTeachersPage() {
         joinDate: form.joinDate || t.joinDate,
         image: form.image || undefined,
       } : t));
+      setShowForm(false); setForm({ ...emptyForm }); setEditId(null);
+      setSaved(true); setTimeout(() => setSaved(false), 3000);
     } else {
+      setCreating(true);
       const t: Teacher = {
         id: `t${Date.now()}`, teacherId: `TCH-${(teachers.length + 1).toString().padStart(3, '0')}`,
         name: form.name, nameBn: form.nameBn, designation: finalDesignation,
@@ -112,13 +152,16 @@ export default function AdminTeachersPage() {
         joinDate: form.joinDate || new Date().toISOString().split('T')[0],
         image: form.image || undefined,
       };
+      const cred = makeTchCred(t.teacherId);
+      const newCreds = { ...credsMap, [t.id]: cred };
       setTeachers([...teachers, t]);
+      setCredsMap(newCreds);
+      localStorage.setItem('teacher_credentials', JSON.stringify(newCreds));
+      await createSupabaseUser(t.teacherId, cred.password, 'teacher');
+      setCreating(false);
+      setShowForm(false); setForm({ ...emptyForm }); setEditId(null);
+      setCredModal({ ...cred, name: t.name });
     }
-    setShowForm(false);
-    setForm({ ...emptyForm });
-    setEditId(null);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
   };
 
   const handleCancel = () => {
@@ -325,8 +368,8 @@ export default function AdminTeachersPage() {
             </div>
 
             <div className="flex gap-2 mt-5">
-              <button onClick={handleSave} className="flex items-center gap-2 btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold">
-                <Save size={14} /> {editId ? 'পরিবর্তন সংরক্ষণ করুন' : 'শিক্ষক যোগ করুন'}
+              <button onClick={handleSave} disabled={creating} className="flex items-center gap-2 btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-60">
+                <Save size={14} /> {creating ? 'তৈরি হচ্ছে...' : editId ? 'পরিবর্তন সংরক্ষণ করুন' : 'শিক্ষক যোগ করুন'}
               </button>
               <button onClick={handleCancel} className="px-5 py-2.5 border border-gray-200 rounded-xl text-sm hover:bg-gray-50">
                 বাতিল
@@ -362,18 +405,16 @@ export default function AdminTeachersPage() {
                       <p className="text-xs text-gray-400">{teacher.teacherId}</p>
                     </div>
                     <div className="flex gap-1 shrink-0">
-                      <button
-                        onClick={() => openEdit(teacher)}
-                        className="w-7 h-7 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center hover:bg-purple-100"
-                        title="সম্পাদনা করুন"
-                      >
+                      {credsMap[teacher.id] && (
+                        <button onClick={() => { setShowCredId(teacher.id); setShowPass(false); }}
+                          className="w-7 h-7 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center hover:bg-amber-100" title="লগইন তথ্য">
+                          <Key size={12} />
+                        </button>
+                      )}
+                      <button onClick={() => openEdit(teacher)} className="w-7 h-7 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center hover:bg-purple-100" title="সম্পাদনা করুন">
                         <Edit size={12} />
                       </button>
-                      <button
-                        onClick={() => setDeleteTarget({ id: teacher.id, name: teacher.name })}
-                        className="w-7 h-7 bg-red-50 text-red-600 rounded-lg flex items-center justify-center hover:bg-red-100"
-                        title="মুছুন"
-                      >
+                      <button onClick={() => setDeleteTarget({ id: teacher.id, name: teacher.name })} className="w-7 h-7 bg-red-50 text-red-600 rounded-lg flex items-center justify-center hover:bg-red-100" title="মুছুন">
                         <Trash2 size={12} />
                       </button>
                     </div>
@@ -403,6 +444,64 @@ export default function AdminTeachersPage() {
           onCancel={() => setDeleteTarget(null)}
         />
       )}
+
+      {/* Credential modal after add */}
+      {credModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm animate-fadeIn p-6">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center shrink-0"><CheckCircle size={24} className="text-green-600" /></div>
+              <div><h3 className="font-bold text-gray-900">শিক্ষক যোগ সম্পন্ন!</h3><p className="text-xs text-gray-500 mt-0.5">লগইন তথ্য সংরক্ষণ করুন</p></div>
+            </div>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+              <p className="text-xs font-semibold text-amber-800 mb-3 flex items-center gap-1.5"><Key size={12} /> {credModal.name}-এর লগইন তথ্য</p>
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2 border border-amber-100">
+                  <div><p className="text-[10px] text-gray-400">ইউজারনেম (আইডি)</p><p className="text-sm font-bold text-gray-900 font-mono">{credModal.username}</p></div>
+                  <button onClick={() => copyText(credModal.username, 'tu')} className="text-amber-600">{copied === 'tu' ? <CheckCircle size={15} /> : <Copy size={15} />}</button>
+                </div>
+                <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2 border border-amber-100">
+                  <div><p className="text-[10px] text-gray-400">পাসওয়ার্ড</p><p className="text-sm font-bold text-gray-900 font-mono">{credModal.password}</p></div>
+                  <button onClick={() => copyText(credModal.password, 'tp')} className="text-amber-600">{copied === 'tp' ? <CheckCircle size={15} /> : <Copy size={15} />}</button>
+                </div>
+              </div>
+            </div>
+            <button onClick={() => setCredModal(null)} className="w-full btn-primary py-2.5 rounded-xl text-sm font-semibold">ঠিক আছে</button>
+          </div>
+        </div>
+      )}
+
+      {/* View credential modal */}
+      {showCredId && credsMap[showCredId] && (() => {
+        const t = teachers.find(x => x.id === showCredId);
+        return (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm animate-fadeIn p-6">
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center"><Key size={18} className="text-amber-600" /></div>
+                  <div><h3 className="font-bold text-gray-900">লগইন তথ্য</h3><p className="text-xs text-gray-500">{t?.name}</p></div>
+                </div>
+                <button onClick={() => setShowCredId(null)} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400"><X size={16} /></button>
+              </div>
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
+                  <div><p className="text-[10px] text-gray-400 mb-0.5">ইউজারনেম</p><p className="text-sm font-bold font-mono text-gray-900">{credsMap[showCredId].username}</p></div>
+                  <button onClick={() => copyText(credsMap[showCredId].username, 'tvu')} className="text-gray-400 hover:text-purple-600">{copied === 'tvu' ? <CheckCircle size={15} className="text-green-500" /> : <Copy size={15} />}</button>
+                </div>
+                <div className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
+                  <div><p className="text-[10px] text-gray-400 mb-0.5">পাসওয়ার্ড</p><p className="text-sm font-bold font-mono text-gray-900">{showPass ? credsMap[showCredId].password : '••••••••'}</p></div>
+                  <div className="flex gap-2">
+                    <button onClick={() => setShowPass(p => !p)} className="text-gray-400 hover:text-gray-700">{showPass ? <EyeOff size={15} /> : <Eye size={15} />}</button>
+                    <button onClick={() => copyText(credsMap[showCredId].password, 'tvp')} className="text-gray-400 hover:text-purple-600">{copied === 'tvp' ? <CheckCircle size={15} className="text-green-500" /> : <Copy size={15} />}</button>
+                  </div>
+                </div>
+              </div>
+              <button onClick={() => setShowCredId(null)} className="w-full mt-4 py-2.5 border border-gray-200 rounded-xl text-sm hover:bg-gray-50">বন্ধ করুন</button>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
