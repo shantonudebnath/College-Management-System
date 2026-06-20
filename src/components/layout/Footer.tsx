@@ -12,7 +12,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="md:col-span-1">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 relative shrink-0 bg-white rounded-lg p-1">
+              <div className="w-14 h-14 relative shrink-0 bg-white rounded-lg p-1.5">
                 <Image src="/logo.png" alt="লোগো" fill className="object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }} />
               </div>
               <div>
@@ -43,15 +43,15 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Portals */}
+          {/* Academic Links */}
           <div>
-            <h4 className="font-semibold text-sm mb-4 text-purple-300">পোর্টাল</h4>
+            <h4 className="font-semibold text-sm mb-4 text-purple-300">একাডেমিক</h4>
             <ul className="space-y-2 text-xs text-gray-400">
               {[
-                ['ছাত্র পোর্টাল', '/student/dashboard'],
-                ['শিক্ষক পোর্টাল', '/teacher/dashboard'],
-                ['অ্যাডমিন প্যানেল', '/admin/dashboard'],
-                ['লগইন', '/login'],
+                ['শ্রেণি তালিকা', '/about#classes'],
+                ['পরীক্ষার সময়সূচী', '/about#exam-schedule'],
+                ['বৃত্তি ও সুবিধা', '/about#scholarship'],
+                ['সিলেবাস', '/about#syllabus'],
               ].map(([label, href]) => (
                 <li key={href}><Link href={href} className="hover:text-purple-300 transition-colors">{label}</Link></li>
               ))}
@@ -84,10 +84,10 @@ export default function Footer() {
       <div className="border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-2 text-[11px] text-gray-500">
           <p>© {new Date().getFullYear()} {COLLEGE_INFO.nameBn}. সর্বস্বত্ব সংরক্ষিত।</p>
-          <p className="flex items-center gap-1">
+          <p>
             Developed by{' '}
-            <a href="https://fivolix.tech" target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:text-purple-300 font-medium transition-colors ml-1">
-              Fivolix Technology
+            <a href="https://fivolix.tech" target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:text-purple-300 font-semibold transition-colors ml-1">
+              Fivolix
             </a>
           </p>
         </div>

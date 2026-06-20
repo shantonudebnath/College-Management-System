@@ -90,7 +90,7 @@ export default function Navbar() {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3 group shrink-0">
-              <div className="w-11 h-11 relative flex-shrink-0">
+              <div className="w-12 h-12 relative flex-shrink-0 bg-white rounded-lg p-0.5 shadow-sm">
                 <Image src="/logo.png" alt="মাদ্রাসা লোগো" fill className="object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }} />
               </div>
               <div className="hidden sm:block">

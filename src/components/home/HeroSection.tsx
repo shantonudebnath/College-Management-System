@@ -71,7 +71,7 @@ export default function HeroSection() {
 
           {/* Right: Logo + floating cards */}
           <div className="hidden lg:flex justify-center items-center relative h-80">
-            <div className="w-44 h-44 bg-white rounded-full flex items-center justify-center shadow-2xl z-10 p-4">
+            <div className="w-48 h-48 bg-white rounded-3xl flex items-center justify-center shadow-2xl z-10 p-5">
               <div className="relative w-full h-full">
                 <Image src="/logo.png" alt="মাদ্রাসা লোগো" fill className="object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }} />
               </div>
