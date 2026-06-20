@@ -6,12 +6,13 @@ import {
   LayoutDashboard, Users, UserCheck, BookOpen, BarChart2, Calendar,
   FileText, Bell, CreditCard, Award, MapPin, Shield, FolderOpen,
   ClipboardList, ChevronLeft, ChevronRight, GraduationCap, LogOut,
-  IdCard, TrendingUp, LayoutGrid, User, X, HelpCircle
+  IdCard, TrendingUp, LayoutGrid, User, X, HelpCircle, Globe, ClipboardCheck
 } from 'lucide-react';
 
 const MENU = [
   { label: 'ড্যাশবোর্ড', href: '/admin/dashboard', icon: LayoutDashboard },
-  { label: 'শিক্ষার্থী ভর্তি', href: '/admin/students', icon: Users },
+  { label: 'ভর্তি আবেদন', href: '/admin/admissions', icon: ClipboardCheck },
+  { label: 'শিক্ষার্থী তালিকা', href: '/admin/students', icon: Users },
   { label: 'শিক্ষক তথ্য', href: '/admin/teachers', icon: UserCheck },
   { label: 'ক্লাস শিক্ষক', href: '/admin/class-teachers', icon: BookOpen },
   { label: 'ক্লাস অ্যাসাইন', href: '/admin/classes', icon: FileText },
@@ -28,6 +29,7 @@ const MENU = [
   { label: 'উপস্থিতি', href: '/admin/attendance', icon: ClipboardList },
   { label: 'ডকুমেন্ট স্টোর', href: '/admin/docs', icon: FolderOpen },
   { label: 'অ্যানালিটিক্স', href: '/admin/analytics', icon: TrendingUp },
+  { label: 'ওয়েবসাইট সেটিংস', href: '/admin/website', icon: Globe },
   { label: 'আমার প্রোফাইল', href: '/admin/profile', icon: User },
 ];
 

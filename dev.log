@@ -1,0 +1,658 @@
+
+> college-management@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.7 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.152:3000
+✓ Ready in 1677ms
+
+ GET / 200 in 6.0s (next.js: 3.2s, application-code: 2.7s)
+ GET /admin/classes 200 in 1723ms (next.js: 564ms, application-code: 1159ms)
+ GET /teacher/dashboard 200 in 1710ms (next.js: 456ms, application-code: 1254ms)
+ GET /student/dashboard 200 in 5.0s (next.js: 332ms, application-code: 4.7s)
+ GET /admin/classes 200 in 38ms (next.js: 12ms, application-code: 26ms)
+ GET /admin/classes 200 in 75ms (next.js: 12ms, application-code: 63ms)
+ GET /student/dashboard 200 in 1299ms (next.js: 11ms, application-code: 1288ms)
+ GET /teacher/dashboard 200 in 763ms (next.js: 13ms, application-code: 750ms)
+ GET /teacher/dashboard 200 in 742ms (next.js: 14ms, application-code: 728ms)
+✓ Compiled in 894ms
+ GET /admin/classes 200 in 892ms (next.js: 325ms, application-code: 567ms)
+ GET /teacher/dashboard 200 in 546ms (next.js: 83ms, application-code: 463ms)
+ GET /student/dashboard 200 in 601ms (next.js: 196ms, application-code: 405ms)
+✓ Compiled in 734ms
+ GET /admin/classes 200 in 1172ms (next.js: 264ms, application-code: 907ms)
+ GET /teacher/dashboard 200 in 653ms (next.js: 566ms, application-code: 87ms)
+ GET /student/dashboard 200 in 654ms (next.js: 286ms, application-code: 368ms)
+✓ Compiled in 1558ms
+ GET /admin/classes 200 in 1463ms (next.js: 507ms, application-code: 956ms)
+ GET /teacher/dashboard 200 in 713ms (next.js: 401ms, application-code: 312ms)
+ GET /student/dashboard 200 in 719ms (next.js: 55ms, application-code: 664ms)
+✓ Compiled in 467ms
+ GET /admin/classes 200 in 616ms (next.js: 361ms, application-code: 255ms)
+ GET /teacher/dashboard 200 in 842ms (next.js: 77ms, application-code: 765ms)
+ GET /student/dashboard 200 in 849ms (next.js: 497ms, application-code: 352ms)
+✓ Compiled in 1308ms
+ GET /admin/classes 200 in 852ms (next.js: 495ms, application-code: 357ms)
+✓ Compiled in 1120ms
+ GET /admin/classes 200 in 1107ms (next.js: 638ms, application-code: 469ms)
+ GET /teacher/dashboard 200 in 1051ms (next.js: 35ms, application-code: 1016ms)
+ GET /teacher/dashboard 200 in 468ms (next.js: 16ms, application-code: 452ms)
+ GET /student/dashboard 200 in 826ms (next.js: 145ms, application-code: 681ms)
+ GET /student/dashboard 200 in 355ms (next.js: 21ms, application-code: 335ms)
+✓ Compiled in 1065ms
+ GET /admin/classes 200 in 1603ms (next.js: 719ms, application-code: 885ms)
+ GET /teacher/dashboard 200 in 750ms (next.js: 98ms, application-code: 652ms)
+ GET /student/dashboard 200 in 754ms (next.js: 223ms, application-code: 531ms)
+✓ Compiled in 464ms
+ GET /admin/classes 200 in 1267ms (next.js: 367ms, application-code: 900ms)
+ GET /teacher/dashboard 200 in 754ms (next.js: 601ms, application-code: 153ms)
+ GET /student/dashboard 200 in 773ms (next.js: 55ms, application-code: 718ms)
+ GET /teacher/dashboard 200 in 1153ms (next.js: 12ms, application-code: 1141ms)
+ GET /teacher/marks 200 in 564ms (next.js: 216ms, application-code: 348ms)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+✓ Compiled in 528ms
+ GET /admin/classes 200 in 1225ms (next.js: 231ms, application-code: 994ms)
+ GET /teacher/marks 200 in 866ms (next.js: 577ms, application-code: 289ms)
+ GET /student/dashboard 200 in 901ms (next.js: 134ms, application-code: 766ms)
+○ Compiling /admin/results ...
+ GET /admin/results 200 in 3.4s (next.js: 3.3s, application-code: 72ms)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+ GET /admin/classes 200 in 71ms (next.js: 5ms, application-code: 66ms)
+ GET /admin/results 200 in 82ms (next.js: 5ms, application-code: 77ms)
+ GET /admin/fees 200 in 1897ms (next.js: 1778ms, application-code: 118ms)
+ GET /admin/results 200 in 64ms (next.js: 5ms, application-code: 58ms)
+ GET /student/result 200 in 2.2s (next.js: 2.1s, application-code: 135ms)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+✓ Compiled in 661ms
+ GET /student/result 200 in 1402ms (next.js: 414ms, application-code: 988ms)
+ GET /teacher/marks 200 in 830ms (next.js: 45ms, application-code: 786ms)
+ GET /admin/results 200 in 608ms (next.js: 264ms, application-code: 344ms)
+✓ Compiled in 2.3s
+ GET /teacher/marks 200 in 1236ms (next.js: 886ms, application-code: 350ms)
+ GET /student/result 200 in 1251ms (next.js: 357ms, application-code: 894ms)
+ GET /admin/results 200 in 2.6s (next.js: 1183ms, application-code: 1406ms)
+ GET /admin/results 200 in 693ms (next.js: 129ms, application-code: 563ms)
+ GET /teacher/marks 200 in 378ms (next.js: 68ms, application-code: 310ms)
+ GET /student/result 200 in 799ms (next.js: 10ms, application-code: 789ms)
+✓ Compiled in 2.6s
+ GET /admin/results 200 in 2.7s (next.js: 377ms, application-code: 2.3s)
+ GET /admin/results 200 in 1989ms (next.js: 39ms, application-code: 1950ms)
+ GET /admin/results 200 in 1630ms (next.js: 398ms, application-code: 1232ms)
+ GET /admin/results 200 in 1684ms (next.js: 26ms, application-code: 1657ms)
+ GET /admin/results 200 in 1695ms (next.js: 952ms, application-code: 743ms)
+ GET /teacher/marks 200 in 2.4s (next.js: 305ms, application-code: 2.1s)
+ GET /teacher/marks 200 in 2.9s (next.js: 44ms, application-code: 2.9s)
+ GET /teacher/marks 200 in 2.8s (next.js: 75ms, application-code: 2.7s)
+ GET /teacher/marks 200 in 2.8s (next.js: 446ms, application-code: 2.3s)
+ GET /teacher/marks 200 in 2.8s (next.js: 696ms, application-code: 2.1s)
+ GET /student/result 200 in 2.2s (next.js: 564ms, application-code: 1603ms)
+ GET /student/result 200 in 1937ms (next.js: 118ms, application-code: 1819ms)
+ GET /student/result 200 in 1453ms (next.js: 37ms, application-code: 1417ms)
+ GET /student/result 200 in 1032ms (next.js: 77ms, application-code: 955ms)
+ GET /student/result 200 in 1038ms (next.js: 385ms, application-code: 653ms)
+ GET /student/result 200 in 3.8s (next.js: 12ms, application-code: 3.8s)
+✓ Finished filesystem cache database compaction in 12.9s
+ GET /admin/teachers 200 in 157ms (next.js: 79ms, application-code: 78ms)
+ GET /admin/classes 200 in 116ms (next.js: 69ms, application-code: 48ms)
+ GET /admin/results 200 in 50ms (next.js: 10ms, application-code: 40ms)
+ GET /admin/fees 200 in 52ms (next.js: 19ms, application-code: 33ms)
+ GET /admin/admit-cards 200 in 1135ms (next.js: 1077ms, application-code: 58ms)
+ GET /admin/routine 200 in 832ms (next.js: 791ms, application-code: 41ms)
+✓ Compiled in 1974ms
+ GET /admin/routine 200 in 967ms (next.js: 535ms, application-code: 432ms)
+ GET /admin/routine 200 in 2.3s (next.js: 248ms, application-code: 2.1s)
+ GET /teacher/marks 200 in 2.4s (next.js: 732ms, application-code: 1633ms)
+ GET /teacher/marks 200 in 1115ms (next.js: 88ms, application-code: 1027ms)
+ GET /student/result 200 in 1127ms (next.js: 624ms, application-code: 503ms)
+ GET /student/result 200 in 557ms (next.js: 7ms, application-code: 550ms)
+✓ Finished filesystem cache database compaction in 10.5s
+ GET /admin/routine 200 in 1908ms (next.js: 694ms, application-code: 1215ms)
+ GET /admin/routine 200 in 1369ms (next.js: 119ms, application-code: 1250ms)
+ GET /admin/routine 200 in 618ms (next.js: 11ms, application-code: 607ms)
+ GET /admin/routine 200 in 2.1s (next.js: 129ms, application-code: 2.0s)
+ GET /admin/routine 200 in 2.2s (next.js: 449ms, application-code: 1712ms)
+ GET /admin/routine 200 in 2.2s (next.js: 866ms, application-code: 1300ms)
+ GET /admin/routine 200 in 2.2s (next.js: 1270ms, application-code: 898ms)
+ GET /admin/routine 200 in 1458ms (next.js: 57ms, application-code: 1401ms)
+ GET /admin/routine 200 in 1478ms (next.js: 366ms, application-code: 1112ms)
+ GET /admin/routine 200 in 1933ms (next.js: 74ms, application-code: 1858ms)
+ GET /admin/routine 200 in 1927ms (next.js: 380ms, application-code: 1547ms)
+ GET /admin/routine 200 in 1940ms (next.js: 649ms, application-code: 1291ms)
+ GET /admin/routine 200 in 1949ms (next.js: 912ms, application-code: 1037ms)
+ GET /admin/routine 200 in 2.5s (next.js: 78ms, application-code: 2.4s)
+ GET /admin/routine 200 in 2.5s (next.js: 333ms, application-code: 2.1s)
+ GET /admin/routine 200 in 1670ms (next.js: 104ms, application-code: 1565ms)
+ GET /admin/routine 200 in 1667ms (next.js: 437ms, application-code: 1230ms)
+ GET /admin/routine 200 in 1665ms (next.js: 865ms, application-code: 800ms)
+ GET /admin/routine 200 in 1673ms (next.js: 1233ms, application-code: 439ms)
+ GET /admin/routine 200 in 3.2s (next.js: 91ms, application-code: 3.1s)
+ GET /admin/routine 200 in 3.2s (next.js: 658ms, application-code: 2.5s)
+ GET /admin/routine 200 in 2.3s (next.js: 66ms, application-code: 2.2s)
+ GET /admin/routine 200 in 2.3s (next.js: 889ms, application-code: 1414ms)
+ GET /admin/routine 200 in 2.3s (next.js: 547ms, application-code: 1783ms)
+ GET /admin/routine 200 in 3.8s (next.js: 1562ms, application-code: 2.2s)
+ GET /admin/routine 200 in 4.1s (next.js: 159ms, application-code: 4.0s)
+ GET /admin/routine 200 in 4.1s (next.js: 698ms, application-code: 3.4s)
+ GET /admin/routine 200 in 2.6s (next.js: 746ms, application-code: 1861ms)
+ GET /admin/routine 200 in 2.6s (next.js: 70ms, application-code: 2.5s)
+ GET /admin/routine 200 in 2.7s (next.js: 1428ms, application-code: 1235ms)
+ GET /admin/routine 200 in 3.6s (next.js: 2.0s, application-code: 1631ms)
+ GET /admin/routine 200 in 3.2s (next.js: 86ms, application-code: 3.1s)
+ GET /admin/routine 200 in 3.3s (next.js: 483ms, application-code: 2.8s)
+ GET /admin/routine 200 in 2.6s (next.js: 59ms, application-code: 2.6s)
+ GET /admin/routine 200 in 3.2s (next.js: 591ms, application-code: 2.6s)
+ GET /admin/routine 200 in 3.2s (next.js: 1035ms, application-code: 2.2s)
+ GET /admin/routine 200 in 2.7s (next.js: 887ms, application-code: 1776ms)
+ GET /admin/routine 200 in 3.0s (next.js: 75ms, application-code: 2.9s)
+ GET /admin/routine 200 in 2.5s (next.js: 186ms, application-code: 2.3s)
+ GET /admin/routine 200 in 2.4s (next.js: 654ms, application-code: 1782ms)
+ GET /admin/routine 200 in 2.5s (next.js: 398ms, application-code: 2.1s)
+ GET /admin/routine 200 in 2.5s (next.js: 981ms, application-code: 1504ms)
+ GET /admin/routine 200 in 1298ms (next.js: 65ms, application-code: 1232ms)
+✓ Compiled in 1925ms
+ GET /admin/routine 200 in 7.3s (next.js: 174ms, application-code: 7.1s)
+ GET /admin/routine 200 in 6.6s (next.js: 3.6s, application-code: 3.0s)
+ GET /admin/routine 200 in 6.6s (next.js: 4.3s, application-code: 2.3s)
+ GET /admin/routine 200 in 6.6s (next.js: 4.9s, application-code: 1695ms)
+ GET /admin/routine 200 in 6.6s (next.js: 5.5s, application-code: 1117ms)
+ GET /admin/routine 200 in 6.4s (next.js: 5.6s, application-code: 721ms)
+ GET /admin/routine 200 in 1936ms (next.js: 72ms, application-code: 1865ms)
+ GET /admin/routine 200 in 2000ms (next.js: 328ms, application-code: 1672ms)
+ GET /admin/routine 200 in 2.0s (next.js: 514ms, application-code: 1531ms)
+ GET /admin/routine 200 in 2.0s (next.js: 808ms, application-code: 1233ms)
+ GET /admin/routine 200 in 2.1s (next.js: 1143ms, application-code: 917ms)
+ GET /admin/routine 200 in 1796ms (next.js: 1213ms, application-code: 583ms)
+ GET /admin/routine 200 in 3.9s (next.js: 160ms, application-code: 3.8s)
+ GET /admin/routine 200 in 3.8s (next.js: 574ms, application-code: 3.3s)
+ GET /admin/routine 200 in 3.9s (next.js: 946ms, application-code: 3.0s)
+ GET /admin/routine 200 in 3.4s (next.js: 1700ms, application-code: 1741ms)
+ GET /admin/routine 200 in 3.4s (next.js: 986ms, application-code: 2.5s)
+ GET /admin/routine 200 in 1197ms (next.js: 268ms, application-code: 929ms)
+✓ Compiled in 2.3s
+ GET /admin/routine 200 in 6.7s (next.js: 465ms, application-code: 6.2s)
+ GET /admin/routine 200 in 6.6s (next.js: 1014ms, application-code: 5.6s)
+ GET /admin/routine 200 in 6.6s (next.js: 1531ms, application-code: 5.1s)
+ GET /admin/routine 200 in 6.5s (next.js: 1817ms, application-code: 4.7s)
+ GET /admin/routine 200 in 6.5s (next.js: 2.2s, application-code: 4.3s)
+ GET /admin/routine 200 in 6.5s (next.js: 2.6s, application-code: 3.9s)
+✓ Compiled in 262ms
+ GET /admin/routine 200 in 7.2s (next.js: 1057ms, application-code: 6.2s)
+ GET /admin/routine 200 in 7.2s (next.js: 633ms, application-code: 6.6s)
+ GET /admin/routine 200 in 7.2s (next.js: 1570ms, application-code: 5.6s)
+ GET /admin/routine 200 in 7.2s (next.js: 2.1s, application-code: 5.1s)
+ GET /admin/routine 200 in 7.2s (next.js: 2.5s, application-code: 4.7s)
+ GET /admin/routine 200 in 7.2s (next.js: 2.8s, application-code: 4.3s)
+ GET /admin/routine 200 in 4.0s (next.js: 249ms, application-code: 3.7s)
+ GET /admin/routine 200 in 4.0s (next.js: 738ms, application-code: 3.3s)
+ GET /admin/routine 200 in 4.0s (next.js: 1046ms, application-code: 3.0s)
+ GET /admin/routine 200 in 4.0s (next.js: 1324ms, application-code: 2.7s)
+ GET /admin/routine 200 in 2.8s (next.js: 745ms, application-code: 2.0s)
+ GET /admin/routine 200 in 2.8s (next.js: 1483ms, application-code: 1293ms)
+ GET /admin/routine 200 in 2.2s (next.js: 78ms, application-code: 2.1s)
+ GET /admin/routine 200 in 2.1s (next.js: 671ms, application-code: 1478ms)
+ GET /admin/routine 200 in 2.2s (next.js: 989ms, application-code: 1161ms)
+ GET /admin/routine 200 in 986ms (next.js: 33ms, application-code: 952ms)
+ GET /admin/routine 200 in 997ms (next.js: 317ms, application-code: 679ms)
+ GET /admin/routine 200 in 1011ms (next.js: 494ms, application-code: 517ms)
+ GET /admin/routine 200 in 1681ms (next.js: 34ms, application-code: 1647ms)
+ GET /admin/routine 200 in 1688ms (next.js: 312ms, application-code: 1376ms)
+ GET /admin/routine 200 in 1684ms (next.js: 770ms, application-code: 914ms)
+ GET /admin/routine 200 in 1688ms (next.js: 548ms, application-code: 1140ms)
+ GET /admin/routine 200 in 1171ms (next.js: 547ms, application-code: 624ms)
+ GET /admin/routine 200 in 715ms (next.js: 320ms, application-code: 395ms)
+ GET /admin/routine 200 in 2.4s (next.js: 367ms, application-code: 2.1s)
+ GET /admin/routine 200 in 2.4s (next.js: 98ms, application-code: 2.3s)
+ GET /admin/routine 200 in 2.4s (next.js: 596ms, application-code: 1819ms)
+ GET /admin/routine 200 in 1698ms (next.js: 268ms, application-code: 1429ms)
+ GET /admin/routine 200 in 1916ms (next.js: 243ms, application-code: 1674ms)
+ GET /student/result 200 in 1705ms (next.js: 1072ms, application-code: 633ms)
+ GET /teacher/marks 200 in 3.3s (next.js: 432ms, application-code: 2.8s)
+ GET /admin/routine 200 in 3.3s (next.js: 637ms, application-code: 2.6s)
+ GET /student/result 200 in 2.5s (next.js: 71ms, application-code: 2.4s)
+ GET /student/result 200 in 2.5s (next.js: 266ms, application-code: 2.2s)
+ GET /student/result 200 in 2.5s (next.js: 1150ms, application-code: 1332ms)
+ GET /teacher/marks 200 in 1750ms (next.js: 99ms, application-code: 1652ms)
+✓ Finished filesystem cache database compaction in 11.8s
+ GET /student/result 200 in 1848ms (next.js: 219ms, application-code: 1629ms)
+ GET /teacher/marks 200 in 3.7s (next.js: 717ms, application-code: 3.0s)
+ GET /teacher/marks 200 in 1218ms (next.js: 618ms, application-code: 600ms)
+ GET /teacher/marks 200 in 1219ms (next.js: 201ms, application-code: 1018ms)
+ GET /student/result 200 in 5.9s (next.js: 68ms, application-code: 5.8s)
+ GET /teacher/marks 200 in 4.4s (next.js: 813ms, application-code: 3.6s)
+ GET /admin/routine 200 in 2.5s (next.js: 751ms, application-code: 1717ms)
+ GET /admin/routine 200 in 2.5s (next.js: 104ms, application-code: 2.4s)
+ GET /admin/routine 200 in 2.5s (next.js: 919ms, application-code: 1535ms)
+ GET /admin/routine 200 in 1836ms (next.js: 34ms, application-code: 1802ms)
+ GET /admin/routine 200 in 1632ms (next.js: 61ms, application-code: 1571ms)
+ GET /admin/routine 200 in 1829ms (next.js: 31ms, application-code: 1798ms)
+ GET /admin/routine 200 in 2.5s (next.js: 80ms, application-code: 2.4s)
+ GET /admin/routine 200 in 2.5s (next.js: 365ms, application-code: 2.1s)
+ GET /admin/routine 200 in 2.5s (next.js: 582ms, application-code: 1901ms)
+ GET /admin/routine 200 in 2.1s (next.js: 103ms, application-code: 2.0s)
+ GET /admin/routine 200 in 1567ms (next.js: 135ms, application-code: 1432ms)
+ GET /admin/routine 200 in 1328ms (next.js: 41ms, application-code: 1288ms)
+ GET /admin/routine 200 in 1367ms (next.js: 18ms, application-code: 1349ms)
+ GET /admin/routine 200 in 1368ms (next.js: 212ms, application-code: 1155ms)
+ GET /admin/routine 200 in 1067ms (next.js: 18ms, application-code: 1049ms)
+ GET /admin/routine 200 in 1188ms (next.js: 37ms, application-code: 1151ms)
+ GET /admin/routine 200 in 1101ms (next.js: 28ms, application-code: 1072ms)
+ GET /admin/routine 200 in 1126ms (next.js: 12ms, application-code: 1115ms)
+ GET /admin/routine 200 in 1762ms (next.js: 34ms, application-code: 1729ms)
+ GET /admin/routine 200 in 1753ms (next.js: 186ms, application-code: 1567ms)
+ GET /admin/routine 200 in 1482ms (next.js: 19ms, application-code: 1463ms)
+ GET /admin/routine 200 in 1563ms (next.js: 267ms, application-code: 1296ms)
+ GET /admin/routine 200 in 1635ms (next.js: 133ms, application-code: 1502ms)
+ GET /admin/routine 200 in 1317ms (next.js: 35ms, application-code: 1282ms)
+ GET /admin/routine 200 in 1228ms (next.js: 65ms, application-code: 1163ms)
+ GET /admin/routine 200 in 1183ms (next.js: 200ms, application-code: 983ms)
+ GET /admin/routine 200 in 882ms (next.js: 29ms, application-code: 853ms)
+ GET /admin/routine 200 in 1250ms (next.js: 45ms, application-code: 1205ms)
+ GET /admin/routine 200 in 1400ms (next.js: 217ms, application-code: 1183ms)
+ GET /admin/routine 200 in 1151ms (next.js: 66ms, application-code: 1086ms)
+ GET /admin/routine 200 in 918ms (next.js: 37ms, application-code: 881ms)
+ GET /admin/routine 200 in 693ms (next.js: 31ms, application-code: 662ms)
+ GET /admin/routine 200 in 684ms (next.js: 152ms, application-code: 532ms)
+ GET /admin/routine 200 in 1788ms (next.js: 465ms, application-code: 1323ms)
+ GET /admin/routine 200 in 1806ms (next.js: 96ms, application-code: 1711ms)
+ GET /admin/routine 200 in 1836ms (next.js: 1036ms, application-code: 800ms)
+ GET /admin/routine 200 in 1894ms (next.js: 1409ms, application-code: 485ms)
+ GET /admin/routine 200 in 1900ms (next.js: 1581ms, application-code: 318ms)
+ GET /admin/routine 200 in 1872ms (next.js: 1189ms, application-code: 682ms)
+ GET /admin/routine 200 in 2.4s (next.js: 118ms, application-code: 2.3s)
+ GET /admin/routine 200 in 2.4s (next.js: 896ms, application-code: 1550ms)
+ GET /admin/routine 200 in 2.4s (next.js: 1198ms, application-code: 1217ms)
+ GET /admin/routine 200 in 2.4s (next.js: 1584ms, application-code: 815ms)
+ GET /admin/routine 200 in 2.4s (next.js: 1382ms, application-code: 1046ms)
+ GET /admin/routine 200 in 2.4s (next.js: 1773ms, application-code: 632ms)
+ GET /admin/routine 200 in 1134ms (next.js: 48ms, application-code: 1086ms)
+ GET /admin/routine 200 in 1150ms (next.js: 234ms, application-code: 916ms)
+ GET /admin/routine 200 in 1162ms (next.js: 417ms, application-code: 745ms)
+ GET /admin/routine 200 in 1159ms (next.js: 558ms, application-code: 601ms)
+ GET /admin/routine 200 in 1155ms (next.js: 771ms, application-code: 384ms)
+ GET /admin/routine 200 in 1164ms (next.js: 904ms, application-code: 260ms)
+ GET /admin/routine 200 in 1129ms (next.js: 218ms, application-code: 911ms)
+ GET /admin/routine 200 in 1129ms (next.js: 468ms, application-code: 661ms)
+ GET /admin/routine 200 in 1115ms (next.js: 669ms, application-code: 446ms)
+ GET /admin/routine 200 in 1134ms (next.js: 869ms, application-code: 266ms)
+ GET /admin/routine 200 in 1167ms (next.js: 48ms, application-code: 1119ms)
+ GET /admin/routine 200 in 1179ms (next.js: 365ms, application-code: 814ms)
+ GET /admin/routine 200 in 982ms (next.js: 31ms, application-code: 951ms)
+ GET /admin/routine 200 in 972ms (next.js: 155ms, application-code: 817ms)
+ GET /admin/routine 200 in 980ms (next.js: 283ms, application-code: 696ms)
+ GET /admin/routine 200 in 980ms (next.js: 500ms, application-code: 480ms)
+ GET /admin/routine 200 in 998ms (next.js: 630ms, application-code: 369ms)
+ GET /admin/routine 200 in 408ms (next.js: 126ms, application-code: 282ms)
+ GET /admin/routine 200 in 1319ms (next.js: 202ms, application-code: 1117ms)
+ GET /admin/routine 200 in 1346ms (next.js: 33ms, application-code: 1314ms)
+ GET /admin/routine 200 in 1363ms (next.js: 345ms, application-code: 1017ms)
+ GET /admin/routine 200 in 1364ms (next.js: 581ms, application-code: 784ms)
+ GET /admin/routine 200 in 1047ms (next.js: 416ms, application-code: 631ms)
+ GET /admin/routine 200 in 651ms (next.js: 219ms, application-code: 432ms)
+ GET /admin/routine 200 in 1425ms (next.js: 64ms, application-code: 1360ms)
+ GET /admin/routine 200 in 1112ms (next.js: 211ms, application-code: 901ms)
+ GET /admin/routine 200 in 1430ms (next.js: 331ms, application-code: 1099ms)
+ GET /admin/routine 200 in 1104ms (next.js: 397ms, application-code: 708ms)
+ GET /admin/routine 200 in 532ms (next.js: 15ms, application-code: 517ms)
+ GET /admin/routine 200 in 538ms (next.js: 173ms, application-code: 366ms)
+ GET /admin/routine 200 in 1797ms (next.js: 83ms, application-code: 1714ms)
+ GET /admin/routine 200 in 1874ms (next.js: 274ms, application-code: 1601ms)
+ GET /admin/routine 200 in 1666ms (next.js: 285ms, application-code: 1381ms)
+ GET /admin/routine 200 in 1666ms (next.js: 744ms, application-code: 922ms)
+ GET /admin/routine 200 in 813ms (next.js: 28ms, application-code: 785ms)
+ GET /admin/routine 200 in 867ms (next.js: 282ms, application-code: 585ms)
+ GET /admin/routine 200 in 1756ms (next.js: 84ms, application-code: 1673ms)
+ GET /admin/routine 200 in 1238ms (next.js: 132ms, application-code: 1106ms)
+ GET /admin/routine 200 in 1255ms (next.js: 538ms, application-code: 717ms)
+ GET /admin/routine 200 in 1309ms (next.js: 733ms, application-code: 577ms)
+ GET /admin/routine 200 in 1338ms (next.js: 895ms, application-code: 443ms)
+ GET /admin/routine 200 in 1635ms (next.js: 917ms, application-code: 718ms)
+ GET /admin/routine 200 in 1398ms (next.js: 194ms, application-code: 1203ms)
+ GET /admin/routine 200 in 897ms (next.js: 83ms, application-code: 814ms)
+ GET /admin/routine 200 in 850ms (next.js: 172ms, application-code: 677ms)
+ GET /admin/routine 200 in 850ms (next.js: 300ms, application-code: 551ms)
+ GET /admin/routine 200 in 898ms (next.js: 428ms, application-code: 469ms)
+ GET /admin/routine 200 in 551ms (next.js: 20ms, application-code: 532ms)
+ GET /admin/routine 200 in 1098ms (next.js: 51ms, application-code: 1047ms)
+ GET /admin/routine 200 in 900ms (next.js: 30ms, application-code: 869ms)
+ GET /admin/routine 200 in 888ms (next.js: 238ms, application-code: 650ms)
+ GET /admin/routine 200 in 900ms (next.js: 134ms, application-code: 767ms)
+ GET /admin/routine 200 in 567ms (next.js: 83ms, application-code: 483ms)
+ GET /admin/routine 200 in 1567ms (next.js: 34ms, application-code: 1534ms)
+ GET /admin/routine 200 in 1618ms (next.js: 65ms, application-code: 1552ms)
+ GET /admin/routine 200 in 1414ms (next.js: 30ms, application-code: 1384ms)
+ GET /admin/routine 200 in 1417ms (next.js: 366ms, application-code: 1051ms)
+ GET /admin/routine 200 in 1427ms (next.js: 576ms, application-code: 851ms)
+ GET /admin/routine 200 in 451ms (next.js: 50ms, application-code: 401ms)
+ GET /admin/routine 200 in 471ms (next.js: 22ms, application-code: 449ms)
+ GET /admin/routine 200 in 322ms (next.js: 18ms, application-code: 304ms)
+ GET /teacher/dashboard 200 in 933ms (next.js: 519ms, application-code: 413ms)
+○ Compiling /teacher/routine ...
+ GET /teacher/routine 200 in 3.9s (next.js: 3.8s, application-code: 121ms)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+ GET /teacher/routine 200 in 182ms (next.js: 9ms, application-code: 172ms)
+ GET /teacher/routine 200 in 1001ms (next.js: 16ms, application-code: 985ms)
+ GET /teacher/routine 200 in 495ms (next.js: 13ms, application-code: 482ms)
+✓ Compiled in 1423ms
+ GET /admin/routine 200 in 1229ms (next.js: 298ms, application-code: 931ms)
+ GET /teacher/routine 200 in 1218ms (next.js: 450ms, application-code: 769ms)
+ GET /student/result 200 in 1218ms (next.js: 566ms, application-code: 653ms)
+ GET /teacher/routine 200 in 499ms (next.js: 117ms, application-code: 383ms)
+ GET /admin/routine 200 in 514ms (next.js: 331ms, application-code: 183ms)
+ GET /student/result 200 in 511ms (next.js: 388ms, application-code: 123ms)
+[browser] Uncaught TypeError: Cannot read properties of undefined (reading 'find')
+    at AdminRoutinePage (src/app/admin/routine/page.tsx:170:33)
+  168 |   const classInfo = MADRASHA_CLASSES.find(c => c.id === selectedClass);
+  169 |   const cellDay = DAYS.find(d => d.id === cellModal?.dayId);
+> 170 |   const cellSlot = cr.timeSlots.find(s => s.id === cellModal?.slotId);
+      |                                 ^
+  171 |
+  172 |   return (
+  173 |     <div>
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 1149ms
+ GET /admin/routine 200 in 2.9s (next.js: 231ms, application-code: 2.7s)
+[browser] Uncaught TypeError: Cannot read properties of undefined (reading 'find')
+    at AdminRoutinePage (src/app/admin/routine/page.tsx:170:33)
+  168 |   const classInfo = MADRASHA_CLASSES.find(c => c.id === selectedClass);
+  169 |   const cellDay = DAYS.find(d => d.id === cellModal?.dayId);
+> 170 |   const cellSlot = cr.timeSlots.find(s => s.id === cellModal?.slotId);
+      |                                 ^
+  171 |
+  172 |   return (
+  173 |     <div>
+✓ Compiled in 452ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /teacher/routine 200 in 2.2s (next.js: 1396ms, application-code: 784ms)
+ GET /student/result 200 in 2.2s (next.js: 1567ms, application-code: 614ms)
+ GET /admin/routine 200 in 2.2s (next.js: 299ms, application-code: 1886ms)
+ GET /teacher/routine 200 in 1166ms (next.js: 302ms, application-code: 864ms)
+ GET /student/result 200 in 1215ms (next.js: 569ms, application-code: 646ms)
+[browser] Uncaught TypeError: Cannot read properties of undefined (reading 'find')
+    at AdminRoutinePage (src/app/admin/routine/page.tsx:170:33)
+  168 |   const classInfo = MADRASHA_CLASSES.find(c => c.id === selectedClass);
+  169 |   const cellDay = DAYS.find(d => d.id === cellModal?.dayId);
+> 170 |   const cellSlot = cr.timeSlots.find(s => s.id === cellModal?.slotId);
+      |                                 ^
+  171 |
+  172 |   return (
+  173 |     <div>
+ GET /admin/routine 200 in 1237ms (next.js: 6ms, application-code: 1231ms)
+[browser] Uncaught TypeError: Cannot read properties of undefined (reading 'find')
+    at AdminRoutinePage (src/app/admin/routine/page.tsx:170:33)
+  168 |   const classInfo = MADRASHA_CLASSES.find(c => c.id === selectedClass);
+  169 |   const cellDay = DAYS.find(d => d.id === cellModal?.dayId);
+> 170 |   const cellSlot = cr.timeSlots.find(s => s.id === cellModal?.slotId);
+      |                                 ^
+  171 |
+  172 |   return (
+  173 |     <div>
+✓ Compiled in 135ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /admin/routine 200 in 655ms (next.js: 204ms, application-code: 451ms)
+ GET /teacher/routine 200 in 326ms (next.js: 75ms, application-code: 251ms)
+ GET /student/result 200 in 334ms (next.js: 171ms, application-code: 163ms)
+✓ Compiled in 2.1s
+ GET /admin/routine 200 in 2.4s (next.js: 635ms, application-code: 1717ms)
+ GET /teacher/routine 200 in 2.4s (next.js: 868ms, application-code: 1496ms)
+ GET /student/result 200 in 1558ms (next.js: 311ms, application-code: 1247ms)
+ GET /admin/routine 200 in 966ms (next.js: 68ms, application-code: 898ms)
+ GET /teacher/routine 200 in 705ms (next.js: 20ms, application-code: 685ms)
+ GET /student/result 200 in 710ms (next.js: 163ms, application-code: 547ms)
+✓ Compiled in 2.6s
+ GET /admin/routine 200 in 1950ms (next.js: 366ms, application-code: 1584ms)
+ GET /teacher/routine 200 in 969ms (next.js: 643ms, application-code: 326ms)
+ GET /student/result 200 in 983ms (next.js: 823ms, application-code: 161ms)
+✓ Compiled in 1644ms
+ GET /admin/routine 200 in 929ms (next.js: 298ms, application-code: 631ms)
+ GET /student/result 200 in 444ms (next.js: 40ms, application-code: 404ms)
+ GET /teacher/routine 200 in 460ms (next.js: 199ms, application-code: 260ms)
+ GET /admin/routine 200 in 517ms (next.js: 121ms, application-code: 395ms)
+ GET /student/result 200 in 271ms (next.js: 216ms, application-code: 55ms)
+ GET /teacher/routine 200 in 271ms (next.js: 101ms, application-code: 169ms)
+✓ Compiled in 1186ms
+ GET /admin/exam-schedule 200 in 2.9s (next.js: 2.8s, application-code: 63ms)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+ GET /admin/seat-plan 200 in 1604ms (next.js: 1493ms, application-code: 110ms)
+ GET /admin/routine 200 in 80ms (next.js: 10ms, application-code: 70ms)
+ GET /teacher/dashboard 200 in 151ms (next.js: 94ms, application-code: 57ms)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+ GET /teacher/attendance 200 in 1704ms (next.js: 1611ms, application-code: 93ms)
+ GET /teacher/marks 200 in 104ms (next.js: 38ms, application-code: 67ms)
+ GET /teacher/syllabus 200 in 1343ms (next.js: 1149ms, application-code: 194ms)
+ GET /teacher/notes 200 in 1295ms (next.js: 1220ms, application-code: 75ms)
+ GET /teacher/suggestions 200 in 1750ms (next.js: 1401ms, application-code: 349ms)
+ GET /teacher/fees 200 in 1481ms (next.js: 1336ms, application-code: 145ms)
+✓ Compiled in 973ms
+ GET /teacher/my-attendance 200 in 962ms (next.js: 645ms, application-code: 318ms)
+ GET /teacher/my-attendance 200 in 1149ms (next.js: 251ms, application-code: 898ms)
+ GET /student/result 200 in 1137ms (next.js: 537ms, application-code: 600ms)
+ GET /admin/routine 200 in 679ms (next.js: 508ms, application-code: 171ms)
+ GET /teacher/notice 200 in 1513ms (next.js: 1462ms, application-code: 51ms)
+ GET /teacher/profile 200 in 1673ms (next.js: 1614ms, application-code: 59ms)
+✓ Compiled in 627ms
+ GET /teacher/profile 200 in 798ms (next.js: 198ms, application-code: 600ms)
+ GET /admin/routine 200 in 800ms (next.js: 342ms, application-code: 457ms)
+ GET /student/result 200 in 342ms (next.js: 55ms, application-code: 287ms)
+ GET /teacher/dashboard 200 in 92ms (next.js: 35ms, application-code: 57ms)
+ GET /teacher/profile 200 in 49ms (next.js: 8ms, application-code: 42ms)
+ GET /teacher/dashboard 200 in 46ms (next.js: 6ms, application-code: 41ms)
+ GET /admin/routine 200 in 49ms (next.js: 8ms, application-code: 41ms)
+ GET /admin/exam-schedule 200 in 125ms (next.js: 26ms, application-code: 98ms)
+✓ Compiled in 1062ms
+ GET /student/result 200 in 1185ms (next.js: 269ms, application-code: 917ms)
+ GET /teacher/dashboard 200 in 1185ms (next.js: 525ms, application-code: 660ms)
+ GET /admin/exam-schedule 200 in 1196ms (next.js: 844ms, application-code: 351ms)
+ GET /student/result 200 in 287ms (next.js: 14ms, application-code: 272ms)
+ GET /teacher/dashboard 200 in 292ms (next.js: 69ms, application-code: 222ms)
+ GET /admin/exam-schedule 200 in 115ms (next.js: 6ms, application-code: 109ms)
+✓ Compiled in 607ms
+ GET /admin/routine 200 in 50ms (next.js: 19ms, application-code: 32ms)
+ GET /admin/exam-schedule 200 in 41ms (next.js: 8ms, application-code: 33ms)
+✓ Compiled in 370ms
+ GET /admin/exam-schedule 200 in 1619ms (next.js: 737ms, application-code: 882ms)
+ GET /teacher/dashboard 200 in 736ms (next.js: 49ms, application-code: 687ms)
+ GET /student/result 200 in 739ms (next.js: 286ms, application-code: 453ms)
+✓ Compiled in 289ms
+ GET /admin/exam-schedule 200 in 749ms (next.js: 282ms, application-code: 467ms)
+ GET /student/result 200 in 382ms (next.js: 48ms, application-code: 334ms)
+ GET /teacher/dashboard 200 in 383ms (next.js: 236ms, application-code: 147ms)
+ GET /admin/routine 200 in 78ms (next.js: 26ms, application-code: 52ms)
+ GET /admin/exam-schedule 200 in 82ms (next.js: 10ms, application-code: 72ms)
+✓ Compiled in 244ms
+ GET /admin/exam-schedule 200 in 1205ms (next.js: 511ms, application-code: 694ms)
+ GET /student/result 200 in 509ms (next.js: 443ms, application-code: 66ms)
+ GET /teacher/dashboard 200 in 509ms (next.js: 314ms, application-code: 195ms)
+✓ Compiled in 1166ms
+ GET /admin/exam-schedule 200 in 2.0s (next.js: 859ms, application-code: 1168ms)
+ GET /student/result 200 in 972ms (next.js: 115ms, application-code: 857ms)
+ GET /teacher/dashboard 200 in 974ms (next.js: 647ms, application-code: 328ms)
+✓ Compiled in 943ms
+ GET /admin/exam-schedule 200 in 1306ms (next.js: 726ms, application-code: 580ms)
+ GET /student/result 200 in 499ms (next.js: 144ms, application-code: 355ms)
+ GET /teacher/dashboard 200 in 499ms (next.js: 399ms, application-code: 99ms)
+✓ Compiled in 331ms
+ GET /admin/exam-schedule 200 in 675ms (next.js: 186ms, application-code: 489ms)
+ GET /student/result 200 in 432ms (next.js: 27ms, application-code: 404ms)
+ GET /teacher/dashboard 200 in 447ms (next.js: 180ms, application-code: 267ms)
+✓ Compiled in 709ms
+ GET /admin/exam-schedule 200 in 2.0s (next.js: 1290ms, application-code: 742ms)
+ GET /student/result 200 in 399ms (next.js: 66ms, application-code: 332ms)
+ GET /teacher/dashboard 200 in 386ms (next.js: 248ms, application-code: 138ms)
+✓ Compiled in 345ms
+ GET /admin/exam-schedule 200 in 1096ms (next.js: 330ms, application-code: 765ms)
+ GET /student/result 200 in 587ms (next.js: 250ms, application-code: 337ms)
+ GET /teacher/dashboard 200 in 604ms (next.js: 496ms, application-code: 108ms)
+✓ Compiled in 384ms
+ GET /student/result 200 in 1606ms (next.js: 618ms, application-code: 988ms)
+ GET /admin/exam-schedule 200 in 805ms (next.js: 325ms, application-code: 481ms)
+ GET /teacher/dashboard 200 in 805ms (next.js: 540ms, application-code: 265ms)
+✓ Compiled in 171ms
+ GET /admin/exam-schedule 200 in 784ms (next.js: 433ms, application-code: 352ms)
+ GET /student/result 200 in 309ms (next.js: 33ms, application-code: 276ms)
+ GET /teacher/dashboard 200 in 311ms (next.js: 167ms, application-code: 144ms)
+ GET /admin/seat-plan 200 in 68ms (next.js: 35ms, application-code: 33ms)
+[browser] Received NaN for the `value` attribute. If this is expected, cast the value to a string. 
+ GET /admin/admit-cards 200 in 77ms (next.js: 41ms, application-code: 36ms)
+ GET /admin/admit-cards 200 in 107ms (next.js: 13ms, application-code: 93ms)
+✓ Compiled in 794ms
+⚠ Fast Refresh had to perform a full reload when ./src/app/admin/seat-plan/page.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /admin/admit-cards 200 in 2.3s (next.js: 174ms, application-code: 2.2s)
+ GET /teacher/dashboard 200 in 2.6s (next.js: 339ms, application-code: 2.3s)
+ GET /student/result 200 in 2.6s (next.js: 267ms, application-code: 2.4s)
+ GET /student/result 200 in 544ms (next.js: 171ms, application-code: 373ms)
+ GET /admin/admit-cards 200 in 2.3s (next.js: 84ms, application-code: 2.3s)
+ GET /teacher/dashboard 200 in 311ms (next.js: 11ms, application-code: 300ms)
+ GET /student/result 200 in 389ms (next.js: 31ms, application-code: 358ms)
+ GET /student/result 200 in 348ms (next.js: 7ms, application-code: 341ms)
+ GET /teacher/dashboard 200 in 348ms (next.js: 59ms, application-code: 288ms)
+ GET /teacher/dashboard 200 in 305ms (next.js: 8ms, application-code: 297ms)
+[browser] Uncaught Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <ScrollAndMaybeFocusHandler cacheNode={{rsc:{...}, ...}}>
+      <InnerScrollAndFocusHandlerOld focusAndScrollRef={{scrollRef:null, ...}} cacheNode={{rsc:{...}, ...}}>
+        <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+          <LoadingBoundary name="admit-cards/" loading={null}>
+            <HTTPAccessFallbackBoundary notFound={undefined} forbidden={undefined} unauthorized={undefined}>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <InnerLayoutRouter url="/admin/adm..." tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} ...>
+                    <SegmentViewNode type="page" pagePath="admin/admi...">
+                      <SegmentTrieNode>
+                      <ClientPageRoot Component={function AdminAdmitCardsPage} serverProvidedParams={{...}}>
+                        <AdminAdmitCardsPage params={Promise} searchParams={Promise}>
+                          <div>
+                            <DashboardHeader>
+                            <div className="p-6 space-y-5">
+                              <button>
+                              <div
++                               className="space-y-3"
+-                               className="bg-white rounded-2xl border border-gray-100 p-12 text-center text-gray-400"
+                              >
++                               <div
++                                 className="bg-white rounded-2xl border transition-colors border-green-200 bg-green-5..."
++                               >
+-                               <svg
+-                                 xmlns="http://www.w3.org/2000/svg"
+-                                 width="44"
+-                                 height="44"
+-                                 viewBox="0 0 24 24"
+-                                 fill="none"
+-                                 stroke="currentColor"
+-                                 stroke-width="2"
+-                                 stroke-linecap="round"
+-                                 stroke-linejoin="round"
+-                                 className="lucide lucide-id-card mx-auto mb-3 opacity-25"
+-                                 aria-hidden="true"
+-                               >
+                    ...
+                  ...
+        ...
+
+    at <unknown> (https://react.dev/link/hydration-mismatch)
+    at div (<anonymous>)
+    at <unknown> (src/app/admin/admit-cards/page.tsx:186:17)
+    at Array.map (<anonymous>)
+    at AdminAdmitCardsPage (src/app/admin/admit-cards/page.tsx:181:20)
+  184 |               const eligibleCount = classStudents.filter(s => isStudentEligible(s.id, car...
+  185 |               return (
+> 186 |                 <div key={card.id} className={`bg-white rounded-2xl border transition-col...
+      |                 ^
+  187 |                   <div className="flex items-start gap-4 p-5">
+  188 |                     <div className={`w-11 h-11 rounded-xl flex items-center justify-cente...
+  189 |                       <IdCard size={20} className={card.issued ? 'text-green-600' : 'text...
+✓ Compiled in 304ms
+ GET /admin/admit-cards 200 in 595ms (next.js: 359ms, application-code: 236ms)
+ GET /student/result 200 in 177ms (next.js: 27ms, application-code: 150ms)
+ GET /teacher/dashboard 200 in 179ms (next.js: 113ms, application-code: 65ms)
+ GET /admin/admit-cards 200 in 19ms (next.js: 6ms, application-code: 13ms)
+ GET /admin/admit-cards 200 in 68ms (next.js: 7ms, application-code: 61ms)
+ GET /admin/admit-cards 200 in 487ms (next.js: 9ms, application-code: 478ms)
+[browser] Uncaught Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <ScrollAndMaybeFocusHandler cacheNode={{rsc:{...}, ...}}>
+      <InnerScrollAndFocusHandlerOld focusAndScrollRef={{scrollRef:null, ...}} cacheNode={{rsc:{...}, ...}}>
+        <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+          <LoadingBoundary name="admit-cards/" loading={null}>
+            <HTTPAccessFallbackBoundary notFound={undefined} forbidden={undefined} unauthorized={undefined}>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <InnerLayoutRouter url="/admin/adm..." tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} ...>
+                    <SegmentViewNode type="page" pagePath="admin/admi...">
+                      <SegmentTrieNode>
+                      <ClientPageRoot Component={function AdminAdmitCardsPage} serverProvidedParams={{...}}>
+                        <AdminAdmitCardsPage params={Promise} searchParams={Promise}>
+                          <div>
+                            <DashboardHeader>
+                            <div className="p-6 space-y-5">
+                              <button>
+                              <div
++                               className="space-y-3"
+-                               className="bg-white rounded-2xl border border-gray-100 p-12 text-center text-gray-400"
+                              >
++                               <div
++                                 className="bg-white rounded-2xl border transition-colors border-green-200 bg-green-5..."
++                               >
+-                               <svg
+-                                 xmlns="http://www.w3.org/2000/svg"
+-                                 width="44"
+-                                 height="44"
+-                                 viewBox="0 0 24 24"
+-                                 fill="none"
+-                                 stroke="currentColor"
+-                                 stroke-width="2"
+-                                 stroke-linecap="round"
+-                                 stroke-linejoin="round"
+-                                 className="lucide lucide-id-card mx-auto mb-3 opacity-25"
+-                                 aria-hidden="true"
+-                               >
+                    ...
+                  ...
+        ...
+
+    at <unknown> (https://react.dev/link/hydration-mismatch)
+    at div (<anonymous>)
+    at <unknown> (src/app/admin/admit-cards/page.tsx:250:17)
+    at Array.map (<anonymous>)
+    at AdminAdmitCardsPage (src/app/admin/admit-cards/page.tsx:243:20)
+  248 |               const hasSeats = classStudents.some(s => getSeatInfo(s.id, card.examId) !==...
+  249 |               return (
+> 250 |                 <div key={card.id} className={`bg-white rounded-2xl border transition-col...
+      |                 ^
+  251 |                   <div className="flex items-start gap-4 p-5">
+  252 |                     <div className={`w-11 h-11 rounded-xl flex items-center justify-cente...
+  253 |                       <IdCard size={20} className={card.issued ? 'text-green-600' : 'text...
+ GET /admin/routine 200 in 265ms (next.js: 212ms, application-code: 53ms)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+ GET /admin/fees 200 in 84ms (next.js: 45ms, application-code: 39ms)
+ GET /admin/exam-schedule 200 in 98ms (next.js: 28ms, application-code: 70ms)
+ GET /admin/fees 200 in 45ms (next.js: 6ms, application-code: 39ms)
+ GET /admin/admit-cards 200 in 42ms (next.js: 7ms, application-code: 35ms)
+ GET /admin/fees 200 in 72ms (next.js: 5ms, application-code: 68ms)
+ GET /admin/admit-cards 200 in 33ms (next.js: 4ms, application-code: 28ms)
+ GET /admin/routine 200 in 45ms (next.js: 5ms, application-code: 40ms)
+ GET /admin/exam-schedule 200 in 50ms (next.js: 5ms, application-code: 45ms)
+ GET /admin/seat-plan 200 in 206ms (next.js: 138ms, application-code: 69ms)

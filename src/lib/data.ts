@@ -424,13 +424,14 @@ export const ROUTINE_DATA = [
 ];
 
 export const COLLEGE_INFO = {
-  name: 'Noor-E-Islam Madrasha',
-  nameBn: 'নূরে ইসলাম মাদ্রাসা',
-  address: '১২৩, ইসলামিক রোড, ঢাকা-১২১৫, বাংলাদেশ',
-  phone: '02-9876543, 01711-000000',
-  email: 'info@noorislammadrasha.edu.bd',
-  website: 'www.noorislammadrasha.edu.bd',
-  eiin: 'EIIN: 108xxx',
-  established: '১৯৮৫',
+  name: 'Egaro Sendur Ishakhan Senior Madrasha',
+  nameBn: 'এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা',
+  address: 'এগারসিন্দুর, পাকুন্দিয়া, কিশোরগঞ্জ, বাংলাদেশ',
+  phone: '01973519857, 01973519858',
+  email: '11sindurmadrasa@gmail.com',
+  website: 'www.eismadrasha.edu.bd',
+  eiin: '110590',
+  established: '১৯৫৮',
+  establishedEn: '1958',
   board: 'বাংলাদেশ মাদ্রাসা শিক্ষা বোর্ড',
 };

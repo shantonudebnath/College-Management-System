@@ -7,6 +7,10 @@ import FeaturesSection from '@/components/home/FeaturesSection';
 import TeacherPreview from '@/components/home/TeacherPreview';
 import PortalCards from '@/components/home/PortalCards';
 import NewsSection from '@/components/home/NewsSection';
+import GallerySection from '@/components/home/GallerySection';
+import ImportantLinks from '@/components/home/ImportantLinks';
+import FaqSection from '@/components/home/FaqSection';
+import AdmissionBanner from '@/components/home/AdmissionBanner';
 
 export default function HomePage() {
   return (
@@ -18,8 +22,12 @@ export default function HomePage() {
         <StatsSection />
         <FeaturesSection />
         <PortalCards />
+        <AdmissionBanner />
+        <GallerySection />
         <TeacherPreview />
+        <ImportantLinks />
         <NewsSection />
+        <FaqSection />
       </main>
       <Footer />
     </div>

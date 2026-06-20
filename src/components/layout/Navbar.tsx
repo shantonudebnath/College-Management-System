@@ -1,15 +1,45 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { Menu, X, BookOpen, Bell, ChevronDown, GraduationCap, Phone, Mail } from 'lucide-react';
+import Image from 'next/image';
+import { Menu, X, ChevronDown, Phone, Mail } from 'lucide-react';
 import { COLLEGE_INFO } from '@/lib/data';
 
-const NAV_LINKS = [
+interface NavChild { label: string; href: string; }
+interface NavItem { label: string; href?: string; children?: NavChild[]; }
+
+const NAV_LINKS: NavItem[] = [
   { label: 'হোম', href: '/' },
-  { label: 'আমাদের পরিচয়', href: '/about' },
-  { label: 'শিক্ষক মণ্ডলী', href: '/teachers' },
+  {
+    label: 'প্রতিষ্ঠান',
+    children: [
+      { label: 'প্রতিষ্ঠান পরিচিতি', href: '/about' },
+      { label: 'পরিচালনা পর্ষদ', href: '/about#governing-body' },
+      { label: 'অনুমতি ও স্বীকৃতি', href: '/about#recognition' },
+      { label: 'এমপিও তথ্য', href: '/about#mpo' },
+      { label: 'ভূমি তথ্য', href: '/about#land' },
+      { label: 'ভবন ও কক্ষ সংখ্যা', href: '/about#building' },
+      { label: 'ক্যাম্পাস ম্যাপ', href: '/about#campus-map' },
+      { label: 'একাডেমিক ফলাফল', href: '/about#academic' },
+      { label: 'বার্ষিক প্রতিবেদন', href: '/about#annual-report' },
+    ],
+  },
+  {
+    label: 'শিক্ষক ও কর্মচারী',
+    children: [
+      { label: 'অধ্যক্ষের তালিকা', href: '/teachers#principal' },
+      { label: 'শিক্ষক তালিকা', href: '/teachers' },
+      { label: 'কর্মচারী তালিকা', href: '/teachers#staff' },
+      { label: 'প্রাক্তন শিক্ষক তালিকা', href: '/teachers#ex-teachers' },
+      { label: 'কল্যাণ ট্রাস্ট', href: '/teachers#welfare' },
+      { label: 'শিক্ষক পরিষদ', href: '/teachers#council' },
+      { label: 'সম্মান বোর্ড', href: '/teachers#honor' },
+      { label: 'প্রতিষ্ঠাতা ও দাতা', href: '/teachers#founders' },
+    ],
+  },
   { label: 'নোটিশ বোর্ড', href: '/notice' },
   { label: 'ফলাফল', href: '/result' },
+  { label: 'ভর্তি', href: '/admission' },
   {
     label: 'পোর্টাল',
     children: [
@@ -20,20 +50,37 @@ const NAV_LINKS = [
   },
 ];
 
+function DropdownMenu({ items, onClose }: { items: NavChild[]; onClose: () => void }) {
+  return (
+    <div className="absolute top-full left-0 mt-1 w-52 z-50 animate-fadeIn">
+      <div className="bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden py-1">
+        {items.map(child => (
+          <Link key={child.href} href={child.href} onClick={onClose}
+            className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors">
+            {child.label}
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Navbar() {
   const [open, setOpen] = useState(false);
-  const [dropdown, setDropdown] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
 
   return (
     <>
       {/* Top bar */}
       <div className="gradient-primary text-white text-xs py-1.5 px-4 hidden md:block">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex gap-4 items-center">
-            <span className="flex items-center gap-1"><Phone size={11} /> {COLLEGE_INFO.phone}</span>
-            <span className="flex items-center gap-1"><Mail size={11} /> {COLLEGE_INFO.email}</span>
+          <div className="flex gap-5 items-center">
+            <span className="flex items-center gap-1.5"><Phone size={11} /> {COLLEGE_INFO.phone}</span>
+            <span className="flex items-center gap-1.5"><Mail size={11} /> {COLLEGE_INFO.email}</span>
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-5">
+            <span>EIIN: {COLLEGE_INFO.eiin}</span>
             <Link href="/result" className="hover:text-purple-200 transition-colors">ফলাফল দেখুন</Link>
             <Link href="/notice" className="hover:text-purple-200 transition-colors">নোটিশ বোর্ড</Link>
           </div>
@@ -45,56 +92,49 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-purple-300 transition-shadow">
-                <GraduationCap size={22} className="text-white" />
+            <Link href="/" className="flex items-center gap-3 group shrink-0">
+              <div className="w-11 h-11 relative flex-shrink-0">
+                <Image src="/logo.png" alt="মাদ্রাসা লোগো" fill className="object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }} />
               </div>
               <div className="hidden sm:block">
-                <p className="font-bold text-gray-900 text-sm leading-tight">{COLLEGE_INFO.name}</p>
-                <p className="text-[10px] text-purple-600 font-medium">{COLLEGE_INFO.nameBn}</p>
+                <p className="font-bold text-gray-900 text-sm leading-tight">{COLLEGE_INFO.nameBn}</p>
+                <p className="text-[10px] text-purple-600 font-medium">স্থাপিত: {COLLEGE_INFO.established} | EIIN: {COLLEGE_INFO.eiin}</p>
               </div>
             </Link>
 
             {/* Desktop nav */}
-            <div className="hidden md:flex items-center gap-1">
-              {NAV_LINKS.map((link) =>
+            <div className="hidden lg:flex items-center gap-0.5">
+              {NAV_LINKS.map(link =>
                 link.children ? (
-                  <div key={link.label} className="relative" onMouseEnter={() => setDropdown(true)} onMouseLeave={() => setDropdown(false)}>
-                    <button className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-gray-700 hover:text-purple-600 rounded-lg hover:bg-purple-50 transition-colors">
-                      {link.label} <ChevronDown size={14} />
+                  <div key={link.label} className="relative"
+                    onMouseEnter={() => setActiveDropdown(link.label)}
+                    onMouseLeave={() => setActiveDropdown(null)}>
+                    <button className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-700 hover:text-purple-600 rounded-lg hover:bg-purple-50 transition-colors whitespace-nowrap">
+                      {link.label} <ChevronDown size={13} className={`transition-transform ${activeDropdown === link.label ? 'rotate-180' : ''}`} />
                     </button>
-                    {dropdown && (
-                      <div className="absolute top-full left-0 w-44 pt-1.5 z-50">
-                        <div className="bg-white rounded-xl shadow-xl border border-purple-100 overflow-hidden">
-                          {link.children.map((child) => (
-                            <Link key={child.href} href={child.href} className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors">
-                              {child.label}
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
+                    {activeDropdown === link.label && (
+                      <DropdownMenu items={link.children} onClose={() => setActiveDropdown(null)} />
                     )}
                   </div>
                 ) : (
-                  <Link key={link.href} href={link.href} className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-purple-600 rounded-lg hover:bg-purple-50 transition-colors">
+                  <Link key={link.href} href={link.href!}
+                    className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-purple-600 rounded-lg hover:bg-purple-50 transition-colors whitespace-nowrap">
                     {link.label}
                   </Link>
                 )
               )}
             </div>
 
-            {/* CTA buttons */}
-            <div className="hidden md:flex items-center gap-2">
+            <div className="hidden lg:flex items-center gap-2 shrink-0">
               <Link href="/login" className="px-4 py-2 text-sm font-semibold text-purple-600 border border-purple-200 rounded-lg hover:bg-purple-50 transition-colors">
                 লগইন
               </Link>
-              <Link href="/register" className="px-4 py-2 text-sm font-semibold btn-primary rounded-lg">
-                রেজিস্ট্রেশন
+              <Link href="/admission" className="px-4 py-2 text-sm font-semibold btn-primary rounded-lg">
+                ভর্তি আবেদন
               </Link>
             </div>
 
-            {/* Mobile menu toggle */}
-            <button onClick={() => setOpen(!open)} className="md:hidden p-2 rounded-lg hover:bg-gray-100">
+            <button onClick={() => setOpen(!open)} className="lg:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-700">
               {open ? <X size={22} /> : <Menu size={22} />}
             </button>
           </div>
@@ -102,26 +142,37 @@ export default function Navbar() {
 
         {/* Mobile menu */}
         {open && (
-          <div className="md:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-1 animate-fadeIn">
-            {NAV_LINKS.map((link) =>
+          <div className="lg:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-1 max-h-[80vh] overflow-y-auto">
+            {NAV_LINKS.map(link =>
               link.children ? (
                 <div key={link.label}>
-                  <p className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">{link.label}</p>
-                  {link.children.map((child) => (
-                    <Link key={child.href} href={child.href} onClick={() => setOpen(false)} className="block px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-purple-50 hover:text-purple-600">
-                      {child.label}
-                    </Link>
-                  ))}
+                  <button
+                    onClick={() => setMobileExpanded(mobileExpanded === link.label ? null : link.label)}
+                    className="w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium text-gray-700 rounded-lg hover:bg-purple-50">
+                    {link.label}
+                    <ChevronDown size={14} className={`transition-transform ${mobileExpanded === link.label ? 'rotate-180' : ''}`} />
+                  </button>
+                  {mobileExpanded === link.label && (
+                    <div className="ml-3 border-l-2 border-purple-100 pl-3 space-y-0.5 mt-1">
+                      {link.children.map(child => (
+                        <Link key={child.href} href={child.href} onClick={() => setOpen(false)}
+                          className="block px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-purple-50 hover:text-purple-700">
+                          {child.label}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ) : (
-                <Link key={link.href} href={link.href} onClick={() => setOpen(false)} className="block px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-purple-50 hover:text-purple-600">
+                <Link key={link.href} href={link.href!} onClick={() => setOpen(false)}
+                  className="block px-3 py-2.5 text-sm font-medium text-gray-700 rounded-lg hover:bg-purple-50 hover:text-purple-700">
                   {link.label}
                 </Link>
               )
             )}
             <div className="flex gap-2 pt-2 border-t border-gray-100">
-              <Link href="/login" className="flex-1 text-center py-2 text-sm font-semibold text-purple-600 border border-purple-200 rounded-lg">লগইন</Link>
-              <Link href="/register" className="flex-1 text-center py-2 text-sm font-semibold btn-primary rounded-lg">রেজিস্ট্রেশন</Link>
+              <Link href="/login" onClick={() => setOpen(false)} className="flex-1 text-center py-2.5 text-sm font-semibold text-purple-600 border border-purple-200 rounded-lg">লগইন</Link>
+              <Link href="/admission" onClick={() => setOpen(false)} className="flex-1 text-center py-2.5 text-sm font-semibold btn-primary rounded-lg">ভর্তি আবেদন</Link>
             </div>
           </div>
         )}

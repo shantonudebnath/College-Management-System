@@ -1,11 +1,23 @@
 'use client';
+import { useEffect, useState } from 'react';
 import { useNotices } from '@/context/NoticesContext';
+import { loadWebsiteContent } from '@/lib/website-content';
 import { AlertCircle } from 'lucide-react';
 
 export default function NoticeTicker() {
   const { notices } = useNotices();
-  const urgent = notices.filter(n => n.isImportant);
-  if (urgent.length === 0) return null;
+  const [extraTicker, setExtraTicker] = useState<string[]>([]);
+
+  useEffect(() => {
+    const c = loadWebsiteContent();
+    setExtraTicker(c.noticeTicker.map(n => n.text));
+  }, []);
+
+  const urgent = notices.filter(n => n.isImportant).map(n => n.title);
+  const allItems = [...extraTicker, ...urgent];
+
+  if (allItems.length === 0) return null;
+
   return (
     <div className="bg-amber-50 border-b border-amber-200 py-2 overflow-hidden">
       <div className="flex items-center max-w-full">
@@ -14,11 +26,9 @@ export default function NoticeTicker() {
           <span>নোটিশ</span>
         </div>
         <div className="overflow-hidden flex-1 relative">
-          <div className="notice-marquee inline-block text-xs text-amber-800 font-medium">
-            {urgent.map((n, i) => (
-              <span key={n.id} className="mx-8">
-                🔔 {n.title} {i < urgent.length - 1 ? '  |  ' : ''}
-              </span>
+          <div className="notice-marquee inline-block text-xs text-amber-800 font-medium whitespace-nowrap">
+            {allItems.map((text, i) => (
+              <span key={i} className="mx-8">🔔 {text}</span>
             ))}
           </div>
         </div>
