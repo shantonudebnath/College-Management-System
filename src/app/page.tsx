@@ -1,6 +1,5 @@
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import HeroSection from '@/components/home/HeroSection';
 import SliderSection from '@/components/home/SliderSection';
 import NoticeTicker from '@/components/home/NoticeTicker';
 import StatsSection from '@/components/home/StatsSection';
@@ -16,15 +15,14 @@ export default function HomePage() {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-1">
-        <HeroSection />
-        <NoticeTicker />
         <SliderSection />
+        <NoticeTicker />
         <StatsSection />
+        <NewsSection />
         <AdmissionBanner />
         <GallerySection />
         <TeacherPreview />
         <ImportantLinks />
-        <NewsSection />
         <FaqSection />
       </main>
       <Footer />
