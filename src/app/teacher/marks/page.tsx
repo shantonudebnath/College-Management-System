@@ -60,7 +60,7 @@ export default function TeacherMarksPage() {
 
   const [cls,         setCls]         = useState(classList[0]?.id ?? 'class-10');
   const [exam,        setExam]        = useState(EXAM_OPTIONS[0]);
-  const [year,        setYear]        = useState('2026');
+  const [year,        setYear]        = useState(String(new Date().getFullYear()));
   const [subjectName, setSubjectName] = useState('');
   const [marks,       setMarks]       = useState<Record<string, { cq: string; mcq: string; practical: string }>>({});
   const [saved,       setSaved]       = useState(false);
@@ -183,7 +183,7 @@ export default function TeacherMarksPage() {
               <label className="text-xs font-semibold text-gray-600 block mb-1">বছর</label>
               <select value={year} onChange={e => { setYear(e.target.value); setSaved(false); }}
                 className="px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400">
-                {['2024', '2025', '2026', '2027'].map(y => <option key={y} value={y}>{y}</option>)}
+                {Array.from({ length: 10 }, (_, i) => String(new Date().getFullYear() - 1 + i)).map(y => <option key={y} value={y}>{y}</option>)}
               </select>
             </div>
 
