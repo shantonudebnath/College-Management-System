@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { EXAM_RESULTS } from '@/lib/data';
 import { Award, CheckCircle, Download, Printer, Lock } from 'lucide-react';
+import { useStudentSession } from '@/hooks/useStudentSession';
 
 async function downloadMarksheetPDF(result: typeof EXAM_RESULTS[0]) {
   const { jsPDF } = await import('jspdf');
@@ -159,8 +160,6 @@ async function downloadMarksheetPDF(result: typeof EXAM_RESULTS[0]) {
 
 const LS_KEY = 'published_results_v1';
 
-const result = EXAM_RESULTS[0];
-
 const getGradeColor = (grade: string) => {
   if (grade === 'A+') return 'text-green-700 bg-green-50';
   if (grade.startsWith('A')) return 'text-blue-700 bg-blue-50';
@@ -169,21 +168,34 @@ const getGradeColor = (grade: string) => {
 };
 
 export default function StudentResultPage() {
+  const { student, loading: sessionLoading } = useStudentSession();
   const [isPublished, setIsPublished] = useState(false);
 
+  // Find result for the logged-in student
+  const result = EXAM_RESULTS.find(r => r.studentId === student?.id) ?? null;
+
   useEffect(() => {
+    if (!result) return;
     try {
       const list: string[] = JSON.parse(localStorage.getItem(LS_KEY) ?? '[]');
       setIsPublished(list.includes(result.examName));
     } catch {}
-  }, []);
+  }, [result]);
+
+  if (sessionLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div>
-      <DashboardHeader title="পরীক্ষার ফলাফল" subtitle="আপনার বিস্তারিত ফলাফল" userName={result.studentName} role="ছাত্র" />
+      <DashboardHeader title="পরীক্ষার ফলাফল" subtitle="আপনার বিস্তারিত ফলাফল" userName={student?.name ?? 'শিক্ষার্থী'} role="ছাত্র" />
       <div className="p-6 space-y-6">
 
-        {!isPublished ? (
+        {!result || !isPublished ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mb-4">
               <Lock size={36} className="text-amber-500" />

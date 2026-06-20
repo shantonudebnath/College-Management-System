@@ -4,8 +4,7 @@ import DashboardHeader from '@/components/layout/DashboardHeader';
 import { FEES } from '@/lib/data';
 import { CreditCard, CheckCircle, Clock, AlertCircle, Download, Gift, Percent, BadgeDollarSign } from 'lucide-react';
 import type { Fee, Waiver } from '@/lib/types';
-
-const STUDENT_ID = 's1';
+import { useStudentSession } from '@/hooks/useStudentSession';
 
 function getWaiverDiscount(fee: Fee, waivers: Waiver[]): number {
   const active = waivers.filter(
@@ -21,6 +20,7 @@ function getWaiverDiscount(fee: Fee, waivers: Waiver[]): number {
 }
 
 export default function StudentFeesPage() {
+  const { student, loading: sessionLoading } = useStudentSession();
   const [allFees, setAllFees] = useState<Fee[]>(FEES);
   const [waivers, setWaivers] = useState<Waiver[]>([]);
 
@@ -35,6 +35,7 @@ export default function StudentFeesPage() {
     } catch { /* ignore */ }
   }, []);
 
+  const STUDENT_ID = student?.id ?? '';
   const studentFees = allFees.filter(f => f.studentId === STUDENT_ID);
   const studentWaivers = waivers.filter(w => w.studentId === STUDENT_ID && w.isActive);
 
@@ -45,9 +46,17 @@ export default function StudentFeesPage() {
   const totalDue = due.reduce((s, f) => s + Math.max(0, f.amount - getWaiverDiscount(f, waivers)), 0);
   const totalWaiver = studentFees.reduce((s, f) => s + getWaiverDiscount(f, waivers), 0);
 
+  if (sessionLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div>
-      <DashboardHeader title="ফি বিবরণ" subtitle="আপনার ফি পরিশোধের তথ্য" userName="Mohammad Rafiqul Islam" role="ছাত্র" />
+      <DashboardHeader title="ফি বিবরণ" subtitle="আপনার ফি পরিশোধের তথ্য" userName={student?.name ?? 'শিক্ষার্থী'} role="ছাত্র" />
       <div className="p-6 space-y-6">
 
         {/* Summary cards */}

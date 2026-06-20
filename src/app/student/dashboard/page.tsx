@@ -1,19 +1,45 @@
+'use client';
+import { useEffect, useState } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import { NOTICES, EXAM_RESULTS, FEES, EXAM_SCHEDULE, STUDENTS } from '@/lib/data';
+import { NOTICES, EXAM_RESULTS, FEES, EXAM_SCHEDULE } from '@/lib/data';
 import { Award, CreditCard, Bell, Calendar, BookOpen, FileDown, CheckCircle, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
-
-const student = STUDENTS[0];
+import { useStudentSession } from '@/hooks/useStudentSession';
+import type { Fee } from '@/lib/types';
 
 export default function StudentDashboard() {
-  const pendingFees = FEES.filter(f => f.studentId === 's1' && f.status !== 'paid').length;
-  const latestResult = EXAM_RESULTS.find(r => r.studentId === 's1');
-  const upcomingExams = EXAM_SCHEDULE.filter(e => e.class === 'class-10').slice(0, 3);
+  const { student, loading } = useStudentSession();
+  const [allFees, setAllFees] = useState<Fee[]>(FEES);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('fees_store');
+      if (stored) setAllFees(JSON.parse(stored));
+    } catch { /* ignore */ }
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  const studentId = student?.id ?? '';
+  const studentFees = allFees.filter(f => f.studentId === studentId);
+  const pendingFees = studentFees.filter(f => f.status !== 'paid').length;
+  const latestResult = EXAM_RESULTS.find(r => r.studentId === studentId);
+  const studentClass = student?.class ?? 'class-10';
+  const upcomingExams = EXAM_SCHEDULE.filter(e => e.class === studentClass).slice(0, 3);
   const latestNotices = NOTICES.slice(0, 4);
+
+  const displayName = student ? (student.name) : 'শিক্ষার্থী';
+  const displayNameBn = student?.nameBn ?? '';
 
   return (
     <div>
-      <DashboardHeader title="ছাত্র ড্যাশবোর্ড" subtitle={`স্বাগতম, ${student.name}`} userName={student.name} role="ছাত্র" />
+      <DashboardHeader title="ছাত্র ড্যাশবোর্ড" subtitle={`স্বাগতম, ${displayName}`} userName={displayName} role="ছাত্র" />
 
       <div className="p-6 space-y-6">
         {/* Student info card */}
@@ -21,17 +47,15 @@ export default function StudentDashboard() {
           <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-12 translate-x-12"></div>
           <div className="relative z-10 flex items-center gap-5">
             <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-2xl font-bold">
-              {student.name[0]}
+              {displayName[0]}
             </div>
             <div>
-              <h2 className="text-xl font-bold">{student.name}</h2>
-              <p className="text-purple-200 text-sm">{student.nameBn}</p>
+              <h2 className="text-xl font-bold">{displayName}</h2>
+              {displayNameBn && <p className="text-purple-200 text-sm">{displayNameBn}</p>}
               <div className="flex gap-3 mt-2 text-xs text-white/80">
-                <span>আইডি: {student.studentId}</span>
-                <span>|</span>
-                <span>রোল: {student.roll}</span>
-                <span>|</span>
-                <span>শ্রেণি: দাখিল ({student.session})</span>
+                {student?.studentId && <><span>আইডি: {student.studentId}</span><span>|</span></>}
+                {student?.roll && <><span>রোল: {student.roll}</span><span>|</span></>}
+                {student?.session && <span>সেশন: {student.session}</span>}
               </div>
             </div>
           </div>
