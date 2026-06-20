@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -7,7 +7,7 @@ async function localLogout() {
   await fetch('/api/local-logout', { method: 'POST' });
   window.location.href = '/login';
 }
-import { LayoutDashboard, ClipboardList, BarChart2, BookOpen, FileText, HelpCircle, Upload, CreditCard, Bell, UserCheck, ChevronLeft, ChevronRight, GraduationCap, LogOut, User, X, LayoutGrid, ChevronDown } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, BarChart2, BookOpen, FileText, HelpCircle, Upload, CreditCard, Bell, UserCheck, ChevronLeft, ChevronRight, GraduationCap, LogOut, User, X, LayoutGrid } from 'lucide-react';
 import { useTeachers } from '@/context/TeachersContext';
 import { useCurrentTeacher } from '@/context/CurrentTeacherContext';
 import { MADRASHA_CLASSES } from '@/lib/data';
@@ -27,60 +27,48 @@ const MENU = [
   { label: 'আমার প্রোফাইল', href: '/teacher/profile', icon: User },
 ];
 
-function TeacherSelector({ collapsed }: { collapsed: boolean }) {
+function TeacherInfo({ collapsed }: { collapsed: boolean }) {
   const { teachers } = useTeachers();
-  const { currentTeacherId, assignedClassId, setCurrentTeacher, clearCurrentTeacher } = useCurrentTeacher();
-  const [open, setOpen] = useState(false);
+  const { currentTeacherId, assignedClassId, setCurrentTeacher } = useCurrentTeacher();
+  const [sessionTchId, setSessionTchId] = useState<string | null>(null);
 
-  const currentTeacher = teachers.find(t => t.id === currentTeacherId);
+  // Fetch session once to get the logged-in teacher's TCH-XXX ID
+  useEffect(() => {
+    fetch('/api/session')
+      .then(r => r.json())
+      .then(({ id, role }) => { if (role === 'teacher' && id) setSessionTchId(id); })
+      .catch(() => {});
+  }, []);
+
+  // Match TCH-XXX session ID to internal teacher record and auto-set
+  useEffect(() => {
+    if (!sessionTchId || teachers.length === 0) return;
+    const matched = teachers.find(t => t.teacherId === sessionTchId);
+    if (matched && matched.id !== currentTeacherId) {
+      setCurrentTeacher(matched.id);
+    }
+  }, [sessionTchId, teachers.length]);
+
+  const teacher = teachers.find(t => t.id === currentTeacherId);
   const assignedClass = MADRASHA_CLASSES.find(c => c.id === assignedClassId);
 
   if (collapsed) return null;
 
   return (
-    <div className="px-3 py-3 border-b border-gray-100 relative">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs transition-colors ${currentTeacher ? 'bg-purple-50 hover:bg-purple-100' : 'bg-amber-50 hover:bg-amber-100 border border-amber-200'}`}
-      >
-        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-white text-xs font-bold ${currentTeacher ? 'gradient-primary' : 'bg-amber-400'}`}>
-          {currentTeacher ? (currentTeacher.nameBn || currentTeacher.name)[0] : '?'}
+    <div className="px-3 py-3 border-b border-gray-100">
+      <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-purple-50">
+        <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center shrink-0 text-white text-xs font-bold">
+          {teacher ? (teacher.nameBn || teacher.name)[0] : '?'}
         </div>
-        <div className="flex-1 text-left min-w-0">
-          {currentTeacher ? (
-            <>
-              <p className="font-semibold text-gray-800 truncate">{currentTeacher.nameBn || currentTeacher.name}</p>
-              <p className="text-[10px] text-purple-500 truncate">{assignedClass ? assignedClass.nameBn : 'কোনো শ্রেণি নেই'}</p>
-            </>
-          ) : (
-            <p className="font-semibold text-amber-700">শিক্ষক নির্বাচন করুন</p>
-          )}
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-gray-800 text-xs truncate">
+            {teacher ? (teacher.nameBn || teacher.name) : 'লোড হচ্ছে...'}
+          </p>
+          <p className="text-[10px] text-purple-500 truncate">
+            {assignedClass ? assignedClass.nameBn : teacher?.designation ?? ''}
+          </p>
         </div>
-        <ChevronDown size={13} className={`shrink-0 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
-      </button>
-
-      {open && (
-        <div className="absolute left-3 right-3 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-56 overflow-y-auto">
-          {currentTeacher && (
-            <button
-              onClick={() => { clearCurrentTeacher(); setOpen(false); }}
-              className="w-full px-3 py-2 text-left text-xs text-red-500 hover:bg-red-50 transition-colors border-b border-gray-100"
-            >
-              লগআউট
-            </button>
-          )}
-          {teachers.map(t => (
-            <button
-              key={t.id}
-              onClick={() => { setCurrentTeacher(t.id); setOpen(false); }}
-              className={`w-full px-3 py-2.5 text-left text-xs hover:bg-purple-50 transition-colors ${t.id === currentTeacherId ? 'bg-purple-50 text-purple-700 font-semibold' : 'text-gray-700'}`}
-            >
-              <p className="font-medium">{t.nameBn || t.name}</p>
-              <p className="text-[10px] text-gray-400">{t.designation}</p>
-            </button>
-          ))}
-        </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -113,7 +101,7 @@ function SidebarContent({ collapsed, setCollapsed, onClose }: { collapsed: boole
         </div>
       </div>
 
-      <TeacherSelector collapsed={collapsed} />
+      <TeacherInfo collapsed={collapsed} />
 
       <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
         {MENU.map(({ label, href, icon: Icon }) => {
