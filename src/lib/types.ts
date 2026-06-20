@@ -65,23 +65,48 @@ export interface ClassInfo {
 export interface Subject {
   name: string;
   nameBn: string;
+  fullMark: number;        // total = cqMark + mcqMark + practicalMark
+  passMark: number;        // minimum total marks to pass the subject
+  cqMark: number;          // CQ (subjective/creative question) portion
+  mcqMark: number;         // MCQ portion (0 if not applicable)
+  practicalMark: number;   // Practical/oral portion (0 if not applicable)
+  subjectCode?: string;    // BMEB subject code
+  isOptional?: boolean;    // whether this is an optional/elective subject
+  optionalGroup?: string;  // group name e.g. 'science', 'humanities', 'pe', 'vocational'
+  type: 'theory' | 'practical' | 'mixed';
+}
+
+export interface SubjectResult {
+  name: string;
+  nameBn?: string;
   fullMark: number;
-  passMark: number;
-  type: 'theory' | 'practical' | 'mcq';
+  cqMarks: number;
+  mcqMarks: number;
+  practicalMarks: number;
+  marks: number;           // total obtained (cqMarks + mcqMarks + practicalMarks)
+  grade: string;
+  gpa: number;
+  isPassed: boolean;
 }
 
 export interface ExamResult {
+  id?: string;
   studentId: string;
   studentName: string;
   class: string;
   roll: number;
-  subjects: { name: string; marks: number; grade: string }[];
+  section?: string;
+  subjects: SubjectResult[];
   totalMarks: number;
+  totalFullMarks?: number;
+  percentage?: number;
   gpa: number;
   grade: string;
   status: 'pass' | 'fail';
   examName: string;
   year: string;
+  failedSubjects?: string[];
+  createdAt?: string;
 }
 
 export interface Fee {

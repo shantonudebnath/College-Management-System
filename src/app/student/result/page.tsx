@@ -2,22 +2,23 @@
 import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { EXAM_RESULTS } from '@/lib/data';
+import { loadResultsFromStorage, isExamPublished } from '@/lib/result-utils';
+import type { ExamResult } from '@/lib/types';
 import { Award, CheckCircle, Download, Printer, Lock } from 'lucide-react';
 import { useStudentSession } from '@/hooks/useStudentSession';
 
-async function downloadMarksheetPDF(result: typeof EXAM_RESULTS[0]) {
+async function downloadMarksheetPDF(result: ExamResult) {
   const { jsPDF } = await import('jspdf');
   const autoTable = (await import('jspdf-autotable')).default;
 
   const doc = new jsPDF();
   const pageW = doc.internal.pageSize.width;
   const today = new Date().toLocaleDateString('en-GB');
+  const totalFullMarks = result.totalFullMarks ?? result.subjects.reduce((s, x) => s + x.fullMark, 0);
 
-  // ── Top border stripe ──
   doc.setFillColor(109, 40, 217);
   doc.rect(0, 0, pageW, 3, 'F');
 
-  // ── Institution header ──
   doc.setFontSize(20);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(60, 30, 120);
@@ -28,7 +29,6 @@ async function downloadMarksheetPDF(result: typeof EXAM_RESULTS[0]) {
   doc.setTextColor(120, 120, 120);
   doc.text('Dhaka, Bangladesh | noorislammadrasha.edu.bd', pageW / 2, 24, { align: 'center' });
 
-  // ── Title banner ──
   doc.setFillColor(245, 240, 255);
   doc.roundedRect(14, 28, pageW - 28, 10, 2, 2, 'F');
   doc.setFontSize(11);
@@ -36,60 +36,54 @@ async function downloadMarksheetPDF(result: typeof EXAM_RESULTS[0]) {
   doc.setTextColor(109, 40, 217);
   doc.text('ACADEMIC RESULT — MARKSHEET', pageW / 2, 35, { align: 'center' });
 
-  // ── Divider ──
   doc.setDrawColor(200, 180, 255);
   doc.setLineWidth(0.4);
   doc.line(14, 41, pageW - 14, 41);
 
-  // ── Student info block ──
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(60, 60, 60);
 
   const infoLeft = [
     ['Student Name', result.studentName],
-    ['Class', result.class],
-    ['Roll No.', String(result.roll)],
+    ['Class',        result.class],
+    ['Roll No.',     String(result.roll)],
   ];
   const infoRight = [
-    ['Exam', result.examName],
-    ['Year', result.year],
-    ['Issue Date', today],
+    ['Exam',         result.examName],
+    ['Year',         result.year],
+    ['Issue Date',   today],
   ];
 
   let y = 48;
   infoLeft.forEach(([label, val]) => {
-    doc.setFont('helvetica', 'bold');
-    doc.text(`${label}:`, 14, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(val, 50, y);
+    doc.setFont('helvetica', 'bold');   doc.text(`${label}:`, 14, y);
+    doc.setFont('helvetica', 'normal'); doc.text(val, 50, y);
     y += 7;
   });
-
   y = 48;
   infoRight.forEach(([label, val]) => {
-    doc.setFont('helvetica', 'bold');
-    doc.text(`${label}:`, 120, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(val, 148, y);
+    doc.setFont('helvetica', 'bold');   doc.text(`${label}:`, 120, y);
+    doc.setFont('helvetica', 'normal'); doc.text(val, 148, y);
     y += 7;
   });
 
-  // ── Subject table ──
   doc.setDrawColor(200, 180, 255);
   doc.line(14, 70, pageW - 14, 70);
 
   autoTable(doc, {
-    head: [['#', 'Subject', 'Full Marks', 'Obtained Marks', 'Percentage', 'Grade']],
+    head: [['#', 'Subject', 'Full Marks', 'Obtained', '%', 'Grade']],
     body: result.subjects.map((s, i) => [
       i + 1,
       s.name,
-      100,
+      s.fullMark,
       s.marks,
-      `${s.marks}%`,
+      `${s.fullMark > 0 ? Math.round((s.marks / s.fullMark) * 100) : 0}%`,
       s.grade,
     ]),
-    foot: [['', 'TOTAL', result.subjects.length * 100, result.totalMarks, `${Math.round((result.totalMarks / (result.subjects.length * 100)) * 100)}%`, result.grade]],
+    foot: [['', 'TOTAL', totalFullMarks, result.totalMarks,
+      `${totalFullMarks > 0 ? Math.round((result.totalMarks / totalFullMarks) * 100) : 0}%`,
+      result.grade]],
     startY: 74,
     styles: { fontSize: 9, cellPadding: 3.5 },
     headStyles: { fillColor: [109, 40, 217], textColor: 255, fontStyle: 'bold' },
@@ -98,9 +92,9 @@ async function downloadMarksheetPDF(result: typeof EXAM_RESULTS[0]) {
     columnStyles: {
       0: { cellWidth: 12, halign: 'center' },
       1: { cellWidth: 65 },
-      2: { cellWidth: 28, halign: 'center' },
-      3: { cellWidth: 32, halign: 'center', fontStyle: 'bold' },
-      4: { cellWidth: 22, halign: 'center' },
+      2: { cellWidth: 25, halign: 'center' },
+      3: { cellWidth: 25, halign: 'center', fontStyle: 'bold' },
+      4: { cellWidth: 20, halign: 'center' },
       5: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
     },
     didParseCell: (data: Parameters<NonNullable<Parameters<typeof autoTable>[1]['didParseCell']>>[0]) => {
@@ -115,7 +109,6 @@ async function downloadMarksheetPDF(result: typeof EXAM_RESULTS[0]) {
     },
   });
 
-  // ── Result verdict ──
   const tableBottom = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
   const isPass = result.status === 'pass';
 
@@ -132,22 +125,21 @@ async function downloadMarksheetPDF(result: typeof EXAM_RESULTS[0]) {
 
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text(`GPA: ${result.gpa.toFixed(2)} / 5.00   |   Grade: ${result.grade}   |   ${result.examName}`, pageW / 2, tableBottom + 17, { align: 'center' });
+  doc.text(
+    `GPA: ${result.gpa.toFixed(2)} / 5.00   |   Grade: ${result.grade}   |   ${result.examName}`,
+    pageW / 2, tableBottom + 17, { align: 'center' }
+  );
 
-  // ── Signature line ──
   const sigY = tableBottom + 38;
   doc.setDrawColor(180, 180, 180);
   doc.setLineWidth(0.3);
   doc.line(14, sigY, 65, sigY);
   doc.line(pageW - 65, sigY, pageW - 14, sigY);
-
   doc.setFontSize(8);
   doc.setTextColor(130, 130, 130);
-  doc.setFont('helvetica', 'normal');
-  doc.text("Student's Signature", 39, sigY + 5, { align: 'center' });
-  doc.text("Principal's Signature", pageW - 39, sigY + 5, { align: 'center' });
+  doc.text("Student's Signature",    39,            sigY + 5, { align: 'center' });
+  doc.text("Principal's Signature",  pageW - 39,    sigY + 5, { align: 'center' });
 
-  // ── Footer ──
   const pageH = doc.internal.pageSize.height;
   doc.setFillColor(109, 40, 217);
   doc.rect(0, pageH - 8, pageW, 8, 'F');
@@ -158,8 +150,6 @@ async function downloadMarksheetPDF(result: typeof EXAM_RESULTS[0]) {
   doc.save(`marksheet-${result.studentName.replace(/\s+/g, '-')}-${result.examName.replace(/\s+/g, '-')}.pdf`);
 }
 
-const LS_KEY = 'published_results_v1';
-
 const getGradeColor = (grade: string) => {
   if (grade === 'A+') return 'text-green-700 bg-green-50';
   if (grade.startsWith('A')) return 'text-blue-700 bg-blue-50';
@@ -169,18 +159,30 @@ const getGradeColor = (grade: string) => {
 
 export default function StudentResultPage() {
   const { student, loading: sessionLoading } = useStudentSession();
+  const [result, setResult] = useState<ExamResult | null>(null);
   const [isPublished, setIsPublished] = useState(false);
 
-  // Find result for the logged-in student
-  const result = EXAM_RESULTS.find(r => r.studentId === student?.id) ?? null;
-
   useEffect(() => {
-    if (!result) return;
-    try {
-      const list: string[] = JSON.parse(localStorage.getItem(LS_KEY) ?? '[]');
-      setIsPublished(list.includes(result.examName));
-    } catch {}
-  }, [result]);
+    if (!student) return;
+
+    // Merge static + localStorage results
+    let storeResults: ExamResult[] = [];
+    try { storeResults = loadResultsFromStorage(); } catch { /* ignore */ }
+
+    const all = [...EXAM_RESULTS, ...storeResults];
+
+    // Find the student's result (prefer most-recently saved)
+    const found = all
+      .filter(r => r.studentId === student.id)
+      .sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
+      .at(0) ?? null;
+
+    setResult(found);
+
+    if (found) {
+      setIsPublished(isExamPublished(found.examName));
+    }
+  }, [student]);
 
   if (sessionLoading) {
     return (
@@ -189,6 +191,10 @@ export default function StudentResultPage() {
       </div>
     );
   }
+
+  const totalFullMarks = result
+    ? (result.totalFullMarks ?? result.subjects.reduce((s, x) => s + x.fullMark, 0))
+    : 0;
 
   return (
     <div>
@@ -210,10 +216,10 @@ export default function StudentResultPage() {
             {/* Result summary */}
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
               {[
-                { label: 'মোট নম্বর', value: `${result.totalMarks}`, sub: `/${result.subjects.length * 100}`, color: 'bg-purple-50 text-purple-700' },
+                { label: 'মোট নম্বর', value: `${result.totalMarks}`, sub: `/${totalFullMarks}`, color: 'bg-purple-50 text-purple-700' },
                 { label: 'GPA', value: result.gpa.toFixed(2), sub: '/5.00', color: 'bg-green-50 text-green-700' },
                 { label: 'গ্রেড', value: result.grade, sub: result.status === 'pass' ? 'উত্তীর্ণ' : 'অনুত্তীর্ণ', color: 'bg-blue-50 text-blue-700' },
-                { label: 'পরীক্ষার নাম', value: '1st', sub: result.examName, color: 'bg-amber-50 text-amber-700' },
+                { label: 'পরীক্ষার নাম', value: result.examName.slice(0, 8), sub: result.examName, color: 'bg-amber-50 text-amber-700' },
               ].map(({ label, value, sub, color }) => (
                 <div key={label} className={`${color} rounded-2xl p-5 text-center`}>
                   <p className="text-3xl font-bold">{value}</p>
@@ -223,17 +229,19 @@ export default function StudentResultPage() {
               ))}
             </div>
 
-            {/* Subject marks */}
+            {/* Subject marks table */}
             <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <h3 className="font-semibold text-gray-900 flex items-center gap-2">
                   <Award size={18} className="text-purple-600" /> বিষয়ভিত্তিক নম্বর
                 </h3>
                 <div className="flex gap-2">
-                  <button onClick={() => window.print()} className="flex items-center gap-1.5 text-xs border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors">
+                  <button onClick={() => window.print()}
+                    className="flex items-center gap-1.5 text-xs border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors">
                     <Printer size={12} /> প্রিন্ট
                   </button>
-                  <button onClick={() => downloadMarksheetPDF(result)} className="flex items-center gap-1.5 text-xs btn-primary rounded-lg px-3 py-1.5">
+                  <button onClick={() => downloadMarksheetPDF(result)}
+                    className="flex items-center gap-1.5 text-xs btn-primary rounded-lg px-3 py-1.5">
                     <Download size={12} /> PDF ডাউনলোড
                   </button>
                 </div>
@@ -255,15 +263,18 @@ export default function StudentResultPage() {
                     {result.subjects.map((sub, i) => (
                       <tr key={sub.name} className="hover:bg-gray-50 transition-colors">
                         <td className="px-5 py-3 text-gray-400 text-xs">{i + 1}</td>
-                        <td className="px-5 py-3 font-medium text-gray-900">{sub.name}</td>
-                        <td className="px-5 py-3 text-center text-gray-500">100</td>
+                        <td className="px-5 py-3 font-medium text-gray-900">{sub.nameBn ?? sub.name}</td>
+                        <td className="px-5 py-3 text-center text-gray-500">{sub.fullMark}</td>
                         <td className="px-5 py-3 text-center font-bold text-gray-900">{sub.marks}</td>
                         <td className="px-5 py-3">
                           <div className="flex items-center gap-2">
                             <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                              <div className="h-full gradient-primary rounded-full" style={{ width: `${sub.marks}%` }}></div>
+                              <div className="h-full gradient-primary rounded-full"
+                                style={{ width: `${sub.fullMark > 0 ? Math.round((sub.marks / sub.fullMark) * 100) : 0}%` }} />
                             </div>
-                            <span className="text-xs text-gray-400 w-8">{sub.marks}%</span>
+                            <span className="text-xs text-gray-400 w-10">
+                              {sub.fullMark > 0 ? Math.round((sub.marks / sub.fullMark) * 100) : 0}%
+                            </span>
                           </div>
                         </td>
                         <td className="px-5 py-3 text-center">
@@ -276,7 +287,7 @@ export default function StudentResultPage() {
                     <tr>
                       <td colSpan={3} className="px-5 py-3 font-semibold text-purple-900">মোট</td>
                       <td className="px-5 py-3 text-center font-bold text-purple-900 text-lg">{result.totalMarks}</td>
-                      <td></td>
+                      <td />
                       <td className="px-5 py-3 text-center">
                         <span className="text-sm font-bold text-purple-700">{result.grade}</span>
                       </td>
@@ -286,8 +297,10 @@ export default function StudentResultPage() {
               </div>
             </div>
 
-            {/* Status */}
-            <div className={`rounded-2xl p-5 flex items-center gap-4 ${result.status === 'pass' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+            {/* Status banner */}
+            <div className={`rounded-2xl p-5 flex items-center gap-4 ${result.status === 'pass'
+              ? 'bg-green-50 border border-green-200'
+              : 'bg-red-50 border border-red-200'}`}>
               <CheckCircle size={32} className={result.status === 'pass' ? 'text-green-600' : 'text-red-600'} />
               <div>
                 <p className={`font-bold text-lg ${result.status === 'pass' ? 'text-green-800' : 'text-red-800'}`}>
@@ -296,6 +309,11 @@ export default function StudentResultPage() {
                 <p className={`text-sm ${result.status === 'pass' ? 'text-green-600' : 'text-red-600'}`}>
                   GPA: {result.gpa.toFixed(2)} | গ্রেড: {result.grade} | {result.examName}
                 </p>
+                {result.failedSubjects && result.failedSubjects.length > 0 && (
+                  <p className="text-xs text-red-500 mt-1">
+                    অনুত্তীর্ণ বিষয়: {result.failedSubjects.join('، ')}
+                  </p>
+                )}
               </div>
             </div>
           </>

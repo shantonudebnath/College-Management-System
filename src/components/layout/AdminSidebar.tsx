@@ -15,6 +15,7 @@ const MENU = [
   { label: 'শিক্ষক তথ্য', href: '/admin/teachers', icon: UserCheck },
   { label: 'ক্লাস শিক্ষক', href: '/admin/class-teachers', icon: BookOpen },
   { label: 'ক্লাস অ্যাসাইন', href: '/admin/classes', icon: FileText },
+  { label: 'নম্বর প্রবেশ',   href: '/admin/results/entry', icon: ClipboardList },
   { label: 'ফলাফল প্রকাশ', href: '/admin/results', icon: Award },
   { label: 'ফি ম্যানেজমেন্ট', href: '/admin/fees', icon: CreditCard },
   { label: 'এডমিট কার্ড', href: '/admin/admit-cards', icon: IdCard },
