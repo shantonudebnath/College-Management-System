@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { STUDENTS, TEACHERS, NOTICES, FEES } from '@/lib/data';
 import { Users, GraduationCap, CreditCard, Bell, TrendingUp, CheckCircle, AlertCircle, Award } from 'lucide-react';
@@ -28,7 +28,7 @@ const MONTHLY_ENROLLMENT = [
 export default function AdminDashboard() {
   return (
     <div>
-      <DashboardHeader title="অ্যাডমিন ড্যাশবোর্ড" subtitle="নূরে ইসলাম মাদ্রাসা — সম্পূর্ণ পর্যবেক্ষণ" userName="Admin" role="Super Admin" />
+      <DashboardHeader title="অ্যাডমিন ড্যাশবোর্ড" subtitle="এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা — সম্পূর্ণ পর্যবেক্ষণ" userName="Admin" role="Super Admin" />
 
       <div className="p-6 space-y-6">
         {/* KPI cards */}

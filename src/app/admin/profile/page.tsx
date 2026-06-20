@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { COLLEGE_INFO } from '@/lib/data';
@@ -11,8 +11,8 @@ export default function AdminProfilePage() {
   const [form, setForm] = useState({
     name: 'মোঃ নাজমুল হক',
     phone: '01911-223344',
-    email: 'admin@noorislammadrasha.edu.bd',
-    address: 'প্রশাসনিক কার্যালয়, নূরে ইসলাম মাদ্রাসা, কুমিল্লা',
+    email: '11sindurmadrasa@gmail.com',
+    address: 'প্রশাসনিক কার্যালয়, এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা, পাকুন্দিয়া, কিশোরগঞ্জ',
   });
   const [passForm, setPassForm] = useState({ old: '', new: '', confirm: '' });
   const [saved, setSaved] = useState(false);

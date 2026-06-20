@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import { GraduationCap, ArrowLeft, Home, Search } from 'lucide-react';
 
 export default function NotFound() {
@@ -37,7 +37,7 @@ export default function NotFound() {
           </div>
         </div>
 
-        <p className="text-purple-300 text-xs mt-6">নূরে ইসলাম মাদ্রাসা | {new Date().getFullYear()}</p>
+        <p className="text-purple-300 text-xs mt-6">এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা | {new Date().getFullYear()}</p>
       </div>
     </div>
   );

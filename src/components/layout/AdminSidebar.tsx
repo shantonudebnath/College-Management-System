@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -45,7 +45,7 @@ function SidebarContent({ collapsed, setCollapsed, onClose }: { collapsed: boole
             </div>
             <div>
               <p className="font-bold text-xs leading-tight">Admin Panel</p>
-              <p className="text-[9px] text-purple-300">নূরে ইসলাম মাদ্রাসা</p>
+              <p className="text-[9px] text-purple-300">এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা</p>
             </div>
           </div>
         )}

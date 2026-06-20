@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { MADRASHA_CLASSES } from '@/lib/data';
@@ -114,7 +114,7 @@ function buildPrintPage(headerHtml: string, bodyHtml: string) {
 </head><body><div class="page">
 <div class="hdr">
   <div class="hdr-top">প্রতিষ্ঠিত ১৯৭৫</div>
-  <div class="hdr-name">নূরে ইসলাম মাদ্রাসা</div>
+  <div class="hdr-name">এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা</div>
   <div class="hdr-name-en">Noor-e-Islam Madrasha</div>
   <div class="hdr-addr">ঢাকা, বাংলাদেশ | ফোন: ০১৭XX-XXXXXX</div>
 </div>
@@ -131,11 +131,11 @@ ${bodyHtml}
   <div class="sig-row">
     <div class="sig-col">
       <div class="sig-line">পরীক্ষা নিয়ন্ত্রক</div>
-      <div class="sig-sub">নূরে ইসলাম মাদ্রাসা</div>
+      <div class="sig-sub">এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা</div>
     </div>
     <div class="sig-col">
       <div class="sig-line">অধ্যক্ষ</div>
-      <div class="sig-sub">নূরে ইসলাম মাদ্রাসা</div>
+      <div class="sig-sub">এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা</div>
     </div>
   </div>
   <div class="issue-date">প্রকাশের তারিখ: ${issueDate}</div>
@@ -406,7 +406,7 @@ export default function AdminExamSchedulePage() {
             <div className="bg-[#1e1b4b] text-white px-5 py-4 flex items-center justify-between flex-wrap gap-3">
               <div>
                 <h2 className="font-bold text-base">{selectedExam.name}</h2>
-                <p className="text-purple-300 text-xs mt-0.5">নূরে ইসলাম মাদ্রাসা | {selectedExam.year}</p>
+                <p className="text-purple-300 text-xs mt-0.5">এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা | {selectedExam.year}</p>
               </div>
               <div className="flex gap-2">
                 <button onClick={openAddEntry}

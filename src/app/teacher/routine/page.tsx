@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { useTeachers } from '@/context/TeachersContext';
@@ -114,7 +114,7 @@ export default function TeacherRoutinePage() {
       <div className="p-6">
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
           <div className="bg-[#1e1b4b] text-white px-5 py-4 text-center">
-            <h2 className="font-bold text-base">নূরে ইসলাম মাদ্রাসা</h2>
+            <h2 className="font-bold text-base">এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা</h2>
             <p className="text-purple-200 text-xs mt-0.5">মাস্টার ক্লাস রুটিন | ২০২৪-২৫</p>
           </div>
 

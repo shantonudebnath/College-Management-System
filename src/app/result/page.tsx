@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -57,7 +57,7 @@ export default function ResultPage() {
 </style>
 </head><body>
 <div class="hdr">
-  <div class="inst-name">নূরে ইসলাম মাদ্রাসা</div>
+  <div class="inst-name">এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা</div>
   <div class="inst-en">Noor-e-Islam Madrasha</div>
   <div class="inst-addr">ঢাকা, বাংলাদেশ</div>
 </div>
@@ -82,8 +82,8 @@ export default function ResultPage() {
   <tbody>${subjectRows}</tbody>
 </table>
 <div class="footer">
-  <div class="sig-col"><div class="sig-line">পরীক্ষা নিয়ন্ত্রক</div><div class="sig-sub">নূরে ইসলাম মাদ্রাসা</div></div>
-  <div class="sig-col"><div class="sig-line">অধ্যক্ষ</div><div class="sig-sub">নূরে ইসলাম মাদ্রাসা</div></div>
+  <div class="sig-col"><div class="sig-line">পরীক্ষা নিয়ন্ত্রক</div><div class="sig-sub">এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা</div></div>
+  <div class="sig-col"><div class="sig-line">অধ্যক্ষ</div><div class="sig-sub">এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা</div></div>
 </div>
 <script>window.addEventListener('load', function() { setTimeout(function() { window.print(); }, 400); });<\/script>
 </body></html>`;

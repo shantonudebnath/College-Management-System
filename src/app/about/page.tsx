@@ -1,4 +1,4 @@
-import Navbar from '@/components/layout/Navbar';
+﻿import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { COLLEGE_INFO, TEACHERS } from '@/lib/data';
 import { GraduationCap, BookOpen, Users, Award, MapPin, Phone, Mail, Globe, Star, CheckCircle, Heart } from 'lucide-react';
@@ -48,7 +48,7 @@ export default function AboutPage() {
             <div>
               <h2 className="text-2xl font-bold text-[#1e1b4b] mb-4">আমাদের পরিচয়</h2>
               <p className="text-gray-600 text-sm leading-relaxed mb-4">
-                নূরে ইসলাম মাদ্রাসা বাংলাদেশের একটি ঐতিহ্যবাহী ইসলামি শিক্ষা প্রতিষ্ঠান। {COLLEGE_INFO.established} সাল থেকে বাংলাদেশ মাদ্রাসা শিক্ষা বোর্ডের অনুমোদনে এই প্রতিষ্ঠান নিরবচ্ছিন্নভাবে মানসম্মত ইসলামি শিক্ষা প্রদান করে আসছে।
+                এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা বাংলাদেশের একটি ঐতিহ্যবাহী ইসলামি শিক্ষা প্রতিষ্ঠান। {COLLEGE_INFO.established} সাল থেকে বাংলাদেশ মাদ্রাসা শিক্ষা বোর্ডের অনুমোদনে এই প্রতিষ্ঠান নিরবচ্ছিন্নভাবে মানসম্মত ইসলামি শিক্ষা প্রদান করে আসছে।
               </p>
               <p className="text-gray-600 text-sm leading-relaxed mb-4">
                 এবতেদায়ী থেকে দাখিল পর্যন্ত শিক্ষার্থীদের ইসলামি জ্ঞান ও আধুনিক শিক্ষার সমন্বয়ে একটি পরিপূর্ণ মানুষ হিসেবে গড়ে তোলাই আমাদের মূল লক্ষ্য। কুরআন-হাদিসের পাশাপাশি বিজ্ঞান, গণিত ও ইংরেজি শিক্ষায় সমান গুরুত্ব দেওয়া হয়।

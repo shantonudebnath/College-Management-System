@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { TEACHERS } from '@/lib/data';
@@ -154,7 +154,7 @@ export default function TeacherProfilePage() {
               {[
                 { degree: 'কামিল (M.A.)', subject: 'আরবি সাহিত্য', institute: 'ঢাকা আলিয়া মাদ্রাসা', year: '২০০৩', grade: '১ম শ্রেণি' },
                 { degree: 'ফাযিল (B.A.)', subject: 'আরবি', institute: 'কুমিল্লা ইসলামিয়া মাদ্রাসা', year: '২০০১', grade: '১ম শ্রেণি' },
-                { degree: 'দাখিল', subject: 'সাধারণ', institute: 'নূরে ইসলাম মাদ্রাসা', year: '১৯৯৮', grade: 'A+' },
+                { degree: 'দাখিল', subject: 'সাধারণ', institute: 'এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা', year: '১৯৯৮', grade: 'A+' },
               ].map((q) => (
                 <div key={q.degree} className="flex items-center gap-4 py-3 border-b border-gray-50 last:border-0">
                   <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center shrink-0">

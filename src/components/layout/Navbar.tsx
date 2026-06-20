@@ -20,34 +20,31 @@ const NAV_LINKS: NavItem[] = [
       { label: 'ভূমি তথ্য', href: '/about#land' },
       { label: 'ভবন ও কক্ষ সংখ্যা', href: '/about#building' },
       { label: 'ক্যাম্পাস ম্যাপ', href: '/about#campus-map' },
-      { label: 'একাডেমিক ফলাফল', href: '/about#academic' },
       { label: 'বার্ষিক প্রতিবেদন', href: '/about#annual-report' },
+    ],
+  },
+  {
+    label: 'একাডেমিক তথ্য',
+    children: [
+      { label: 'শ্রেণি তালিকা', href: '/about#classes' },
+      { label: 'পরীক্ষার সময়সূচী', href: '/about#exam-schedule' },
+      { label: 'ফলাফল', href: '/result' },
+      { label: 'সিলেবাস', href: '/about#syllabus' },
+      { label: 'বৃত্তি ও সুবিধা', href: '/about#scholarship' },
     ],
   },
   {
     label: 'শিক্ষক ও কর্মচারী',
     children: [
-      { label: 'অধ্যক্ষের তালিকা', href: '/teachers#principal' },
+      { label: 'অধ্যক্ষের বার্তা', href: '/teachers#principal' },
       { label: 'শিক্ষক তালিকা', href: '/teachers' },
       { label: 'কর্মচারী তালিকা', href: '/teachers#staff' },
-      { label: 'প্রাক্তন শিক্ষক তালিকা', href: '/teachers#ex-teachers' },
-      { label: 'কল্যাণ ট্রাস্ট', href: '/teachers#welfare' },
-      { label: 'শিক্ষক পরিষদ', href: '/teachers#council' },
-      { label: 'সম্মান বোর্ড', href: '/teachers#honor' },
       { label: 'প্রতিষ্ঠাতা ও দাতা', href: '/teachers#founders' },
     ],
   },
   { label: 'নোটিশ বোর্ড', href: '/notice' },
-  { label: 'ফলাফল', href: '/result' },
-  { label: 'ভর্তি', href: '/admission' },
-  {
-    label: 'পোর্টাল',
-    children: [
-      { label: 'ছাত্র পোর্টাল', href: '/student/dashboard' },
-      { label: 'শিক্ষক পোর্টাল', href: '/teacher/dashboard' },
-      { label: 'অ্যাডমিন', href: '/admin/dashboard' },
-    ],
-  },
+  { label: 'গ্যালারি', href: '/#gallery' },
+  { label: 'যোগাযোগ', href: '/about#contact' },
 ];
 
 function DropdownMenu({ items, onClose }: { items: NavChild[]; onClose: () => void }) {

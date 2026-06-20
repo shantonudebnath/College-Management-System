@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect, useMemo } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { useTeachers } from '@/context/TeachersContext';
@@ -174,7 +174,7 @@ export default function AdminGuardListPage() {
 </head><body><div class="page">
 <div class="hdr">
   <div class="hdr-pre">প্রতিষ্ঠিত ১৯৭৫</div>
-  <div class="hdr-name">নূরে ইসলাম মাদ্রাসা</div>
+  <div class="hdr-name">এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা</div>
   <div class="hdr-en">Noor-e-Islam Madrasha</div>
   <div class="hdr-addr">ঢাকা, বাংলাদেশ | ফোন: ০১৭XX-XXXXXX</div>
 </div>
@@ -193,8 +193,8 @@ export default function AdminGuardListPage() {
   <tbody>${rows}</tbody>
 </table>
 <div class="sig-row">
-  <div class="sig-col"><div class="sig-line">পরীক্ষা নিয়ন্ত্রক</div><div class="sig-sub">নূরে ইসলাম মাদ্রাসা</div></div>
-  <div class="sig-col"><div class="sig-line">অধ্যক্ষ</div><div class="sig-sub">নূরে ইসলাম মাদ্রাসা</div></div>
+  <div class="sig-col"><div class="sig-line">পরীক্ষা নিয়ন্ত্রক</div><div class="sig-sub">এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা</div></div>
+  <div class="sig-col"><div class="sig-line">অধ্যক্ষ</div><div class="sig-sub">এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা</div></div>
 </div>
 <div class="issue">প্রকাশের তারিখ: ${todayBn()}</div>
 </div>

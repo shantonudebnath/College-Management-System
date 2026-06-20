@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect, useCallback } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { MADRASHA_CLASSES } from '@/lib/data';
@@ -122,7 +122,7 @@ function openPrintWindow(title: string, bodyHtml: string, extraCss = '') {
 </head>
 <body>
 <div class="inst-hdr">
-  <div class="inst-name">নূরে ইসলাম মাদ্রাসা</div>
+  <div class="inst-name">এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা</div>
   <div class="inst-name-en">Noor-e-Islam Madrasha</div>
   <div class="inst-addr">ঢাকা, বাংলাদেশ</div>
 </div>
@@ -249,7 +249,7 @@ export default function AdminRoutinePage() {
     addNotice({
       id: `n${Date.now()}`,
       title: 'নতুন ক্লাস রুটিন প্রকাশিত',
-      content: `নূরে ইসলাম মাদ্রাসার ২০২৪-২৫ শিক্ষাবর্ষের ক্লাস রুটিন চূড়ান্তভাবে প্রকাশিত হয়েছে।${periodCount > 0 ? ` সপ্তাহে ${periodCount}টি ক্লাস পিরিয়ড নির্ধারিত।` : ''} সকল শিক্ষার্থী ও শিক্ষককে রুটিন অনুযায়ী উপস্থিত থাকার অনুরোধ করা হচ্ছে।`,
+      content: `এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসার ২০২৪-২৫ শিক্ষাবর্ষের ক্লাস রুটিন চূড়ান্তভাবে প্রকাশিত হয়েছে।${periodCount > 0 ? ` সপ্তাহে ${periodCount}টি ক্লাস পিরিয়ড নির্ধারিত।` : ''} সকল শিক্ষার্থী ও শিক্ষককে রুটিন অনুযায়ী উপস্থিত থাকার অনুরোধ করা হচ্ছে।`,
       date: new Date().toISOString().split('T')[0],
       type: 'general', target: 'all', isImportant: false, postedBy: 'Admin',
     });
@@ -370,7 +370,7 @@ export default function AdminRoutinePage() {
             <div className="bg-[#1e1b4b] text-white px-5 py-4 flex items-center justify-between">
               <div>
                 <h2 className="font-bold text-base">মাস্টার ক্লাস রুটিন</h2>
-                <p className="text-purple-300 text-xs mt-0.5">নূরে ইসলাম মাদ্রাসা | ২০২৪-২৫</p>
+                <p className="text-purple-300 text-xs mt-0.5">এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা | ২০২৪-২৫</p>
               </div>
               <button onClick={printMaster}
                 className="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white text-xs px-3 py-2 rounded-lg font-medium transition-colors">
