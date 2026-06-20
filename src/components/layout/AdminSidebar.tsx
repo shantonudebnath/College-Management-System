@@ -72,10 +72,10 @@ function SidebarContent({ collapsed, setCollapsed, onClose }: { collapsed: boole
       </nav>
 
       <div className="p-3 border-t border-white/10">
-        <Link href="/" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:bg-white/10 hover:text-white transition-all">
+        <button onClick={async () => { onClose?.(); await fetch('/api/local-logout', { method: 'POST' }); window.location.href = '/login'; }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:bg-white/10 hover:text-white transition-all">
           <LogOut size={16} />
           {!collapsed && <span>লগআউট</span>}
-        </Link>
+        </button>
       </div>
     </>
   );

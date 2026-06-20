@@ -2,6 +2,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+
+async function localLogout() {
+  await fetch('/api/local-logout', { method: 'POST' });
+  window.location.href = '/login';
+}
 import { LayoutDashboard, ClipboardList, BarChart2, BookOpen, FileText, HelpCircle, Upload, CreditCard, Bell, UserCheck, ChevronLeft, ChevronRight, GraduationCap, LogOut, User, X, LayoutGrid, ChevronDown } from 'lucide-react';
 import { useTeachers } from '@/context/TeachersContext';
 import { useCurrentTeacher } from '@/context/CurrentTeacherContext';
@@ -124,10 +129,10 @@ function SidebarContent({ collapsed, setCollapsed, onClose }: { collapsed: boole
       </nav>
 
       <div className="p-3 border-t border-gray-100">
-        <Link href="/" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all">
+        <button onClick={() => { onClose?.(); localLogout(); }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all">
           <LogOut size={16} />
           {!collapsed && <span>লগআউট</span>}
-        </Link>
+        </button>
       </div>
     </>
   );

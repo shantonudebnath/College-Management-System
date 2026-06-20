@@ -16,70 +16,44 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [form, setForm] = useState({ id: '', password: '' });
 
-  // Validate credential format to avoid creating random Supabase users
-  const isValidCredentialFormat = (id: string, password: string, r: string): boolean => {
-    if (r === 'student') {
-      const m = id.match(/^STD-\d{4}-(\d{3})$/i);
-      return !!m && password === `NIM@${m[1]}`;
-    }
-    if (r === 'teacher') {
-      return /^TCH-\d+$/i.test(id) && /^NIM@Teacher#\d{4}$/.test(password);
-    }
-    return false;
-  };
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     const cleanId = form.id.trim();
+
+    // Student and teacher use local cookie-based auth (no Supabase dependency)
+    if (role === 'student' || role === 'teacher') {
+      const res = await fetch('/api/local-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: cleanId, password: form.password, role }),
+      });
+      if (!res.ok) {
+        setError('আইডি বা পাসওয়ার্ড ভুল হয়েছে। আবার চেষ্টা করুন।');
+        setLoading(false);
+        return;
+      }
+      window.location.href = role === 'student' ? '/student/dashboard' : '/teacher/dashboard';
+      return;
+    }
+
+    // Admin uses Supabase auth
     const email = `${cleanId.toLowerCase().replace(/\s+/g, '')}@${DOMAIN}`;
     const supabase = createClient();
-
-    let { data, error: authError } = await supabase.auth.signInWithPassword({
+    const { data, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password: form.password,
     });
 
-    // If login fails for student/teacher and credentials match the formula, auto-create Supabase user and retry
-    if ((authError || !data.user) && role !== 'admin') {
-      if (isValidCredentialFormat(cleanId, form.password, role)) {
-        try {
-          await fetch('/api/create-user', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ displayId: cleanId, password: form.password, role }),
-          });
-        } catch { /* ignore */ }
-
-        // Retry login after ensuring user exists
-        const retry = await supabase.auth.signInWithPassword({ email, password: form.password });
-        data = retry.data;
-        authError = retry.error;
-      }
-    }
-
     if (authError || !data.user) {
-      setError(authError?.message === 'Email not confirmed'
-        ? 'ইমেইল কনফার্ম হয়নি। অ্যাডমিনের সাথে যোগাযোগ করুন।'
-        : 'আইডি বা পাসওয়ার্ড ভুল হয়েছে। আবার চেষ্টা করুন।');
+      setError('আইডি বা পাসওয়ার্ড ভুল হয়েছে। আবার চেষ্টা করুন।');
       setLoading(false);
       return;
     }
 
-    // Fetch profile for role-based redirect
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', data.user.id)
-      .single();
-
-    const userRole = profile?.role ?? role;
-    // Hard redirect so middleware picks up the fresh session cookies
-    if (userRole === 'student') window.location.href = '/student/dashboard';
-    else if (userRole === 'teacher') window.location.href = '/teacher/dashboard';
-    else window.location.href = '/admin/dashboard';
+    window.location.href = '/admin/dashboard';
   };
 
   const ROLE_LABELS = { student: 'ছাত্র', teacher: 'শিক্ষক', admin: 'অ্যাডমিন' };
