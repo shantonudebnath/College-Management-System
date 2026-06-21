@@ -74,7 +74,11 @@ export default function AdminStudentsPage() {
   useEffect(() => {
     try {
       const s = localStorage.getItem('students_store');
-      setStudents(s ? JSON.parse(s) : STUDENTS);
+      const stored: Student[] = s ? JSON.parse(s) : [];
+      const storedIds = new Set(stored.map((st: Student) => st.id));
+      // Merge any seed students not yet in localStorage (handles new demo data)
+      const merged = [...stored, ...STUDENTS.filter(st => !storedIds.has(st.id))];
+      setStudents(merged.length > 0 ? merged : STUDENTS);
     } catch { setStudents(STUDENTS); }
     try {
       const c = localStorage.getItem('student_credentials');
