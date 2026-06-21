@@ -1,12 +1,11 @@
-﻿'use client';
+'use client';
+import { useEffect, useState } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import { STUDENTS, TEACHERS, NOTICES, FEES } from '@/lib/data';
-import { Users, GraduationCap, CreditCard, Bell, TrendingUp, CheckCircle, AlertCircle, Award } from 'lucide-react';
+import { STUDENTS, TEACHERS, NOTICES, FEES, MADRASHA_CLASSES } from '@/lib/data';
+import type { Student } from '@/lib/types';
+import { Users, GraduationCap, CreditCard, Bell, TrendingUp, AlertCircle, Award } from 'lucide-react';
 import Link from 'next/link';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-
-const totalFees = FEES.reduce((s, f) => s + f.amount, 0);
-const paidFees = FEES.filter(f => f.status === 'paid').reduce((s, f) => s + f.amount, 0);
 
 const ATTENDANCE_DATA = [
   { day: 'শনি', present: 85, absent: 15 }, { day: 'রবি', present: 90, absent: 10 },
@@ -14,18 +13,63 @@ const ATTENDANCE_DATA = [
   { day: 'বুধ', present: 88, absent: 12 }, { day: 'বৃহ', present: 82, absent: 18 },
 ];
 
-const CLASS_DIST = [
-  { name: 'এবতেদায়ী', value: 320, color: '#10b981' },
-  { name: 'জুনিয়র দাখিল', value: 480, color: '#3b82f6' },
-  { name: 'দাখিল', value: 435, color: '#9756e6' },
-];
-
 const MONTHLY_ENROLLMENT = [
   { month: 'জানু', students: 45 }, { month: 'ফেব', students: 32 }, { month: 'মার্চ', students: 58 },
   { month: 'এপ্রিল', students: 40 }, { month: 'মে', students: 25 }, { month: 'জুন', students: 38 },
 ];
 
+const LEVEL_COLORS: Record<string, string> = {
+  ebtedayi: '#10b981',
+  'junior-dakhil': '#3b82f6',
+  dakhil: '#9756e6',
+  alim: '#f59e0b',
+};
+
+const LEVEL_NAMES: Record<string, string> = {
+  ebtedayi: 'ইবতেদায়ী',
+  'junior-dakhil': 'জুনিয়র দাখিল',
+  dakhil: 'দাখিল',
+  alim: 'আলিম',
+};
+
+function loadStudents(): Student[] {
+  try {
+    const s = localStorage.getItem('students_store');
+    const stored: Student[] = s ? JSON.parse(s) : [];
+    const storedIds = new Set(stored.map((st: Student) => st.id));
+    const merged = [...stored, ...STUDENTS.filter(st => !storedIds.has(st.id))];
+    return merged.length > 0 ? merged : STUDENTS;
+  } catch {
+    return STUDENTS;
+  }
+}
+
 export default function AdminDashboard() {
+  const [students, setStudents] = useState<Student[]>(STUDENTS);
+
+  useEffect(() => {
+    setStudents(loadStudents());
+  }, []);
+
+  const totalFees = FEES.reduce((s, f) => s + f.amount, 0);
+  const paidFees = FEES.filter(f => f.status === 'paid').reduce((s, f) => s + f.amount, 0);
+
+  // Build class distribution from real student data
+  const levelCounts: Record<string, number> = {};
+  students.forEach(st => {
+    const cls = MADRASHA_CLASSES.find(c => c.id === st.class);
+    const level = cls?.level ?? 'other';
+    levelCounts[level] = (levelCounts[level] ?? 0) + 1;
+  });
+
+  const CLASS_DIST = Object.entries(levelCounts)
+    .filter(([, count]) => count > 0)
+    .map(([level, value]) => ({
+      name: LEVEL_NAMES[level] ?? level,
+      value,
+      color: LEVEL_COLORS[level] ?? '#6b7280',
+    }));
+
   return (
     <div>
       <DashboardHeader title="অ্যাডমিন ড্যাশবোর্ড" subtitle="এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা — সম্পূর্ণ পর্যবেক্ষণ" userName="Admin" role="Super Admin" />
@@ -34,9 +78,9 @@ export default function AdminDashboard() {
         {/* KPI cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { icon: Users, label: 'মোট শিক্ষার্থী', value: '১,২৩৫', sub: '+৪৫ এই মাসে', color: 'bg-purple-50 text-purple-600', href: '/admin/students' },
+            { icon: Users, label: 'মোট শিক্ষার্থী', value: students.length.toString(), sub: `${students.filter(s => s.gender === 'male').length}জন ছাত্র, ${students.filter(s => s.gender === 'female').length}জন ছাত্রী`, color: 'bg-purple-50 text-purple-600', href: '/admin/students' },
             { icon: GraduationCap, label: 'মোট শিক্ষক', value: TEACHERS.length.toString(), sub: `${TEACHERS.length} সক্রিয়`, color: 'bg-blue-50 text-blue-600', href: '/admin/teachers' },
-            { icon: CreditCard, label: 'ফি সংগৃহীত', value: `৳${(paidFees/1000).toFixed(0)}K`, sub: `${Math.round((paidFees/totalFees)*100)}% সংগৃহীত`, color: 'bg-green-50 text-green-600', href: '/admin/fees' },
+            { icon: CreditCard, label: 'ফি সংগৃহীত', value: `৳${(paidFees/1000).toFixed(0)}K`, sub: `${totalFees > 0 ? Math.round((paidFees/totalFees)*100) : 0}% সংগৃহীত`, color: 'bg-green-50 text-green-600', href: '/admin/fees' },
             { icon: Bell, label: 'সক্রিয় নোটিশ', value: NOTICES.length.toString(), sub: `${NOTICES.filter(n=>n.isImportant).length}টি জরুরি`, color: 'bg-amber-50 text-amber-600', href: '/admin/notices' },
           ].map(({ icon: Icon, label, value, sub, color, href }) => (
             <Link key={label} href={href} className="bg-white rounded-2xl p-5 border border-gray-100 hover:border-purple-200 hover:shadow-md transition-all group">
@@ -67,25 +111,31 @@ export default function AdminDashboard() {
           {/* Class distribution */}
           <div className="bg-white rounded-2xl border border-gray-100 p-5">
             <h3 className="font-semibold text-gray-900 mb-4">শ্রেণিভিত্তিক বিতরণ</h3>
-            <ResponsiveContainer width="100%" height={150}>
-              <PieChart>
-                <Pie data={CLASS_DIST} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value">
-                  {CLASS_DIST.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="space-y-2 mt-3">
-              {CLASS_DIST.map(({ name, value, color }) => (
-                <div key={name} className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full" style={{ background: color }}></div>
-                    <span className="text-gray-600">{name}</span>
-                  </div>
-                  <span className="font-semibold text-gray-900">{value}</span>
+            {CLASS_DIST.length > 0 ? (
+              <>
+                <ResponsiveContainer width="100%" height={150}>
+                  <PieChart>
+                    <Pie data={CLASS_DIST} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value">
+                      {CLASS_DIST.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="space-y-2 mt-3">
+                  {CLASS_DIST.map(({ name, value, color }) => (
+                    <div key={name} className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2.5 h-2.5 rounded-full" style={{ background: color }}></div>
+                        <span className="text-gray-600">{name}</span>
+                      </div>
+                      <span className="font-semibold text-gray-900">{value}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </>
+            ) : (
+              <p className="text-xs text-gray-400 text-center py-8">কোনো শিক্ষার্থী নেই</p>
+            )}
           </div>
         </div>
 
