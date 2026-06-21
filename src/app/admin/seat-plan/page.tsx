@@ -1,8 +1,9 @@
-﻿'use client';
+'use client';
 import { useState, useEffect, useMemo } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { STUDENTS, MADRASHA_CLASSES } from '@/lib/data';
-import { Plus, Trash2, Download, X, MapPin, Users, Edit2, Shuffle, ChevronDown, Calendar, Layers } from 'lucide-react';
+import type { Student } from '@/lib/types';
+import { Plus, Trash2, Download, X, MapPin, Users, Edit2, Shuffle, ChevronDown, Calendar, Layers, CheckCircle2 } from 'lucide-react';
 
 const EXAMS_KEY = 'nim_exams_v1';
 const ENTRIES_KEY = 'nim_exam_entries_v1';
@@ -18,6 +19,7 @@ export interface Hall {
   hallName: string;
   capacity: number;
   guardName?: string;
+  classIds: string[];
 }
 
 export interface SeatAssignment {
@@ -26,8 +28,6 @@ export interface SeatAssignment {
   studentId: string;
   seatNumber: number;
 }
-
-type Student = (typeof STUDENTS)[0];
 
 const MONTHS = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
 function todayBn() { const d = new Date(); return `${d.getDate()} ${MONTHS[d.getMonth()]}, ${d.getFullYear()}`; }
@@ -90,6 +90,7 @@ function buildCombinedPdf(
 <div class="guard-bar">
   <span><strong>মোট আসন:</strong> ${hall.capacity}টি</span>
   <span><strong>পরীক্ষার্থী:</strong> ${assigned.length} জন</span>
+  ${hall.guardName ? `<span><strong>পরিদর্শক:</strong> ${hall.guardName}</span>` : ''}
 </div>
 <table>
   <thead><tr>
@@ -188,16 +189,39 @@ ${pagesHtml || '<div class="pg"></div>'}
 </body></html>`;
 }
 
+// Interleave students from different classes so no two adjacent seats are same class
+function interleaveByClass(students: Student[]): Student[] {
+  const classOrder = MADRASHA_CLASSES.map(c => c.id);
+  const byClass: Record<string, Student[]> = {};
+  for (const s of students) {
+    if (!byClass[s.class]) byClass[s.class] = [];
+    byClass[s.class].push(s);
+  }
+  // Sort groups by class order, then by roll within each class
+  const groups = classOrder
+    .map(cid => byClass[cid] ?? [])
+    .filter(g => g.length > 0);
+  const interleaved: Student[] = [];
+  const maxLen = Math.max(0, ...groups.map(g => g.length));
+  for (let i = 0; i < maxLen; i++) {
+    for (const group of groups) {
+      if (i < group.length) interleaved.push(group[i]);
+    }
+  }
+  return interleaved;
+}
+
 export default function SeatPlanPage() {
   const [exams, setExams] = useState<Exam[]>([]);
   const [entries, setEntries] = useState<ExamEntry[]>([]);
   const [halls, setHalls] = useState<Hall[]>([]);
   const [seats, setSeats] = useState<SeatAssignment[]>([]);
+  const [allStudents, setAllStudents] = useState<Student[]>(STUDENTS);
   const [selectedExamId, setSelectedExamId] = useState<string | null>(null);
 
   const [showHallForm, setShowHallForm] = useState(false);
   const [editHallId, setEditHallId] = useState<string | null>(null);
-  const [hallForm, setHallForm] = useState({ hallName: '', capacity: '' });
+  const [hallForm, setHallForm] = useState({ hallName: '', capacity: '', guardName: '', classIds: [] as string[] });
   const [expandedHall, setExpandedHall] = useState<string | null>(null);
 
   useEffect(() => {
@@ -210,6 +234,12 @@ export default function SeatPlanPage() {
       if (h) setHalls(JSON.parse(h));
       const s = localStorage.getItem(SEATS_KEY);
       if (s) setSeats(JSON.parse(s));
+      const raw = localStorage.getItem('students_store');
+      if (raw) {
+        const stored: Student[] = JSON.parse(raw);
+        const ids = new Set(stored.map(s => s.id));
+        setAllStudents([...stored, ...STUDENTS.filter(s => !ids.has(s.id))]);
+      }
     } catch {}
   }, []);
 
@@ -226,26 +256,36 @@ export default function SeatPlanPage() {
     return set;
   }, [entries, selectedExamId]);
 
-  const eligibleStudents = useMemo(() => {
-    const classOrder = MADRASHA_CLASSES.map(c => c.id);
-    // if no schedule entries exist yet, all students are eligible
-    const pool = classesInExam.size > 0
-      ? STUDENTS.filter(s => classesInExam.has(s.class))
-      : [...STUDENTS];
+  // All classes available for this exam (for hall form checkboxes)
+  const availableClasses = useMemo(() => {
+    if (classesInExam.size > 0) return MADRASHA_CLASSES.filter(c => classesInExam.has(c.id));
+    return MADRASHA_CLASSES;
+  }, [classesInExam]);
+
+  // Students per hall (respects hall.classIds)
+  const getHallEligibleStudents = (hall: Hall): Student[] => {
+    const classFilter = hall.classIds.length > 0 ? hall.classIds : [...classesInExam];
+    const pool = classFilter.length > 0
+      ? allStudents.filter(s => classFilter.includes(s.class))
+      : allStudents;
     return pool.sort((a, b) => {
-      const ci = classOrder.indexOf(a.class) - classOrder.indexOf(b.class);
+      const ci = MADRASHA_CLASSES.findIndex(c => c.id === a.class) - MADRASHA_CLASSES.findIndex(c => c.id === b.class);
       return ci !== 0 ? ci : Number(a.roll) - Number(b.roll);
     });
-  }, [classesInExam]);
+  };
 
   const getHallStudents = (hallId: string) =>
     examSeats
       .filter(s => s.hallId === hallId)
       .sort((a, b) => a.seatNumber - b.seatNumber)
-      .map(s => ({ seatNumber: s.seatNumber, student: STUDENTS.find(st => st.id === s.studentId)! }))
+      .map(s => ({ seatNumber: s.seatNumber, student: allStudents.find(st => st.id === s.studentId)! }))
       .filter(a => a.student);
 
   const totalCapacity = examHalls.reduce((sum, h) => sum + h.capacity, 0);
+  const totalAssigned = examSeats.length;
+
+  const classAssignedToOtherHall = (classId: string, excludeHallId: string | null) =>
+    examHalls.some(h => h.id !== excludeHallId && h.classIds.includes(classId));
 
   const addHall = () => {
     if (!selectedExamId) return;
@@ -253,16 +293,18 @@ export default function SeatPlanPage() {
     if (!hallForm.hallName.trim() || isNaN(cap) || cap < 1) return;
     if (editHallId) {
       saveHalls(halls.map(h => h.id === editHallId
-        ? { ...h, hallName: hallForm.hallName.trim(), capacity: cap }
+        ? { ...h, hallName: hallForm.hallName.trim(), capacity: cap, guardName: hallForm.guardName.trim() || undefined, classIds: hallForm.classIds }
         : h));
       setEditHallId(null);
     } else {
       saveHalls([...halls, {
         id: `hall_${Date.now()}`, examId: selectedExamId,
         hallName: hallForm.hallName.trim(), capacity: cap,
+        guardName: hallForm.guardName.trim() || undefined,
+        classIds: hallForm.classIds,
       }]);
     }
-    setHallForm({ hallName: '', capacity: '' });
+    setHallForm({ hallName: '', capacity: '', guardName: '', classIds: [] });
     setShowHallForm(false);
   };
 
@@ -273,19 +315,34 @@ export default function SeatPlanPage() {
 
   const startEdit = (hall: Hall) => {
     setEditHallId(hall.id);
-    setHallForm({ hallName: hall.hallName, capacity: String(hall.capacity) });
+    setHallForm({ hallName: hall.hallName, capacity: String(hall.capacity), guardName: hall.guardName ?? '', classIds: hall.classIds ?? [] });
     setShowHallForm(true);
   };
 
+  const toggleFormClass = (cid: string) =>
+    setHallForm(p => ({
+      ...p,
+      classIds: p.classIds.includes(cid) ? p.classIds.filter(c => c !== cid) : [...p.classIds, cid],
+    }));
+
+  // Auto-assign: each hall gets its own class pool, students are interleaved within hall
   const autoAssign = () => {
-    if (!selectedExamId || examHalls.length === 0 || eligibleStudents.length === 0) return;
+    if (!selectedExamId || examHalls.length === 0) return;
     const newSeats: SeatAssignment[] = [];
-    let idx = 0;
+
     for (const hall of examHalls) {
-      for (let seat = 1; seat <= hall.capacity && idx < eligibleStudents.length; seat++, idx++) {
-        newSeats.push({ examId: selectedExamId, hallId: hall.id, studentId: eligibleStudents[idx].id, seatNumber: seat });
+      const pool = getHallEligibleStudents(hall);
+      const interleaved = interleaveByClass(pool);
+      for (let seat = 1; seat <= hall.capacity && seat - 1 < interleaved.length; seat++) {
+        newSeats.push({
+          examId: selectedExamId,
+          hallId: hall.id,
+          studentId: interleaved[seat - 1].id,
+          seatNumber: seat,
+        });
       }
     }
+
     saveSeats([...seats.filter(s => s.examId !== selectedExamId), ...newSeats]);
   };
 
@@ -307,6 +364,10 @@ export default function SeatPlanPage() {
     examHalls.forEach(h => { hallStudents[h.id] = getHallStudents(h.id); });
     openPdf(buildStickerPdf(examHalls, selectedExam.name, hallStudents));
   };
+
+  // Coverage check: which classes are not yet assigned to any hall
+  const allAssignedClassIds = new Set(examHalls.flatMap(h => h.classIds));
+  const unassignedClasses = availableClasses.filter(c => !allAssignedClassIds.has(c.id));
 
   return (
     <div>
@@ -343,11 +404,12 @@ export default function SeatPlanPage() {
         {selectedExam && (
           <>
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-4 gap-3">
               {[
                 { label: 'মোট হল', value: examHalls.length, cls: 'bg-purple-50 text-purple-800' },
                 { label: 'মোট আসন', value: totalCapacity, cls: 'bg-blue-50 text-blue-800' },
-                { label: 'বরাদ্দকৃত', value: examSeats.length, cls: 'bg-green-50 text-green-800' },
+                { label: 'বরাদ্দকৃত', value: totalAssigned, cls: 'bg-green-50 text-green-800' },
+                { label: 'অবরাদ্দ শ্রেণি', value: unassignedClasses.length, cls: unassignedClasses.length > 0 ? 'bg-amber-50 text-amber-800' : 'bg-gray-50 text-gray-500' },
               ].map(s => (
                 <div key={s.label} className={`${s.cls} rounded-2xl p-4`}>
                   <div className="text-2xl font-bold">{s.value}</div>
@@ -356,26 +418,41 @@ export default function SeatPlanPage() {
               ))}
             </div>
 
+            {/* Unassigned class warning */}
+            {unassignedClasses.length > 0 && examHalls.length > 0 && (
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 flex items-start gap-3 text-sm">
+                <span className="text-amber-500 shrink-0 mt-0.5">⚠</span>
+                <div>
+                  <p className="font-semibold text-amber-800">কিছু শ্রেণি কোনো হলে নির্ধারিত নেই</p>
+                  <p className="text-xs text-amber-700 mt-0.5 flex flex-wrap gap-1.5 mt-1">
+                    {unassignedClasses.map(c => (
+                      <span key={c.id} className="bg-amber-100 px-2 py-0.5 rounded-full">{c.nameBn}</span>
+                    ))}
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Hall manager */}
             <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
               <div className="bg-[#1e1b4b] text-white px-5 py-4 flex items-center justify-between flex-wrap gap-3">
                 <div>
                   <h2 className="font-bold text-base">{selectedExam.name}</h2>
-                  <p className="text-purple-300 text-xs mt-0.5">হল ও আসন বিন্যাস ব্যবস্থাপনা | {selectedExam.year}</p>
+                  <p className="text-purple-300 text-xs mt-0.5">হল ও আসন বিন্যাস — {selectedExam.year}</p>
                 </div>
                 <div className="flex gap-2 flex-wrap">
                   <button
-                    onClick={() => { setShowHallForm(v => !v); setEditHallId(null); setHallForm({ hallName: '', capacity: '' }); }}
+                    onClick={() => { setShowHallForm(v => !v); setEditHallId(null); setHallForm({ hallName: '', capacity: '', guardName: '', classIds: [] }); }}
                     className="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white text-xs px-3 py-2 rounded-lg font-medium transition-colors">
                     <Plus size={13} /> হল যোগ
                   </button>
-                  {examHalls.length > 0 && eligibleStudents.length > 0 && (
+                  {examHalls.length > 0 && (
                     <button onClick={autoAssign}
                       className="flex items-center gap-1.5 bg-amber-400 hover:bg-amber-500 text-amber-900 text-xs px-3 py-2 rounded-lg font-semibold transition-colors">
-                      <Shuffle size={13} /> স্বয়ংক্রিয় বরাদ্দ
+                      <Shuffle size={13} /> মিশ্র আসন বরাদ্দ
                     </button>
                   )}
-                  {examSeats.length > 0 && (
+                  {totalAssigned > 0 && (
                     <>
                       <button onClick={downloadAll}
                         className="flex items-center gap-1.5 bg-white text-[#1e1b4b] text-xs px-3 py-2 rounded-lg font-semibold hover:bg-purple-50 shadow-sm transition-colors">
@@ -391,11 +468,11 @@ export default function SeatPlanPage() {
               </div>
 
               {showHallForm && (
-                <div className="bg-purple-50/60 border-b border-purple-100 p-4 space-y-3">
+                <div className="bg-purple-50/60 border-b border-purple-100 p-5 space-y-4">
                   <h4 className="font-semibold text-gray-700 text-xs uppercase tracking-wide">
                     {editHallId ? 'হল সম্পাদনা' : 'নতুন পরীক্ষার হল'}
                   </h4>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-3 gap-3">
                     <div>
                       <label className="text-xs font-semibold text-gray-600 block mb-1">হলের নাম *</label>
                       <input value={hallForm.hallName} onChange={e => setHallForm(p => ({ ...p, hallName: e.target.value }))}
@@ -409,9 +486,55 @@ export default function SeatPlanPage() {
                         placeholder="যেমন: 30" min="1"
                         className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400" />
                     </div>
+                    <div>
+                      <label className="text-xs font-semibold text-gray-600 block mb-1">পরিদর্শকের নাম</label>
+                      <input value={hallForm.guardName} onChange={e => setHallForm(p => ({ ...p, guardName: e.target.value }))}
+                        placeholder="ঐচ্ছিক"
+                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400" />
+                    </div>
                   </div>
+
+                  {/* Class assignment */}
+                  <div>
+                    <label className="text-xs font-semibold text-gray-600 block mb-2">
+                      এই হলে কোন শ্রেণির শিক্ষার্থী বসবে? *
+                      <span className="text-gray-400 font-normal ml-1">(একাধিক বেছে নিন)</span>
+                    </label>
+                    <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-1.5">
+                      {availableClasses.map(c => {
+                        const checked = hallForm.classIds.includes(c.id);
+                        const takenByOther = classAssignedToOtherHall(c.id, editHallId);
+                        return (
+                          <label key={c.id} className={`flex items-center gap-1.5 px-2.5 py-2 rounded-lg border cursor-pointer text-xs font-medium transition-all ${
+                            checked
+                              ? 'bg-purple-600 border-purple-600 text-white'
+                              : takenByOther
+                              ? 'bg-red-50 border-red-200 text-red-400 cursor-not-allowed'
+                              : 'bg-white border-gray-200 text-gray-600 hover:border-purple-300'
+                          }`}>
+                            <input type="checkbox" className="sr-only" checked={checked}
+                              onChange={() => !takenByOther && toggleFormClass(c.id)} />
+                            <div className={`w-3 h-3 rounded border flex items-center justify-center shrink-0 ${checked ? 'bg-white border-white' : 'border-gray-400'}`}>
+                              {checked && <div className="w-1.5 h-1.5 bg-purple-600 rounded-sm" />}
+                            </div>
+                            <span className="truncate">{c.nameBn}</span>
+                            {takenByOther && !checked && <span className="text-[9px] text-red-400 ml-auto">অন্য হলে</span>}
+                          </label>
+                        );
+                      })}
+                    </div>
+                    {hallForm.classIds.length > 0 && (
+                      <p className="text-xs text-purple-700 mt-2 font-medium">
+                        নির্বাচিত: {hallForm.classIds.map(id => availableClasses.find(c => c.id === id)?.nameBn ?? id).join(', ')}
+                        {' '}— আনুমানিক {getHallEligibleStudents({ id: editHallId ?? '', examId: selectedExamId!, hallName: '', capacity: 0, classIds: hallForm.classIds }).length} জন শিক্ষার্থী
+                      </p>
+                    )}
+                  </div>
+
                   <div className="flex gap-2">
-                    <button onClick={addHall} className="btn-primary px-4 py-2 rounded-xl text-xs font-semibold">
+                    <button onClick={addHall}
+                      disabled={!hallForm.hallName.trim() || !hallForm.capacity || hallForm.classIds.length === 0}
+                      className="btn-primary px-4 py-2 rounded-xl text-xs font-semibold disabled:opacity-40">
                       {editHallId ? 'আপডেট করুন' : 'হল যোগ করুন'}
                     </button>
                     <button onClick={() => { setShowHallForm(false); setEditHallId(null); }}
@@ -431,22 +554,40 @@ export default function SeatPlanPage() {
                   {examHalls.map(hall => {
                     const hs = getHallStudents(hall.id);
                     const expanded = expandedHall === hall.id;
+                    const hallClasses = (hall.classIds ?? []).map(cid => availableClasses.find(c => c.id === cid)?.nameBn ?? cid);
+                    const eligible = getHallEligibleStudents(hall);
+
                     return (
                       <div key={hall.id}>
-                        <div className="flex items-center gap-4 px-5 py-4">
-                          <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center shrink-0">
+                        <div className="flex items-start gap-4 px-5 py-4">
+                          <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center shrink-0 mt-0.5">
                             <MapPin size={18} className="text-purple-600" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <h3 className="font-semibold text-gray-900">{hall.hallName}</h3>
-                              <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">ধারণ: {hall.capacity}</span>
+                              <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">আসন: {hall.capacity}</span>
                               <span className={`text-xs px-2 py-0.5 rounded-full ${hs.length > 0 ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
                                 বরাদ্দ: {hs.length}
                               </span>
+                              {hs.length > 0 && <span className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full flex items-center gap-1"><CheckCircle2 size={10} /> মিশ্র আসন</span>}
                             </div>
+                            {/* Assigned classes */}
+                            {hallClasses.length > 0 ? (
+                              <div className="flex flex-wrap gap-1 mt-1.5">
+                                {hallClasses.map(cn => (
+                                  <span key={cn} className="text-[10px] bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded-full">{cn}</span>
+                                ))}
+                                <span className="text-[10px] text-gray-400">({eligible.length} জন শিক্ষার্থী)</span>
+                              </div>
+                            ) : (
+                              <p className="text-[10px] text-amber-600 mt-1">⚠ কোনো শ্রেণি নির্ধারিত নেই — সম্পাদনা করুন</p>
+                            )}
+                            {hall.guardName && (
+                              <p className="text-[10px] text-gray-400 mt-0.5">পরিদর্শক: {hall.guardName}</p>
+                            )}
                           </div>
-                          <div className="flex items-center gap-2 shrink-0">
+                          <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
                             <button onClick={() => startEdit(hall)}
                               className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 flex items-center justify-center">
                               <Edit2 size={13} />
@@ -468,10 +609,10 @@ export default function SeatPlanPage() {
                         </div>
 
                         {expanded && (
-                          <div className="border-t border-gray-100 px-5 pb-4 pt-3">
+                          <div className="border-t border-gray-100 px-5 pb-4 pt-3 bg-gray-50/30">
                             {hs.length === 0 ? (
                               <p className="text-xs text-gray-400 italic">
-                                কোনো শিক্ষার্থী বরাদ্দ হয়নি। উপরে &quot;স্বয়ংক্রিয় বরাদ্দ&quot; বাটনে ক্লিক করুন।
+                                কোনো শিক্ষার্থী বরাদ্দ হয়নি। উপরে &quot;মিশ্র আসন বরাদ্দ&quot; বাটনে ক্লিক করুন।
                               </p>
                             ) : (
                               <div className="overflow-hidden rounded-xl border border-gray-200">
@@ -480,21 +621,25 @@ export default function SeatPlanPage() {
                                     <tr className="bg-gray-50">
                                       <th className="px-3 py-2 text-center text-gray-500 font-semibold w-16">আসন</th>
                                       <th className="px-3 py-2 text-left text-gray-600 font-semibold">নাম</th>
-                                      <th className="px-3 py-2 text-center text-gray-600 font-semibold w-28">শ্রেণি</th>
+                                      <th className="px-3 py-2 text-center text-gray-600 font-semibold w-32">শ্রেণি</th>
                                       <th className="px-3 py-2 text-center text-gray-600 font-semibold w-20">রোল</th>
                                     </tr>
                                   </thead>
                                   <tbody className="divide-y divide-gray-50">
-                                    {hs.map(a => (
-                                      <tr key={a.seatNumber} className="hover:bg-purple-50/20">
-                                        <td className="px-3 py-2 text-center font-bold text-purple-700">{a.seatNumber}</td>
-                                        <td className="px-3 py-2 font-medium text-gray-800">{a.student?.name}</td>
-                                        <td className="px-3 py-2 text-center text-gray-500 text-[11px]">
-                                          {MADRASHA_CLASSES.find(c => c.id === a.student?.class)?.nameBn ?? ''}
-                                        </td>
-                                        <td className="px-3 py-2 text-center text-gray-500">{a.student?.roll}</td>
-                                      </tr>
-                                    ))}
+                                    {hs.map((a, i) => {
+                                      const prevClass = i > 0 ? hs[i - 1].student?.class : null;
+                                      const sameAsPrev = prevClass === a.student?.class;
+                                      return (
+                                        <tr key={a.seatNumber} className={`hover:bg-purple-50/20 ${sameAsPrev ? 'bg-red-50/30' : ''}`}>
+                                          <td className="px-3 py-2 text-center font-bold text-purple-700">{a.seatNumber}</td>
+                                          <td className="px-3 py-2 font-medium text-gray-800">{a.student?.name}</td>
+                                          <td className={`px-3 py-2 text-center text-[11px] ${sameAsPrev ? 'text-red-500 font-semibold' : 'text-gray-500'}`}>
+                                            {MADRASHA_CLASSES.find(c => c.id === a.student?.class)?.nameBn ?? ''}
+                                          </td>
+                                          <td className="px-3 py-2 text-center text-gray-500">{a.student?.roll}</td>
+                                        </tr>
+                                      );
+                                    })}
                                   </tbody>
                                 </table>
                               </div>
@@ -507,34 +652,10 @@ export default function SeatPlanPage() {
                 </div>
               )}
             </div>
-
-            {eligibleStudents.length > 0 && (
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-                <div className="flex items-start gap-2">
-                  <Users size={16} className="text-amber-600 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-semibold text-amber-800">পরীক্ষার্থী তথ্য</p>
-                    <p className="text-xs text-amber-700 mt-0.5">
-                      এই পরীক্ষায় মোট <strong>{eligibleStudents.length}</strong> জন শিক্ষার্থী অংশ নেবে।
-                      {examHalls.length === 0 && <> প্রথমে উপরে &quot;হল যোগ&quot; করুন, তারপর &quot;স্বয়ংক্রিয় বরাদ্দ&quot; দিন।</>}
-                      {examHalls.length > 0 && examSeats.length === 0 && <> হল প্রস্তুত — &quot;স্বয়ংক্রিয় বরাদ্দ&quot; বাটনে ক্লিক করুন।</>}
-                      {examSeats.length > 0 && examSeats.length < eligibleStudents.length && (
-                        <> এখনো <strong>{eligibleStudents.length - examSeats.length}</strong> জন আসন পায়নি।</>
-                      )}
-                      {totalCapacity > 0 && totalCapacity < eligibleStudents.length && (
-                        <span className="text-red-600 font-semibold">
-                          {' '}সতর্কতা: মোট আসন ({totalCapacity}) শিক্ষার্থী সংখ্যার ({eligibleStudents.length}) চেয়ে কম!
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
           </>
         )}
       </div>
     </div>
   );
 }
+
