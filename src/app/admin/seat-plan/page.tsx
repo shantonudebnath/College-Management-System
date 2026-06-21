@@ -231,7 +231,10 @@ export default function SeatPlanPage() {
       const en = localStorage.getItem(ENTRIES_KEY);
       if (en) setEntries(JSON.parse(en));
       const h = localStorage.getItem(HALLS_KEY);
-      if (h) setHalls(JSON.parse(h));
+      if (h) {
+        const parsed: Hall[] = JSON.parse(h);
+        setHalls(parsed.map(hall => ({ ...hall, classIds: Array.isArray(hall.classIds) ? hall.classIds : [] })));
+      }
       const s = localStorage.getItem(SEATS_KEY);
       if (s) setSeats(JSON.parse(s));
       const raw = localStorage.getItem('students_store');
@@ -252,7 +255,7 @@ export default function SeatPlanPage() {
 
   const classesInExam = useMemo(() => {
     const set = new Set<string>();
-    entries.filter(e => e.examId === selectedExamId).forEach(e => e.classIds.forEach(c => set.add(c)));
+    entries.filter(e => e.examId === selectedExamId).forEach(e => (e.classIds ?? []).forEach(c => set.add(c)));
     return set;
   }, [entries, selectedExamId]);
 
@@ -264,7 +267,7 @@ export default function SeatPlanPage() {
 
   // Students per hall (respects hall.classIds)
   const getHallEligibleStudents = (hall: Hall): Student[] => {
-    const classFilter = hall.classIds.length > 0 ? hall.classIds : [...classesInExam];
+    const classFilter = (hall.classIds ?? []).length > 0 ? (hall.classIds ?? []) : [...classesInExam];
     const pool = classFilter.length > 0
       ? allStudents.filter(s => classFilter.includes(s.class))
       : allStudents;
@@ -285,7 +288,7 @@ export default function SeatPlanPage() {
   const totalAssigned = examSeats.length;
 
   const classAssignedToOtherHall = (classId: string, excludeHallId: string | null) =>
-    examHalls.some(h => h.id !== excludeHallId && h.classIds.includes(classId));
+    examHalls.some(h => h.id !== excludeHallId && (h.classIds ?? []).includes(classId));
 
   const addHall = () => {
     if (!selectedExamId) return;
@@ -366,7 +369,7 @@ export default function SeatPlanPage() {
   };
 
   // Coverage check: which classes are not yet assigned to any hall
-  const allAssignedClassIds = new Set(examHalls.flatMap(h => h.classIds));
+  const allAssignedClassIds = new Set(examHalls.flatMap(h => h.classIds ?? []));
   const unassignedClasses = availableClasses.filter(c => !allAssignedClassIds.has(c.id));
 
   return (
