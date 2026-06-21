@@ -5,7 +5,7 @@ import { FEES, MADRASHA_CLASSES, STUDENTS } from '@/lib/data';
 import { useCurrentTeacher } from '@/context/CurrentTeacherContext';
 import { useTeachers } from '@/context/TeachersContext';
 import { CreditCard, CheckCircle, AlertCircle, Clock } from 'lucide-react';
-import type { Fee } from '@/lib/types';
+import type { Fee, Student } from '@/lib/types';
 
 export default function TeacherFeesPage() {
   const { currentTeacherId, assignedClassId } = useCurrentTeacher();
@@ -13,6 +13,7 @@ export default function TeacherFeesPage() {
   const currentTeacher = teachers.find(t => t.id === currentTeacherId);
 
   const [fees, setFees] = useState<Fee[]>([]);
+  const [allStudents, setAllStudents] = useState<Student[]>(STUDENTS);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<'paid' | 'due' | null>(null);
 
@@ -21,6 +22,14 @@ export default function TeacherFeesPage() {
       const stored = localStorage.getItem('fees_store');
       setFees(stored ? JSON.parse(stored) : FEES);
     } catch { setFees(FEES); }
+    try {
+      const raw = localStorage.getItem('students_store');
+      if (raw) {
+        const stored: Student[] = JSON.parse(raw);
+        const ids = new Set(stored.map(s => s.id));
+        setAllStudents([...stored, ...STUDENTS.filter(s => !ids.has(s.id))]);
+      }
+    } catch {}
   }, []);
 
   const save = (updated: Fee[]) => {
@@ -45,7 +54,7 @@ export default function TeacherFeesPage() {
   };
 
   const assignedClass = MADRASHA_CLASSES.find(c => c.id === assignedClassId);
-  const classStudents = assignedClassId ? STUDENTS.filter(s => s.class === assignedClassId) : [];
+  const classStudents = assignedClassId ? allStudents.filter(s => s.class === assignedClassId) : [];
   const classFees = fees.filter(f => classStudents.some(s => s.id === f.studentId));
 
   const paid = classFees.filter(f => f.status === 'paid').length;
