@@ -72,17 +72,27 @@ export default function AdminStudentsPage() {
   const selectAllRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    let loadedStudents = STUDENTS;
     try {
       const s = localStorage.getItem('students_store');
       const stored: Student[] = s ? JSON.parse(s) : [];
       const storedIds = new Set(stored.map((st: Student) => st.id));
-      // Merge any seed students not yet in localStorage (handles new demo data)
       const merged = [...stored, ...STUDENTS.filter(st => !storedIds.has(st.id))];
-      setStudents(merged.length > 0 ? merged : STUDENTS);
+      loadedStudents = merged.length > 0 ? merged : STUDENTS;
+      setStudents(loadedStudents);
     } catch { setStudents(STUDENTS); }
     try {
       const c = localStorage.getItem('student_credentials');
-      if (c) setCredsMap(JSON.parse(c));
+      const existing: Record<string, Credential> = c ? JSON.parse(c) : {};
+      let updated = false;
+      loadedStudents.forEach(st => {
+        if (!existing[st.id]) {
+          existing[st.id] = makeCred(st.studentId, st.roll);
+          updated = true;
+        }
+      });
+      if (updated) localStorage.setItem('student_credentials', JSON.stringify(existing));
+      setCredsMap(existing);
     } catch { /* ignore */ }
     try {
       const a = localStorage.getItem('admit_cards_store');
