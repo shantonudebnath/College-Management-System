@@ -1,7 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import { STUDENTS, COLLEGE_INFO, FEES } from '@/lib/data';
+import { COLLEGE_INFO, FEES } from '@/lib/data';
+import { useStudentSession } from '@/hooks/useStudentSession';
 import { IdCard, Printer, CheckCircle, AlertCircle, X, Lock, MapPin } from 'lucide-react';
 import type { Fee } from '@/lib/types';
 
@@ -30,10 +31,9 @@ interface ExamEntry {
 interface Hall { id: string; hallName: string; guardName: string; }
 interface SeatAssignment { examId: string; hallId: string; studentId: string; seatNumber: number; }
 
-const student = STUDENTS[0];
-const STUDENT_ID = 's1';
-
 export default function AdmitCardPage() {
+  const { student, loading: sessionLoading } = useStudentSession();
+  const STUDENT_ID = student?.id ?? '';
   const [admitCards, setAdmitCards] = useState<AdmitCardConfig[]>([]);
   const [allFees, setAllFees] = useState<Fee[]>(FEES);
   const [allEntries, setAllEntries] = useState<ExamEntry[]>([]);
@@ -74,7 +74,7 @@ export default function AdmitCardPage() {
       !studentFees.some(f => f.feeType === ft && f.status === 'paid')
     );
 
-  const myAdmitCards = admitCards.filter(c => c.issued && c.class === student.class);
+  const myAdmitCards = admitCards.filter(c => c.issued && c.class === (student?.class ?? ''));
 
   // Dynamic schedule from nim_exam_entries_v1
   const getSchedule = (card: AdmitCardConfig) => {
@@ -97,6 +97,14 @@ export default function AdmitCardPage() {
   const cardSchedule = selectedCard ? getSchedule(selectedCard) : [];
   const cardSeat = selectedCard ? getSeatInfo(selectedCard.examId) : null;
 
+  if (sessionLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div>
       <style>{`
@@ -114,7 +122,7 @@ export default function AdmitCardPage() {
           }
         }
       `}</style>
-      <DashboardHeader title="এডমিট কার্ড" subtitle="পরীক্ষার প্রবেশপত্র" userName={student.name} role="ছাত্র" />
+      <DashboardHeader title="এডমিট কার্ড" subtitle="পরীক্ষার প্রবেশপত্র" userName={student?.nameBn ?? student?.name ?? 'শিক্ষার্থী'} role="ছাত্র" />
       <div className="p-6 space-y-4">
         {myAdmitCards.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center text-gray-400">
@@ -231,16 +239,16 @@ export default function AdmitCardPage() {
                   </div>
                   <div className="flex-1 grid grid-cols-2 gap-x-4 gap-y-2">
                     {[
-                      ['শিক্ষার্থীর নাম', student.name],
-                      ['বাংলা নাম', student.nameBn],
-                      ['পিতার নাম', student.fatherName],
-                      ['মাতার নাম', student.motherName],
-                      ['রোল নম্বর', String(student.roll)],
-                      ['রেজি. নম্বর', student.studentId],
-                      ['শ্রেণি', '১০ম শ্রেণি (দাখিল)'],
-                      ['শাখা', student.section],
-                      ['সেশন', student.session],
-                      ['জন্ম তারিখ', student.dob],
+                      ['শিক্ষার্থীর নাম', student?.name ?? '—'],
+                      ['বাংলা নাম', student?.nameBn ?? '—'],
+                      ['পিতার নাম', student?.fatherName ?? '—'],
+                      ['মাতার নাম', student?.motherName ?? '—'],
+                      ['রোল নম্বর', String(student?.roll ?? '—')],
+                      ['রেজি. নম্বর', student?.studentId ?? '—'],
+                      ['শ্রেণি', student?.class ?? '—'],
+                      ['শাখা', student?.section ?? '—'],
+                      ['সেশন', student?.session ?? '—'],
+                      ['জন্ম তারিখ', student?.dob ?? '—'],
                     ].map(([label, value]) => (
                       <div key={label} className="border-b border-gray-100 pb-1">
                         <p className="text-[9px] text-gray-400 uppercase tracking-wide">{label}</p>

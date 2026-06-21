@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { FEES, MADRASHA_CLASSES, STUDENTS, COLLEGE_INFO } from '@/lib/data';
+import type { Student } from '@/lib/types';
 import { IdCard, Trash2, Printer, X, Users, CheckCircle, AlertCircle, ChevronDown, Settings, RefreshCw } from 'lucide-react';
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
 import type { Fee } from '@/lib/types';
@@ -37,6 +38,7 @@ export default function AdminAdmitCardsPage() {
   });
   const [feeTypes, setFeeTypes] = useState<string[]>([]);
   const [allFees, setAllFees] = useState<Fee[]>(FEES);
+  const [allStudents, setAllStudents] = useState<Student[]>(STUDENTS);
   const [allExams, setAllExams] = useState<Exam[]>([]);
   const [allEntries, setAllEntries] = useState<ExamEntry[]>([]);
   const [allHalls, setAllHalls] = useState<Hall[]>([]);
@@ -59,6 +61,14 @@ export default function AdminAdmitCardsPage() {
       setAllFees(fees);
       setFeeTypes([...new Set(fees.map(f => f.feeType))]);
     } catch { setFeeTypes([...new Set(FEES.map(f => f.feeType))]); }
+    try {
+      const raw = localStorage.getItem('students_store');
+      if (raw) {
+        const stored: Student[] = JSON.parse(raw);
+        const ids = new Set(stored.map(s => s.id));
+        setAllStudents([...stored, ...STUDENTS.filter(s => !ids.has(s.id))]);
+      }
+    } catch {}
     try {
       const e = localStorage.getItem(EXAMS_KEY);
       if (e) { const p = JSON.parse(e); setAllExams(p); if (p.length > 0) setSelectedExamId(p[0].id); }
@@ -125,7 +135,7 @@ export default function AdminAdmitCardsPage() {
     setCards([...newCards, ...existing]);
   };
 
-  const printStudents = printCard ? STUDENTS.filter(s => s.class === printCard.class) : [];
+  const printStudents = printCard ? allStudents.filter(s => s.class === printCard.class) : [];
   const printSchedule = printCard ? getSchedule(printCard) : [];
 
   const examCards = allExams.map(exam => ({
@@ -194,7 +204,7 @@ export default function AdminAdmitCardsPage() {
               <div className="divide-y divide-gray-100">
                 {examCardList.map(card => {
                   const classInfo = MADRASHA_CLASSES.find(c => c.id === card.class);
-                  const classStudents = STUDENTS.filter(s => s.class === card.class);
+                  const classStudents = allStudents.filter(s => s.class === card.class);
                   const eligibleCount = classStudents.filter(s => isStudentEligible(s.id, card)).length;
                   const cardSchedule = getSchedule(card);
                   const hasSeats = classStudents.some(s => getSeatInfo(s.id, card.examId) !== null);
