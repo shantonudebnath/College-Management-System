@@ -2,11 +2,12 @@
 import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { MADRASHA_CLASSES, SUBJECTS_BY_CLASS } from '@/lib/data';
-import { Plus, Trash2, Download, X, Calendar, Edit2, Bell, CheckCircle } from 'lucide-react';
+import { Plus, Trash2, Download, X, Calendar, Edit2, Bell, CheckCircle, Lock, Unlock } from 'lucide-react';
 import { useNotices } from '@/context/NoticesContext';
 
 const EXAMS_KEY = 'nim_exams_v1';
 const ENTRIES_KEY = 'nim_exam_entries_v1';
+const MARK_SUBMISSION_KEY = 'nim_mark_submission_v1';
 
 const CLASS_SHORT: Record<string, string> = {
   'class-1': '১ম', 'class-2': '২য়', 'class-3': '৩য়', 'class-4': '৪র্থ',
@@ -17,6 +18,12 @@ const CLASS_SHORT: Record<string, string> = {
 interface Exam {
   id: string;
   name: string;
+  year: string;
+}
+
+interface MarkSubmission {
+  examId: string;
+  examName: string;
   year: string;
 }
 
@@ -158,6 +165,7 @@ export default function AdminExamSchedulePage() {
   const [entries, setEntries] = useState<ExamEntry[]>([]);
   const [selectedExamId, setSelectedExamId] = useState<string | null>(null);
   const [scheduleNoticePublished, setScheduleNoticePublished] = useState<string | null>(null);
+  const [markSubmission, setMarkSubmission] = useState<MarkSubmission | null>(null);
 
   const [showExamForm, setShowExamForm] = useState(false);
   const [examForm, setExamForm] = useState({ name: '', year: '২০২৪-২৫' });
@@ -174,6 +182,8 @@ export default function AdminExamSchedulePage() {
       if (e) { const parsed = JSON.parse(e); setExams(parsed); if (parsed.length > 0) setSelectedExamId(parsed[0].id); }
       const en = localStorage.getItem(ENTRIES_KEY);
       if (en) setEntries(JSON.parse(en));
+      const ms = localStorage.getItem(MARK_SUBMISSION_KEY);
+      if (ms) setMarkSubmission(JSON.parse(ms));
     } catch {}
   }, []);
 
@@ -281,6 +291,17 @@ export default function AdminExamSchedulePage() {
     });
     setScheduleNoticePublished(selectedExam.id);
     setTimeout(() => setScheduleNoticePublished(null), 3000);
+  };
+
+  const openMarkSubmission = (exam: Exam) => {
+    const val: MarkSubmission = { examId: exam.id, examName: exam.name, year: exam.year };
+    localStorage.setItem(MARK_SUBMISSION_KEY, JSON.stringify(val));
+    setMarkSubmission(val);
+  };
+
+  const closeMarkSubmission = () => {
+    localStorage.removeItem(MARK_SUBMISSION_KEY);
+    setMarkSubmission(null);
   };
 
   const selectedExam = exams.find(e => e.id === selectedExamId);
@@ -409,6 +430,43 @@ export default function AdminExamSchedulePage() {
             </div>
           )}
         </div>
+
+        {/* Mark submission control */}
+        {exams.length > 0 && (
+          <div className="bg-white rounded-2xl border border-gray-100 p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 className="font-semibold text-gray-900 flex items-center gap-2 text-sm">
+                  {markSubmission ? <Unlock size={15} className="text-green-600" /> : <Lock size={15} className="text-gray-400" />}
+                  শিক্ষক মার্ক সাবমিশন নিয়ন্ত্রণ
+                </h3>
+                <p className="text-xs text-gray-400 mt-0.5">পরীক্ষা শেষ হলে শিক্ষকদের নম্বর দেওয়ার জন্য সাবমিশন খুলুন</p>
+              </div>
+              {markSubmission ? (
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className="flex items-center gap-2 bg-green-50 text-green-700 px-3 py-2 rounded-xl text-sm font-medium border border-green-200">
+                    <CheckCircle size={13} /> {markSubmission.examName} ({markSubmission.year}) — সাবমিশন চলছে
+                  </span>
+                  <button onClick={closeMarkSubmission}
+                    className="flex items-center gap-1.5 border border-red-200 text-red-600 hover:bg-red-50 px-4 py-2 rounded-xl text-sm font-medium transition-colors">
+                    <Lock size={13} /> বন্ধ করুন
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 flex-wrap">
+                  {selectedExam ? (
+                    <button onClick={() => openMarkSubmission(selectedExam)}
+                      className="flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors">
+                      <Unlock size={13} /> &quot;{selectedExam.name}&quot; — মার্ক সাবমিশন খুলুন
+                    </button>
+                  ) : (
+                    <p className="text-xs text-gray-400 italic">উপরে একটি পরীক্ষা সিলেক্ট করুন</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Schedule builder */}
         {selectedExam && (
