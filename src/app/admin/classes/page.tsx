@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import { MADRASHA_CLASSES } from '@/lib/data';
+import { MADRASHA_CLASSES, SUBJECTS_BY_CLASS } from '@/lib/data';
 import { useTeachers } from '@/context/TeachersContext';
 import { BookOpen, Plus, X, Save } from 'lucide-react';
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
@@ -12,20 +12,22 @@ export default function AdminClassesPage() {
   const { teachers, setTeachers } = useTeachers();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ classId: MADRASHA_CLASSES[0].id, teacherId: '', subjects: [] as string[] });
-  const [subjectInput, setSubjectInput] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   const [saved, setSaved] = useState(false);
 
-  const addSubject = () => {
-    const val = subjectInput.trim();
-    if (!val || form.subjects.includes(val)) return;
-    setForm(p => ({ ...p, subjects: [...p.subjects, val] }));
-    setSubjectInput('');
+  const classSubjects = (SUBJECTS_BY_CLASS[form.classId] ?? []).map(s => s.nameBn);
+
+  const toggleSubject = (sub: string) => {
+    setForm(p => ({
+      ...p,
+      subjects: p.subjects.includes(sub)
+        ? p.subjects.filter(s => s !== sub)
+        : [...p.subjects, sub],
+    }));
   };
 
-  const removeSubject = (sub: string) => {
-    setForm(p => ({ ...p, subjects: p.subjects.filter(s => s !== sub) }));
-  };
+  const selectAllSubjects = () => setForm(p => ({ ...p, subjects: classSubjects }));
+  const clearSubjects = () => setForm(p => ({ ...p, subjects: [] }));
 
   // Derive assignments: for each class, which teachers are assigned
   type Assignment = { classId: string; teacherId: string; teacherName: string; subjects: string[] };
@@ -56,7 +58,6 @@ export default function AdminClassesPage() {
     setTimeout(() => setSaved(false), 3000);
     setShowForm(false);
     setForm({ classId: MADRASHA_CLASSES[0].id, teacherId: '', subjects: [] });
-    setSubjectInput('');
   };
 
   const handleDelete = ({ teacherId, classId }: DeleteTarget) => {
@@ -92,8 +93,11 @@ export default function AdminClassesPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-semibold text-gray-600 block mb-1">শ্রেণি</label>
-                <select value={form.classId} onChange={e => setForm(p => ({ ...p, classId: e.target.value }))}
-                  className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400">
+                <select
+                  value={form.classId}
+                  onChange={e => setForm(p => ({ ...p, classId: e.target.value, subjects: [] }))}
+                  className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400"
+                >
                   {MADRASHA_CLASSES.map(c => <option key={c.id} value={c.id}>{c.nameBn}</option>)}
                 </select>
               </div>
@@ -106,38 +110,41 @@ export default function AdminClassesPage() {
                 </select>
               </div>
             </div>
+
             {form.teacherId && (
-              <div className="mt-3">
-                <label className="text-xs font-semibold text-gray-600 block mb-2">
-                  এই ক্লাসে কোন বিষয়গুলো পড়াবেন?
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={subjectInput}
-                    onChange={e => setSubjectInput(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addSubject(); } }}
-                    placeholder="বিষয়ের নাম লিখুন, Enter চাপুন"
-                    className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400"
-                  />
-                  <button type="button" onClick={addSubject} className="px-4 py-2 btn-primary rounded-xl text-sm font-semibold shrink-0">
-                    <Plus size={14} />
-                  </button>
-                </div>
-                {form.subjects.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {form.subjects.map(sub => (
-                      <span key={sub} className="flex items-center gap-1 bg-purple-100 text-purple-700 text-xs px-2.5 py-1 rounded-full">
-                        {sub}
-                        <button type="button" onClick={() => removeSubject(sub)} className="hover:text-red-500 transition-colors ml-0.5">
-                          <X size={11} />
-                        </button>
-                      </span>
-                    ))}
+              <div className="mt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-semibold text-gray-600">এই ক্লাসে কোন বিষয়গুলো পড়াবেন?</label>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={selectAllSubjects} className="text-[11px] text-purple-600 hover:underline font-medium">সব নির্বাচন</button>
+                    <span className="text-gray-300 text-xs">|</span>
+                    <button type="button" onClick={clearSubjects} className="text-[11px] text-gray-400 hover:underline">বাতিল</button>
                   </div>
+                </div>
+                {classSubjects.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-1">
+                    {classSubjects.map(sub => {
+                      const checked = form.subjects.includes(sub);
+                      return (
+                        <label key={sub} onClick={() => toggleSubject(sub)}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer transition-colors text-xs font-medium select-none
+                            ${checked ? 'bg-purple-50 border-purple-300 text-purple-800' : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-purple-200 hover:bg-purple-50/40'}`}>
+                          <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${checked ? 'bg-purple-600 border-purple-600' : 'border-gray-300'}`}>
+                            {checked && <svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                          </div>
+                          <span className="leading-tight">{sub}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-400 italic">এই শ্রেণির জন্য কোনো বিষয় নির্ধারিত নেই।</p>
                 )}
-                {form.subjects.length === 0 && (
-                  <p className="text-xs text-amber-500 mt-1.5">কোনো বিষয় না দিলে শিক্ষকের প্রোফাইলের বিষয় দেখাবে।</p>
+                {form.subjects.length === 0 && classSubjects.length > 0 && (
+                  <p className="text-xs text-amber-500 mt-2">কোনো বিষয় না দিলে শিক্ষকের প্রোফাইলের বিষয় দেখাবে।</p>
+                )}
+                {form.subjects.length > 0 && (
+                  <p className="text-xs text-purple-600 mt-2 font-medium">{form.subjects.length}টি বিষয় নির্বাচিত</p>
                 )}
               </div>
             )}
