@@ -46,6 +46,7 @@ const GRADE_COLOR: Record<string, string> = {
 
 export default function AdminResultEntryPage() {
   // ── form state ──
+  const [liveExams, setLiveExams]       = useState<{id:string;name:string;year:string}[]>([]);
   const [examName, setExamName]         = useState(EXAM_NAMES[0]);
   const [customExam, setCustomExam]     = useState('');
   const [examYear, setExamYear]         = useState(new Date().getFullYear().toString());
@@ -67,6 +68,14 @@ export default function AdminResultEntryPage() {
       }
     } catch { /* ignore */ }
     setSavedResults([...EXAM_RESULTS, ...loadResultsFromStorage()]);
+    try {
+      const exams: {id:string;name:string;year:string}[] = JSON.parse(localStorage.getItem('nim_exams_v1') ?? '[]');
+      setLiveExams(exams);
+      if (exams.length > 0) {
+        setExamName(exams[0].name);
+        setExamYear(exams[0].year);
+      }
+    } catch { /* ignore */ }
   }, []);
 
   // ── derived values ──
@@ -207,20 +216,33 @@ export default function AdminResultEntryPage() {
             <div>
               <label className="text-xs text-gray-500 block mb-1">পরীক্ষার নাম</label>
               <div className="relative">
-                <select value={examName} onChange={e => { setExamName(e.target.value); setCustomExam(''); }}
+                <select
+                  value={examName}
+                  onChange={e => {
+                    const val = e.target.value;
+                    setExamName(val);
+                    setCustomExam('');
+                    const live = liveExams.find(x => x.name === val);
+                    if (live) setExamYear(live.year);
+                  }}
                   className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400 appearance-none pr-8">
-                  {EXAM_NAMES.map(n => <option key={n}>{n}</option>)}
+                  {liveExams.length > 0
+                    ? liveExams.map(e => <option key={e.id} value={e.name}>{e.name} ({e.year})</option>)
+                    : EXAM_NAMES.map(n => <option key={n}>{n}</option>)
+                  }
                 </select>
                 <ChevronDown size={14} className="absolute right-2.5 top-3 text-gray-400 pointer-events-none" />
               </div>
             </div>
-            {/* Custom exam name */}
-            <div>
-              <label className="text-xs text-gray-500 block mb-1">কাস্টম নাম (ঐচ্ছিক)</label>
-              <input value={customExam} onChange={e => setCustomExam(e.target.value)}
-                placeholder="অন্য নাম লিখুন…"
-                className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400" />
-            </div>
+            {/* Custom exam name (only shown when no live exams) */}
+            {liveExams.length === 0 && (
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">কাস্টম নাম (ঐচ্ছিক)</label>
+                <input value={customExam} onChange={e => setCustomExam(e.target.value)}
+                  placeholder="অন্য নাম লিখুন…"
+                  className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400" />
+              </div>
+            )}
             {/* Year */}
             <div>
               <label className="text-xs text-gray-500 block mb-1">বছর</label>

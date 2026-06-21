@@ -42,6 +42,7 @@ export default function AdminFeesPage() {
   // Fee form state
   const [showFeeForm, setShowFeeForm] = useState(false);
   const [feeForm, setFeeForm] = useState({ feeType: '', class: 'class-10', amount: '', dueDate: '' });
+  const [feeExams, setFeeExams] = useState<{id:string;name:string;year:string}[]>([]);
 
   // Waiver form state
   const [showWaiverForm, setShowWaiverForm] = useState(false);
@@ -59,6 +60,9 @@ export default function AdminFeesPage() {
 
   useEffect(() => { localStorage.setItem(LS_FEES, JSON.stringify(fees)); }, [fees]);
   useEffect(() => { localStorage.setItem(LS_WAIVERS, JSON.stringify(waivers)); }, [waivers]);
+  useEffect(() => {
+    try { setFeeExams(JSON.parse(localStorage.getItem('nim_exams_v1') ?? '[]')); } catch {}
+  }, []);
 
   // Totals (discount-aware)
   const totalCollected = fees.filter(f => f.status === 'paid').reduce((s, f) => s + f.amount, 0);
@@ -189,8 +193,23 @@ export default function AdminFeesPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div>
                     <label className="text-xs font-semibold text-gray-600 block mb-1">ফির ধরন *</label>
-                    <input value={feeForm.feeType} onChange={e => setFeeForm(p => ({ ...p, feeType: e.target.value }))} placeholder="মাসিক বেতন, পরীক্ষা ফি..."
-                      className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400" />
+                    <input
+                      value={feeForm.feeType}
+                      onChange={e => setFeeForm(p => ({ ...p, feeType: e.target.value }))}
+                      placeholder="মাসিক বেতন, পরীক্ষা ফি..."
+                      list="fee-type-list"
+                      className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400"
+                    />
+                    <datalist id="fee-type-list">
+                      <option value="মাসিক বেতন" />
+                      <option value="ভর্তি ফি" />
+                      <option value="ক্রীড়া ফি" />
+                      <option value="লাইব্রেরি ফি" />
+                      <option value="পরীক্ষা ফি" />
+                      {feeExams.map(e => (
+                        <option key={e.id} value={`${e.name} পরীক্ষার ফি`} />
+                      ))}
+                    </datalist>
                   </div>
                   <div>
                     <label className="text-xs font-semibold text-gray-600 block mb-1">শ্রেণি</label>

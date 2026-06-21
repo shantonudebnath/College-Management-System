@@ -1,7 +1,7 @@
 ﻿'use client';
 import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import { MADRASHA_CLASSES } from '@/lib/data';
+import { MADRASHA_CLASSES, SUBJECTS_BY_CLASS } from '@/lib/data';
 import { Plus, Trash2, Download, X, Calendar, Edit2, Bell, CheckCircle } from 'lucide-react';
 import { useNotices } from '@/context/NoticesContext';
 
@@ -514,29 +514,7 @@ export default function AdminExamSchedulePage() {
               <button onClick={() => setShowEntryModal(false)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400"><X size={16} /></button>
             </div>
             <div className="p-5 space-y-4">
-              <div>
-                <label className="text-xs font-semibold text-gray-600 block mb-1.5">বিষয় *</label>
-                <input value={entryForm.subject} onChange={e => setEntryForm(p => ({ ...p, subject: e.target.value }))}
-                  placeholder="যেমন: বাংলা, আরবী, গণিত" autoFocus
-                  className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400" />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-gray-600 block mb-1.5">তারিখ *</label>
-                <input type="date" value={entryForm.date} onChange={e => setEntryForm(p => ({ ...p, date: e.target.value }))}
-                  className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-gray-600 block mb-1.5">শুরুর সময়</label>
-                  <input type="time" value={entryForm.startTime} onChange={e => setEntryForm(p => ({ ...p, startTime: e.target.value }))}
-                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400" />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-600 block mb-1.5">শেষের সময়</label>
-                  <input type="time" value={entryForm.endTime} onChange={e => setEntryForm(p => ({ ...p, endTime: e.target.value }))}
-                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400" />
-                </div>
-              </div>
+              {/* Class selection FIRST so subject dropdown can be class-aware */}
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-xs font-semibold text-gray-600">কোন শ্রেণির জন্য? *</label>
@@ -567,6 +545,58 @@ export default function AdminExamSchedulePage() {
                     নির্বাচিত: {entryForm.classIds.map(id => CLASS_SHORT[id] ?? id).join(', ')}
                   </p>
                 )}
+              </div>
+
+              {/* Subject — dropdown if 1 class selected, else datalist input */}
+              <div>
+                <label className="text-xs font-semibold text-gray-600 block mb-1.5">বিষয় *</label>
+                {entryForm.classIds.length === 1 ? (
+                  <select
+                    value={entryForm.subject}
+                    onChange={e => setEntryForm(p => ({ ...p, subject: e.target.value }))}
+                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400">
+                    <option value="">— বিষয় বেছে নিন —</option>
+                    {(SUBJECTS_BY_CLASS[entryForm.classIds[0]] ?? []).map(s => (
+                      <option key={s.name} value={s.nameBn}>{s.nameBn}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <>
+                    <input
+                      value={entryForm.subject}
+                      onChange={e => setEntryForm(p => ({ ...p, subject: e.target.value }))}
+                      placeholder="যেমন: বাংলা, আরবী, গণিত"
+                      list="subject-suggestions"
+                      className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400"
+                    />
+                    <datalist id="subject-suggestions">
+                      {[...new Set(
+                        (entryForm.classIds.length > 0
+                          ? entryForm.classIds
+                          : MADRASHA_CLASSES.map(c => c.id)
+                        ).flatMap(cid => (SUBJECTS_BY_CLASS[cid] ?? []).map(s => s.nameBn))
+                      )].map(name => <option key={name} value={name} />)}
+                    </datalist>
+                  </>
+                )}
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-gray-600 block mb-1.5">তারিখ *</label>
+                <input type="date" value={entryForm.date} onChange={e => setEntryForm(p => ({ ...p, date: e.target.value }))}
+                  className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-gray-600 block mb-1.5">শুরুর সময়</label>
+                  <input type="time" value={entryForm.startTime} onChange={e => setEntryForm(p => ({ ...p, startTime: e.target.value }))}
+                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-600 block mb-1.5">শেষের সময়</label>
+                  <input type="time" value={entryForm.endTime} onChange={e => setEntryForm(p => ({ ...p, endTime: e.target.value }))}
+                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400" />
+                </div>
               </div>
             </div>
             <div className="flex gap-2 px-5 pb-5 sticky bottom-0 bg-white pt-2 border-t border-gray-100">

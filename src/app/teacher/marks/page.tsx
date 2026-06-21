@@ -5,7 +5,7 @@ import { SUBJECTS_BY_CLASS, STUDENTS, MADRASHA_CLASSES } from '@/lib/data';
 import { useTeachers } from '@/context/TeachersContext';
 import { useCurrentTeacher } from '@/context/CurrentTeacherContext';
 import { getGradeInfo } from '@/lib/result-utils';
-import { BarChart2, Save, CheckCircle } from 'lucide-react';
+import { BarChart2, Save, CheckCircle, Lock, AlertTriangle } from 'lucide-react';
 
 const EXAM_OPTIONS = [
   'প্রথম সাময়িক পরীক্ষা',
@@ -18,6 +18,9 @@ const EXAM_OPTIONS = [
 ];
 
 const TEACHER_MARKS_KEY = 'teacher_marks_v1';
+
+interface LiveExam { id: string; name: string; year: string; }
+interface MarkSubmission { examId: string; examName: string; year: string; }
 
 interface TeacherMarkEntry {
   teacherId: string;
@@ -59,12 +62,21 @@ export default function TeacherMarksPage() {
     : MADRASHA_CLASSES;
 
   const [cls,         setCls]         = useState(classList[0]?.id ?? 'class-10');
-  const [exam,        setExam]        = useState(EXAM_OPTIONS[0]);
-  const [year,        setYear]        = useState(String(new Date().getFullYear()));
+  const [staticExam,  setStaticExam]  = useState(EXAM_OPTIONS[0]);
+  const [staticYear,  setStaticYear]  = useState(String(new Date().getFullYear()));
   const [subjectName, setSubjectName] = useState('');
   const [marks,       setMarks]       = useState<Record<string, { cq: string; mcq: string; practical: string }>>({});
   const [saved,       setSaved]       = useState(false);
   const [extraStudents, setExtraStudents] = useState<typeof STUDENTS>([]);
+
+  const [liveExams, setLiveExams]             = useState<LiveExam[]>([]);
+  const [markSubmission, setMarkSubmission]   = useState<MarkSubmission | null>(null);
+  const [selectedExamId, setSelectedExamId]   = useState<string>('');
+
+  const selectedLiveExam = liveExams.find(e => e.id === selectedExamId);
+  const exam = selectedLiveExam?.name ?? staticExam;
+  const year = selectedLiveExam?.year ?? staticYear;
+  const submissionOpen = markSubmission !== null || liveExams.length === 0;
 
   // Sync cls when teacher's class list loads (async)
   useEffect(() => {
@@ -75,12 +87,22 @@ export default function TeacherMarksPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [classList.map(c => c.id).join(',')]);
 
-  // Load extra students from localStorage
+  // Load extra students + live exams + mark submission gate
   useEffect(() => {
-    try {
-      setExtraStudents(JSON.parse(localStorage.getItem('students_store') ?? '[]'));
-    } catch {}
+    try { setExtraStudents(JSON.parse(localStorage.getItem('students_store') ?? '[]')); } catch {}
+    try { setLiveExams(JSON.parse(localStorage.getItem('nim_exams_v1') ?? '[]')); } catch {}
+    try { setMarkSubmission(JSON.parse(localStorage.getItem('nim_mark_submission_v1') ?? 'null')); } catch {}
   }, []);
+
+  // Auto-select the open submission exam when data loads
+  useEffect(() => {
+    if (markSubmission && liveExams.length > 0) {
+      setSelectedExamId(markSubmission.examId);
+    } else if (liveExams.length > 0 && !selectedExamId) {
+      setSelectedExamId(liveExams[0].id);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [markSubmission?.examId, liveExams.length]);
 
   // Subjects: filter by teacher's assigned subjects for this class if available
   const assignedNames: string[] = teacher?.classSubjects?.[cls] ?? [];
@@ -156,6 +178,25 @@ export default function TeacherMarksPage() {
       />
       <div className="p-6 space-y-5">
 
+        {/* Submission gate banner */}
+        {liveExams.length > 0 && (
+          markSubmission ? (
+            <div className="flex items-center gap-3 bg-green-50 border border-green-200 text-green-800 rounded-xl px-4 py-3 text-sm">
+              <CheckCircle size={16} className="shrink-0" />
+              <div>
+                <span className="font-semibold">{markSubmission.examName} ({markSubmission.year})</span> — মার্ক সাবমিশন চলছে। নম্বর প্রবেশ করে সংরক্ষণ করুন।
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl px-4 py-3 text-sm">
+              <Lock size={16} className="shrink-0" />
+              <div>
+                <span className="font-semibold">মার্ক সাবমিশন বন্ধ আছে।</span> অ্যাডমিন পরীক্ষার পর মার্ক সাবমিশন খুললে নম্বর দিতে পারবেন।
+              </div>
+            </div>
+          )
+        )}
+
         {/* ─── Filters ─── */}
         <div className="bg-white rounded-2xl border border-gray-100 p-5 space-y-4">
           <div className="flex flex-wrap gap-4 items-end">
@@ -172,20 +213,32 @@ export default function TeacherMarksPage() {
             {/* Exam */}
             <div>
               <label className="text-xs font-semibold text-gray-600 block mb-1">পরীক্ষা</label>
-              <select value={exam} onChange={e => { setExam(e.target.value); setSaved(false); }}
-                className="px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400">
-                {EXAM_OPTIONS.map(e => <option key={e} value={e}>{e}</option>)}
-              </select>
+              {liveExams.length > 0 ? (
+                <select
+                  value={selectedExamId}
+                  onChange={e => { setSelectedExamId(e.target.value); setSaved(false); }}
+                  disabled={!!markSubmission}
+                  className="px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400 disabled:opacity-60">
+                  {liveExams.map(e => <option key={e.id} value={e.id}>{e.name} ({e.year})</option>)}
+                </select>
+              ) : (
+                <select value={staticExam} onChange={e => { setStaticExam(e.target.value); setSaved(false); }}
+                  className="px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400">
+                  {EXAM_OPTIONS.map(e => <option key={e} value={e}>{e}</option>)}
+                </select>
+              )}
             </div>
 
-            {/* Year */}
-            <div>
-              <label className="text-xs font-semibold text-gray-600 block mb-1">বছর</label>
-              <select value={year} onChange={e => { setYear(e.target.value); setSaved(false); }}
-                className="px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400">
-                {Array.from({ length: 10 }, (_, i) => String(new Date().getFullYear() - 1 + i)).map(y => <option key={y} value={y}>{y}</option>)}
-              </select>
-            </div>
+            {/* Year (only shown when no live exams) */}
+            {liveExams.length === 0 && (
+              <div>
+                <label className="text-xs font-semibold text-gray-600 block mb-1">বছর</label>
+                <select value={staticYear} onChange={e => { setStaticYear(e.target.value); setSaved(false); }}
+                  className="px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400">
+                  {Array.from({ length: 10 }, (_, i) => String(new Date().getFullYear() - 1 + i)).map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
+              </div>
+            )}
 
             {/* Subject */}
             {subjects.length > 0 && (
@@ -232,8 +285,9 @@ export default function TeacherMarksPage() {
               নম্বর প্রবেশ{sub ? ` — ${sub.nameBn}` : ''}
               {classInfo && <span className="text-xs font-normal text-gray-400">({classInfo.nameBn})</span>}
             </h3>
-            <button onClick={handleSave} disabled={!sub}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all disabled:opacity-40 ${saved ? 'bg-green-100 text-green-700' : 'btn-primary'}`}>
+            <button onClick={handleSave} disabled={!sub || !submissionOpen}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all disabled:opacity-40 ${saved ? 'bg-green-100 text-green-700' : 'btn-primary'}`}
+              title={!submissionOpen ? 'অ্যাডমিন মার্ক সাবমিশন খুললে সংরক্ষণ করা যাবে' : ''}>
               {saved ? <CheckCircle size={14} /> : <Save size={14} />}
               {saved ? 'সংরক্ষিত!' : 'সংরক্ষণ'}
             </button>

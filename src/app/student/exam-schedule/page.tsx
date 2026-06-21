@@ -1,8 +1,9 @@
 ﻿'use client';
 import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import { STUDENTS, MADRASHA_CLASSES } from '@/lib/data';
+import { MADRASHA_CLASSES } from '@/lib/data';
 import { Calendar, Clock, Download, ChevronDown } from 'lucide-react';
+import { useStudentSession } from '@/hooks/useStudentSession';
 
 const EXAMS_KEY = 'nim_exams_v1';
 const ENTRIES_KEY = 'nim_exam_entries_v1';
@@ -22,8 +23,6 @@ interface ExamEntry {
   startTime: string;
   endTime: string;
 }
-
-const student = STUDENTS[0];
 
 const SUBJECT_PALETTE = [
   'bg-green-50 border-green-200 text-green-800',
@@ -150,12 +149,13 @@ function openPrintWindow(examName: string, className: string, year: string, rows
 }
 
 export default function StudentExamSchedulePage() {
+  const { student, loading } = useStudentSession();
   const [exams, setExams] = useState<Exam[]>([]);
   const [entries, setEntries] = useState<ExamEntry[]>([]);
   const [selectedExamId, setSelectedExamId] = useState<string | null>(null);
   const [showSelector, setShowSelector] = useState(false);
 
-  const classInfo = MADRASHA_CLASSES.find(c => c.id === student.class);
+  const classInfo = MADRASHA_CLASSES.find(c => c.id === (student?.class ?? ''));
 
   useEffect(() => {
     try {
@@ -168,7 +168,7 @@ export default function StudentExamSchedulePage() {
 
   const selectedExam = exams.find(e => e.id === selectedExamId);
   const myEntries = entries
-    .filter(e => e.examId === selectedExamId && e.classIds.includes(student.class))
+    .filter(e => e.examId === selectedExamId && e.classIds.includes(student?.class ?? ''))
     .sort((a, b) => a.date.localeCompare(b.date));
 
   const printSchedule = () => {
@@ -183,16 +183,26 @@ export default function StudentExamSchedulePage() {
     ).join('');
     openPrintWindow(
       selectedExam.name,
-      classInfo?.nameBn ?? student.class,
+      classInfo?.nameBn ?? (student?.class ?? ''),
       selectedExam.year,
       rows
     );
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  const displayName = student?.name ?? 'শিক্ষার্থী';
+
   if (exams.length === 0 || myEntries.length === 0) {
     return (
       <div>
-        <DashboardHeader title="পরীক্ষার সময়সূচী" subtitle="আপনার পরীক্ষার তারিখ ও সময়" userName={student.name} role="ছাত্র" />
+        <DashboardHeader title="পরীক্ষার সময়সূচী" subtitle="আপনার পরীক্ষার তারিখ ও সময়" userName={displayName} role="ছাত্র" />
         <div className="p-6">
           <div className="bg-white rounded-2xl border border-gray-100 py-16 text-center text-gray-400">
             <Calendar size={36} className="mx-auto mb-3 opacity-20" />
@@ -206,7 +216,7 @@ export default function StudentExamSchedulePage() {
 
   return (
     <div>
-      <DashboardHeader title="পরীক্ষার সময়সূচী" subtitle="আপনার পরীক্ষার তারিখ ও সময়" userName={student.name} role="ছাত্র" />
+      <DashboardHeader title="পরীক্ষার সময়সূচী" subtitle="আপনার পরীক্ষার তারিখ ও সময়" userName={displayName} role="ছাত্র" />
       <div className="p-6 space-y-5">
 
         {/* Exam selector + header */}

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { EXAM_RESULTS, MADRASHA_CLASSES } from '@/lib/data';
-import { Award, CheckCircle, Download, Printer, Eye, Search, EyeOff } from 'lucide-react';
+import { Award, CheckCircle, Download, Printer, Eye, Search, EyeOff, Lock, Unlock } from 'lucide-react';
 import { useNotices } from '@/context/NoticesContext';
 
 async function downloadResultsPDF() {
@@ -105,17 +105,42 @@ async function downloadResultsPDF() {
 }
 
 const LS_KEY = 'published_results_v1';
+const MARK_SUBMISSION_KEY = 'nim_mark_submission_v1';
 
 function getPublished(): string[] {
   try { return JSON.parse(localStorage.getItem(LS_KEY) ?? '[]'); } catch { return []; }
 }
 
+interface LiveExam { id: string; name: string; year: string; }
+interface MarkSubmission { examId: string; examName: string; year: string; }
+
 export default function AdminResultsPage() {
   const { addNotice } = useNotices();
   const [publishedExams, setPublishedExams] = useState<string[]>([]);
   const [search, setSearch] = useState('');
+  const [liveExams, setLiveExams] = useState<LiveExam[]>([]);
+  const [markSubmission, setMarkSubmission] = useState<MarkSubmission | null>(null);
+  const [submissionExamId, setSubmissionExamId] = useState('');
 
-  useEffect(() => { setPublishedExams(getPublished()); }, []);
+  useEffect(() => {
+    setPublishedExams(getPublished());
+    try { setLiveExams(JSON.parse(localStorage.getItem('nim_exams_v1') ?? '[]')); } catch {}
+    try { setMarkSubmission(JSON.parse(localStorage.getItem(MARK_SUBMISSION_KEY) ?? 'null')); } catch {}
+  }, []);
+
+  const openMarkSubmission = () => {
+    const exam = liveExams.find(e => e.id === submissionExamId);
+    if (!exam) return;
+    const val: MarkSubmission = { examId: exam.id, examName: exam.name, year: exam.year };
+    localStorage.setItem(MARK_SUBMISSION_KEY, JSON.stringify(val));
+    setMarkSubmission(val);
+    setSubmissionExamId('');
+  };
+
+  const closeMarkSubmission = () => {
+    localStorage.removeItem(MARK_SUBMISSION_KEY);
+    setMarkSubmission(null);
+  };
 
   const examName = EXAM_RESULTS[0]?.examName ?? '';
   const published = publishedExams.includes(examName);
@@ -171,6 +196,47 @@ export default function AdminResultsPage() {
               <p className="text-xs font-medium mt-1 opacity-70">{label}</p>
             </div>
           ))}
+        </div>
+
+        {/* Mark submission control */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                <Lock size={15} className="text-blue-600" /> শিক্ষক মার্ক সাবমিশন নিয়ন্ত্রণ
+              </h3>
+              <p className="text-xs text-gray-400 mt-0.5">কোন পরীক্ষার মার্ক শিক্ষকরা দিতে পারবেন তা এখান থেকে নিয়ন্ত্রণ করুন</p>
+            </div>
+            {markSubmission ? (
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="flex items-center gap-2 bg-green-50 text-green-700 px-3 py-2 rounded-xl text-sm font-medium border border-green-200">
+                  <CheckCircle size={13} /> {markSubmission.examName} ({markSubmission.year}) — খোলা আছে
+                </span>
+                <button onClick={closeMarkSubmission}
+                  className="flex items-center gap-1.5 border border-red-200 text-red-600 hover:bg-red-50 px-4 py-2 rounded-xl text-sm font-medium transition-colors">
+                  <Lock size={13} /> বন্ধ করুন
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 flex-wrap">
+                {liveExams.length === 0 ? (
+                  <p className="text-xs text-gray-400 italic">কোনো পরীক্ষা তৈরি হয়নি। আগে পরীক্ষার সময়সূচী থেকে পরীক্ষা তৈরি করুন।</p>
+                ) : (
+                  <>
+                    <select value={submissionExamId} onChange={e => setSubmissionExamId(e.target.value)}
+                      className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400">
+                      <option value="">-- পরীক্ষা বেছে নিন --</option>
+                      {liveExams.map(e => <option key={e.id} value={e.id}>{e.name} ({e.year})</option>)}
+                    </select>
+                    <button onClick={openMarkSubmission} disabled={!submissionExamId}
+                      className="flex items-center gap-1.5 btn-primary px-4 py-2 rounded-xl text-sm font-semibold disabled:opacity-40 transition-opacity">
+                      <Unlock size={13} /> খুলুন
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Publish/export bar */}
