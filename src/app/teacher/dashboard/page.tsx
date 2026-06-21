@@ -1,23 +1,67 @@
 'use client';
+import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { STUDENTS, MADRASHA_CLASSES } from '@/lib/data';
 import { useTeachers } from '@/context/TeachersContext';
 import { useNotices } from '@/context/NoticesContext';
+import { useCurrentTeacher } from '@/context/CurrentTeacherContext';
+import type { Student, Teacher } from '@/lib/types';
 import { Users, BookOpen, ClipboardList, Bell, BarChart2 } from 'lucide-react';
 import Link from 'next/link';
 
-const CURRENT_TEACHER_ID = 't3';
+function loadStudents(): Student[] {
+  try {
+    const s = localStorage.getItem('students_store');
+    const stored: Student[] = s ? JSON.parse(s) : [];
+    const storedIds = new Set(stored.map((st: Student) => st.id));
+    const merged = [...stored, ...STUDENTS.filter(st => !storedIds.has(st.id))];
+    return merged.length > 0 ? merged : STUDENTS;
+  } catch {
+    return STUDENTS;
+  }
+}
 
 export default function TeacherDashboard() {
   const { teachers } = useTeachers();
   const { notices } = useNotices();
+  const { currentTeacherId, setCurrentTeacher } = useCurrentTeacher();
+  const [allStudents, setAllStudents] = useState<Student[]>(STUDENTS);
+  const [resolvedTeacher, setResolvedTeacher] = useState<Teacher | null>(null);
 
-  const teacher = teachers.find(t => t.id === CURRENT_TEACHER_ID) ?? teachers[2] ?? teachers[0];
+  // Load students from localStorage
+  useEffect(() => {
+    setAllStudents(loadStudents());
+  }, []);
+
+  // Fetch session → match teacher by teacherId → update context
+  useEffect(() => {
+    fetch('/api/session')
+      .then(r => r.ok ? r.json() : null)
+      .then((session: { id: string; role: string } | null) => {
+        if (!session || session.role !== 'teacher' || teachers.length === 0) return;
+        const matched = teachers.find(t => t.teacherId === session.id);
+        if (matched) {
+          if (matched.id !== currentTeacherId) setCurrentTeacher(matched.id);
+          setResolvedTeacher(matched);
+        }
+      })
+      .catch(() => {});
+  }, [teachers]);
+
+  // Fallback: use context if session fetch hasn't resolved yet
+  const teacher = resolvedTeacher ?? teachers.find(t => t.id === currentTeacherId) ?? null;
+
   const myClasses = teacher?.classes ?? [];
-  const myStudents = STUDENTS.filter(s => myClasses.includes(s.class));
+  const myStudents = allStudents.filter(s => myClasses.includes(s.class));
   const myNotices = notices.filter(n => n.target === 'all' || n.target === 'teacher');
 
-  if (!teacher) return null;
+  if (!teacher) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -28,7 +72,7 @@ export default function TeacherDashboard() {
         <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-2xl p-6 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-12 translate-x-12"></div>
           <div className="relative z-10 flex items-center gap-5">
-            <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-2xl font-bold overflow-hidden">
+            <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-2xl font-bold overflow-hidden shrink-0">
               {teacher.image
                 ? <img src={teacher.image} alt={teacher.name} className="w-full h-full object-cover" />
                 : teacher.name[0]}
@@ -80,7 +124,7 @@ export default function TeacherDashboard() {
             <div className="divide-y divide-gray-50">
               {myClasses.map(classId => {
                 const classInfo = MADRASHA_CLASSES.find(c => c.id === classId);
-                const classStudents = STUDENTS.filter(s => s.class === classId);
+                const classStudents = allStudents.filter(s => s.class === classId);
                 return (
                   <div key={classId} className="px-5 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -90,7 +134,7 @@ export default function TeacherDashboard() {
                       <div>
                         <p className="font-medium text-gray-900 text-sm">{classInfo?.nameBn ?? classId}</p>
                         <div className="flex gap-1 mt-1 flex-wrap">
-                          {(teacher.classSubjects?.[classId] ?? teacher.subject).map(s => (
+                          {(teacher.classSubjects?.[classId] ?? teacher.subject ?? []).map((s: string) => (
                             <span key={s} className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">{s}</span>
                           ))}
                         </div>
