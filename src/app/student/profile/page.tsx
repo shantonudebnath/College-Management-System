@@ -50,8 +50,11 @@ export default function StudentProfilePage() {
           <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
           <div className="relative z-10 flex items-center gap-5">
             <div className="relative">
-              <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center text-3xl font-bold border-2 border-white/30">
-                {displayName[0]}
+              <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center text-3xl font-bold border-2 border-white/30 overflow-hidden">
+                {student?.image
+                  ? <img src={student.image} alt={displayName} className="w-full h-full object-cover" />
+                  : displayName[0]
+                }
               </div>
               <button className="absolute -bottom-1 -right-1 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-100 transition-colors">
                 <Camera size={13} className="text-purple-700" />

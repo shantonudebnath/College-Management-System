@@ -19,19 +19,16 @@ export function useStudentSession(): StudentSession {
           setState({ student: null, loading: false });
           return;
         }
-        // Look in localStorage students_store first, then fall back to static data
         let allStudents: Student[] = STUDENTS;
         try {
           const stored = localStorage.getItem('students_store');
-          if (stored) {
-            const parsed: Student[] = JSON.parse(stored);
-            if (parsed.length > 0) allStudents = parsed;
-          }
+          const storedList: Student[] = stored ? JSON.parse(stored) : [];
+          const storedIds = new Set(storedList.map((s: Student) => s.id));
+          const merged = [...storedList, ...STUDENTS.filter(s => !storedIds.has(s.id))];
+          if (merged.length > 0) allStudents = merged;
         } catch { /* ignore */ }
 
-        const found = allStudents.find(s => s.studentId === session.id)
-          ?? STUDENTS.find(s => s.studentId === session.id)
-          ?? null;
+        const found = allStudents.find(s => s.studentId === session.id) ?? null;
 
         setState({ student: found, loading: false });
       })
