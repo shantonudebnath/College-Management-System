@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useEffect, useState } from 'react';
 import { loadWebsiteContent, DEFAULT_CONTENT, type FaqItem } from '@/lib/website-content';
 import { HelpCircle, ChevronDown } from 'lucide-react';
@@ -27,12 +27,12 @@ export default function FaqSection() {
             <div key={faq.id} className="border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
               <button
                 onClick={() => setOpen(open === faq.id ? null : faq.id)}
-                className="w-full flex items-center justify-between px-5 py-4 text-left bg-white hover:bg-purple-50/50 transition-colors">
+                className="w-full flex items-center justify-between px-5 py-4 text-left bg-white hover:bg-blue-50/50 transition-colors">
                 <span className="font-semibold text-gray-900 text-sm pr-4">{faq.question}</span>
-                <ChevronDown size={16} className={`text-purple-600 shrink-0 transition-transform ${open === faq.id ? 'rotate-180' : ''}`} />
+                <ChevronDown size={16} className={`text-blue-700 shrink-0 transition-transform ${open === faq.id ? 'rotate-180' : ''}`} />
               </button>
               {open === faq.id && (
-                <div className="px-5 pb-4 bg-purple-50/30">
+                <div className="px-5 pb-4 bg-blue-50/30">
                   <p className="text-gray-600 text-sm leading-relaxed">{faq.answer}</p>
                 </div>
               )}

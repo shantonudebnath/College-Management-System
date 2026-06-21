@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -16,7 +16,7 @@ const SLIDES = [
     sub: 'ইসলামি শিক্ষা ও আধুনিক জ্ঞানের সমন্বয়ে একটি উজ্জ্বল ভবিষ্যৎ গড়ে তুলুন।',
     cta1: { label: 'ভর্তি আবেদন করুন', href: '/admission' },
     cta2: { label: 'প্রতিষ্ঠান সম্পর্কে', href: '/about' },
-    glow: '#7c3aed',
+    glow: '#1d4ed8',
   },
   {
     id: 's2',
@@ -34,7 +34,7 @@ const SLIDES = [
     sub: `${yearsOld} বছরেরও বেশি সময় ধরে পাকুন্দিয়া, কিশোরগঞ্জের শিক্ষার্থীদের জ্ঞান ও নৈতিক মূল্যবোধে গড়ে তুলছে এই মাদ্রাসা।`,
     cta1: { label: 'ফলাফল দেখুন', href: '/result' },
     cta2: { label: 'শিক্ষক তালিকা', href: '/teachers' },
-    glow: '#6d28d9',
+    glow: '#1e40af',
   },
 ];
 
@@ -60,7 +60,7 @@ export default function SliderSection() {
   const slide = SLIDES[current];
 
   return (
-    <section className="relative w-full bg-[#080818] overflow-hidden" style={{ minHeight: '100vh' }}>
+    <section className="relative w-full bg-[#060d1a] overflow-hidden" style={{ minHeight: '100vh' }}>
 
       {/* Animated glow blob */}
       <div
@@ -104,7 +104,7 @@ export default function SliderSection() {
               </h1>
 
               {/* Accent bar */}
-              <div className="w-14 h-[3px] bg-purple-500 rounded-full mb-6" />
+              <div className="w-14 h-[3px] bg-blue-600 rounded-full mb-6" />
 
               {/* Subtitle */}
               <p className="text-white/50 text-base sm:text-lg leading-relaxed mb-11 max-w-lg">
@@ -115,8 +115,8 @@ export default function SliderSection() {
               <div className="flex flex-wrap gap-4">
                 <Link
                   href={slide.cta1.href}
-                  className="group inline-flex items-center gap-2.5 bg-white text-gray-950 font-bold px-7 py-4 rounded-2xl text-sm hover:bg-purple-50 transition-all"
-                  style={{ boxShadow: '0 8px 32px rgba(124,58,237,0.25)' }}
+                  className="group inline-flex items-center gap-2.5 bg-white text-gray-950 font-bold px-7 py-4 rounded-2xl text-sm hover:bg-blue-50 transition-all"
+                  style={{ boxShadow: '0 8px 32px rgba(29,78,216,0.25)' }}
                 >
                   {slide.cta1.label}
                   <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
@@ -145,7 +145,7 @@ export default function SliderSection() {
                       onClick={() => go(i)}
                       aria-label={`Go to slide ${i + 1}`}
                       className={`rounded-full transition-all duration-300 ${
-                        i === current ? 'w-8 h-2 bg-purple-400' : 'w-2 h-2 bg-white/15 hover:bg-white/35'
+                        i === current ? 'w-8 h-2 bg-blue-400' : 'w-2 h-2 bg-white/15 hover:bg-white/35'
                       }`}
                     />
                   ))}
@@ -173,7 +173,7 @@ export default function SliderSection() {
                 {/* Glass card */}
                 <div
                   className="w-72 h-72 rounded-[2.5rem] border border-white/8 bg-white/3 backdrop-blur-xl flex items-center justify-center p-10"
-                  style={{ boxShadow: '0 0 80px rgba(124,58,237,0.1), inset 0 1px 0 rgba(255,255,255,0.06)' }}
+                  style={{ boxShadow: '0 0 80px rgba(29,78,216,0.1), inset 0 1px 0 rgba(255,255,255,0.06)' }}
                 >
                   <div className="w-full h-full relative">
                     <Image
@@ -201,7 +201,7 @@ export default function SliderSection() {
                 </div>
 
                 {/* Chip: EIIN */}
-                <div className="absolute top-1/2 -left-16 -translate-y-1/2 bg-purple-600 text-white rounded-2xl px-4 py-2.5 shadow-xl text-center">
+                <div className="absolute top-1/2 -left-16 -translate-y-1/2 bg-blue-700 text-white rounded-2xl px-4 py-2.5 shadow-xl text-center">
                   <p className="text-sm font-black">{COLLEGE_INFO.eiin}</p>
                   <p className="text-[9px] opacity-65 mt-0.5">EIIN</p>
                 </div>

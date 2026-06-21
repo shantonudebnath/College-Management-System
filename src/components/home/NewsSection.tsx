@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import { NOTICES, COLLEGE_INFO } from '@/lib/data';
 import {
   Bell, BookOpen, FileText, Users, ChevronRight,
@@ -11,10 +11,10 @@ const QUICK_LINKS = [
     desc: 'রোল নম্বর দিয়ে ফলাফল দেখুন',
     href: '/result',
     icon: BookOpen,
-    accent: 'border-t-4 border-purple-500',
-    iconBg: 'bg-purple-100',
-    iconColor: 'text-purple-600',
-    hoverBorder: 'hover:border-purple-500',
+    accent: 'border-t-4 border-blue-600',
+    iconBg: 'bg-blue-100',
+    iconColor: 'text-blue-700',
+    hoverBorder: 'hover:border-blue-600',
   },
   {
     label: 'ভর্তি আবেদন',
@@ -100,10 +100,10 @@ export default function NewsSection() {
           <div className="lg:col-span-2">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <span className="w-1 h-6 bg-purple-600 rounded-full inline-block" />
+                <span className="w-1 h-6 bg-blue-700 rounded-full inline-block" />
                 নোটিশ বোর্ড
               </h2>
-              <Link href="/notice" className="text-xs font-semibold text-purple-600 hover:underline flex items-center gap-1">
+              <Link href="/notice" className="text-xs font-semibold text-blue-700 hover:underline flex items-center gap-1">
                 সব নোটিশ <ChevronRight size={13} />
               </Link>
             </div>
@@ -122,12 +122,12 @@ export default function NewsSection() {
                       </span>
                       <span className="text-[10px] text-gray-400">{notice.date}</span>
                     </div>
-                    <h3 className="text-sm font-semibold text-gray-900 group-hover:text-purple-700 transition-colors line-clamp-1">
+                    <h3 className="text-sm font-semibold text-gray-900 group-hover:text-blue-800 transition-colors line-clamp-1">
                       {notice.title}
                     </h3>
                     <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{notice.content}</p>
                   </div>
-                  <ChevronRight size={14} className="text-gray-300 group-hover:text-purple-400 transition-colors shrink-0 mt-1" />
+                  <ChevronRight size={14} className="text-gray-300 group-hover:text-blue-400 transition-colors shrink-0 mt-1" />
                 </div>
               ))}
             </div>
@@ -135,7 +135,7 @@ export default function NewsSection() {
             <div className="mt-4 text-center">
               <Link
                 href="/notice"
-                className="inline-flex items-center gap-2 text-sm font-semibold text-purple-700 border border-purple-200 px-5 py-2 rounded-xl hover:bg-purple-50 transition-colors"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-blue-800 border border-blue-200 px-5 py-2 rounded-xl hover:bg-blue-50 transition-colors"
               >
                 <Bell size={14} /> সকল নোটিশ দেখুন
               </Link>
@@ -146,28 +146,28 @@ export default function NewsSection() {
           <div className="flex flex-col gap-5">
 
             {/* Contact Card */}
-            <div className="bg-[#1e1b4b] rounded-2xl p-6 text-white">
-              <p className="text-[11px] font-semibold text-purple-300 uppercase tracking-widest mb-3">যোগাযোগ করুন</p>
+            <div className="bg-[#07111e] rounded-2xl p-6 text-white">
+              <p className="text-[11px] font-semibold text-blue-300 uppercase tracking-widest mb-3">যোগাযোগ করুন</p>
               <p className="font-bold text-base leading-snug mb-4">{COLLEGE_INFO.nameBn}</p>
               <div className="space-y-3 text-sm">
                 <div className="flex items-start gap-2.5 text-white/75">
-                  <Phone size={13} className="text-purple-300 mt-0.5 shrink-0" />
+                  <Phone size={13} className="text-blue-300 mt-0.5 shrink-0" />
                   <span className="text-xs leading-snug">{COLLEGE_INFO.phone}</span>
                 </div>
                 <div className="flex items-start gap-2.5 text-white/75">
-                  <Mail size={13} className="text-purple-300 mt-0.5 shrink-0" />
+                  <Mail size={13} className="text-blue-300 mt-0.5 shrink-0" />
                   <span className="text-xs leading-snug break-all">{COLLEGE_INFO.email}</span>
                 </div>
                 <div className="flex items-start gap-2.5 text-white/75">
-                  <MapPin size={13} className="text-purple-300 mt-0.5 shrink-0" />
+                  <MapPin size={13} className="text-blue-300 mt-0.5 shrink-0" />
                   <span className="text-xs leading-snug">{COLLEGE_INFO.address}</span>
                 </div>
               </div>
             </div>
 
             {/* EIIN Info */}
-            <div className="bg-purple-50 border border-purple-100 rounded-2xl p-5">
-              <p className="text-xs font-semibold text-purple-600 uppercase tracking-widest mb-3">প্রতিষ্ঠান তথ্য</p>
+            <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5">
+              <p className="text-xs font-semibold text-blue-700 uppercase tracking-widest mb-3">প্রতিষ্ঠান তথ্য</p>
               <div className="space-y-2.5">
                 {[
                   { label: 'EIIN নম্বর',      value: COLLEGE_INFO.eiin },

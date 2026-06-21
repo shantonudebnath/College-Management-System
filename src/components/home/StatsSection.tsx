@@ -1,4 +1,4 @@
-import { Users, BookOpen, Award, Calendar, GraduationCap, MapPin } from 'lucide-react';
+﻿import { Users, BookOpen, Award, Calendar, GraduationCap, MapPin } from 'lucide-react';
 import { COLLEGE_INFO } from '@/lib/data';
 
 const currentYear = new Date().getFullYear();
@@ -15,7 +15,7 @@ const STATS = [
 
 export default function StatsSection() {
   return (
-    <section className="bg-[#0d0b2a]">
+    <section className="bg-[#060f1e]">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 divide-x divide-y lg:divide-y-0 divide-white/5">
           {STATS.map(({ icon: Icon, value, label, color }) => (

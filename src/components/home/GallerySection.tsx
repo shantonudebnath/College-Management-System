@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { loadWebsiteContent, DEFAULT_CONTENT, type GalleryItem } from '@/lib/website-content';
@@ -19,11 +19,11 @@ export default function GallerySection() {
         {/* Header */}
         <div className="flex items-end justify-between mb-12">
           <div>
-            <p className="text-xs font-bold text-purple-600 uppercase tracking-[0.2em] mb-3">গ্যালারি</p>
+            <p className="text-xs font-bold text-blue-700 uppercase tracking-[0.2em] mb-3">গ্যালারি</p>
             <h2 className="text-3xl md:text-4xl font-black text-gray-950 tracking-tight">
               আমাদের ক্যাম্পাস
             </h2>
-            <div className="w-10 h-[3px] bg-purple-500 rounded-full mt-4" />
+            <div className="w-10 h-[3px] bg-blue-600 rounded-full mt-4" />
           </div>
           <p className="hidden md:block text-sm text-gray-400">মাদ্রাসার বিভিন্ন কার্যক্রম ও পরিবেশের ছবি</p>
         </div>

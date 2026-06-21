@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import { ArrowRight, FileText, Phone } from 'lucide-react';
 import { COLLEGE_INFO } from '@/lib/data';
 
@@ -6,9 +6,9 @@ const year = new Date().getFullYear();
 
 export default function AdmissionBanner() {
   return (
-    <section className="relative bg-[#080818] py-24 overflow-hidden">
+    <section className="relative bg-[#060d1a] py-24 overflow-hidden">
       {/* Glow */}
-      <div className="absolute left-0 top-0 w-[600px] h-full bg-purple-700/10 blur-[120px] pointer-events-none" />
+      <div className="absolute left-0 top-0 w-[600px] h-full bg-blue-800/10 blur-[120px] pointer-events-none" />
       <div className="absolute right-0 bottom-0 w-[400px] h-[400px] bg-indigo-700/10 blur-[100px] pointer-events-none" />
 
       {/* Grid */}
