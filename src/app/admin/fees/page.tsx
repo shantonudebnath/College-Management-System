@@ -40,6 +40,7 @@ export default function AdminFeesPage() {
   const { addNotice } = useNotices();
 
   // Fee form state
+  const [allStudents, setAllStudents] = useState(STUDENTS);
   const [showFeeForm, setShowFeeForm] = useState(false);
   const [feeForm, setFeeForm] = useState({ feeType: '', class: 'class-10', amount: '', dueDate: '' });
   const [feeExams, setFeeExams] = useState<{id:string;name:string;year:string}[]>([]);
@@ -62,6 +63,14 @@ export default function AdminFeesPage() {
   useEffect(() => { localStorage.setItem(LS_WAIVERS, JSON.stringify(waivers)); }, [waivers]);
   useEffect(() => {
     try { setFeeExams(JSON.parse(localStorage.getItem('nim_exams_v1') ?? '[]')); } catch {}
+    try {
+      const raw = localStorage.getItem('students_store');
+      if (raw) {
+        const stored = JSON.parse(raw);
+        const ids = new Set(stored.map((s: typeof STUDENTS[0]) => s.id));
+        setAllStudents([...stored, ...STUDENTS.filter(s => !ids.has(s.id))]);
+      }
+    } catch {}
   }, []);
 
   // Totals (discount-aware)
@@ -74,11 +83,11 @@ export default function AdminFeesPage() {
 
   // Filtered students for waiver search
   const filteredStudents = useMemo(() =>
-    STUDENTS.filter(s =>
+    allStudents.filter(s =>
       s.name.toLowerCase().includes(waiverSearch.toLowerCase()) ||
       s.studentId.toLowerCase().includes(waiverSearch.toLowerCase())
     ).slice(0, 8),
-    [waiverSearch]
+    [waiverSearch, allStudents]
   );
 
   // All fee types present
@@ -88,7 +97,7 @@ export default function AdminFeesPage() {
   const addFee = () => {
     if (!feeForm.feeType || !feeForm.amount) return;
     const className = MADRASHA_CLASSES.find(c => c.id === feeForm.class)?.nameBn ?? feeForm.class;
-    const classStudents = STUDENTS.filter(s => s.class === feeForm.class);
+    const classStudents = allStudents.filter(s => s.class === feeForm.class);
     const newFees = classStudents.map(s => ({
       id: `f${Date.now()}-${s.id}`,
       studentId: s.id,
@@ -116,7 +125,7 @@ export default function AdminFeesPage() {
 
   /* ---------- Waiver actions ---------- */
   const addWaiver = () => {
-    const student = STUDENTS.find(s => s.id === waiverForm.studentId);
+    const student = allStudents.find(s => s.id === waiverForm.studentId);
     if (!student || !waiverForm.waiverValue) return;
     const val = Number(waiverForm.waiverValue);
     if (isNaN(val) || val <= 0) return;

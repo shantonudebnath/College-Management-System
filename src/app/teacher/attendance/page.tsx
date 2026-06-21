@@ -1,7 +1,8 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { STUDENTS, MADRASHA_CLASSES } from '@/lib/data';
+import type { Student } from '@/lib/types';
 import { useCurrentTeacher } from '@/context/CurrentTeacherContext';
 import { useTeachers } from '@/context/TeachersContext';
 import { ClipboardList, CheckCircle, XCircle, Save, AlertCircle } from 'lucide-react';
@@ -14,9 +15,30 @@ export default function TeacherAttendancePage() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [attendance, setAttendance] = useState<Record<string, 'present' | 'absent' | 'late'>>({});
   const [saved, setSaved] = useState(false);
+  const [allStudents, setAllStudents] = useState<Student[]>(STUDENTS);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('students_store');
+      if (raw) {
+        const stored: Student[] = JSON.parse(raw);
+        const ids = new Set(stored.map(s => s.id));
+        setAllStudents([...stored, ...STUDENTS.filter(s => !ids.has(s.id))]);
+      }
+    } catch {}
+
+    // Load previously saved attendance for today
+    if (assignedClassId) {
+      const today = new Date().toISOString().split('T')[0];
+      try {
+        const raw = localStorage.getItem(`nim_attendance_${assignedClassId}_${today}`);
+        if (raw) setAttendance(JSON.parse(raw));
+      } catch {}
+    }
+  }, [assignedClassId]);
 
   const assignedClass = MADRASHA_CLASSES.find(c => c.id === assignedClassId);
-  const classStudents = assignedClassId ? STUDENTS.filter(s => s.class === assignedClassId) : [];
+  const classStudents = assignedClassId ? allStudents.filter(s => s.class === assignedClassId) : [];
 
   const mark = (id: string, status: 'present' | 'absent' | 'late') => {
     setAttendance(p => ({ ...p, [id]: status }));
@@ -79,7 +101,15 @@ export default function TeacherAttendancePage() {
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-600 block mb-1">তারিখ</label>
-                <input type="date" value={date} onChange={e => { setDate(e.target.value); setAttendance({}); setSaved(false); }}
+                <input type="date" value={date} onChange={e => {
+                  const newDate = e.target.value;
+                  setDate(newDate);
+                  setSaved(false);
+                  try {
+                    const raw = localStorage.getItem(`nim_attendance_${assignedClassId}_${newDate}`);
+                    setAttendance(raw ? JSON.parse(raw) : {});
+                  } catch { setAttendance({}); }
+                }}
                   className="px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400" />
               </div>
               <div className="flex gap-2 ml-auto">
