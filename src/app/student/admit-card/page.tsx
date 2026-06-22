@@ -29,7 +29,7 @@ interface ExamEntry {
 }
 
 interface Hall { id: string; hallName: string; guardName: string; }
-interface SeatAssignment { examId: string; hallId: string; studentId: string; seatNumber: number; }
+interface SeatAssignment { examId: string; hallId: string; studentId: string; seatNumber: number; branchNumber?: number; seatInBranch?: number; }
 
 export default function AdmitCardPage() {
   const { student, loading: sessionLoading } = useStudentSession();
@@ -91,7 +91,7 @@ export default function AdmitCardPage() {
     if (!seat) return null;
     const hall = allHalls.find(h => h.id === seat.hallId);
     if (!hall) return null;
-    return { hallName: hall.hallName, seatNumber: seat.seatNumber, guardName: hall.guardName };
+    return { hallName: hall.hallName, seatNumber: seat.seatInBranch ?? seat.seatNumber, branchNumber: seat.branchNumber, guardName: hall.guardName };
   };
 
   const cardSchedule = selectedCard ? getSchedule(selectedCard) : [];
@@ -168,7 +168,9 @@ export default function AdmitCardPage() {
                       {seatInfo && eligible && (
                         <div className="mt-2 flex items-center gap-1.5 text-xs text-purple-700 font-semibold">
                           <MapPin size={12} className="text-purple-500" />
-                          আসন নং: {seatInfo.seatNumber} | হল: {seatInfo.hallName}
+                          হল: {seatInfo.hallName}
+                          {seatInfo.branchNumber && <span>| বেঞ্চ: {seatInfo.branchNumber}</span>}
+                          <span>| আসন: {seatInfo.seatNumber}</span>
                           {seatInfo.guardName && <span className="text-gray-500 font-normal">| পরিদর্শক: {seatInfo.guardName}</span>}
                         </div>
                       )}
@@ -222,7 +224,9 @@ export default function AdmitCardPage() {
                     <MapPin size={18} className="text-purple-600 shrink-0" />
                     <div>
                       <p className="text-sm font-bold text-purple-800">
-                        আসন নং: {cardSeat.seatNumber} &nbsp;|&nbsp; হল: {cardSeat.hallName}
+                        হল: {cardSeat.hallName}
+                        {cardSeat.branchNumber && <> &nbsp;|&nbsp; বেঞ্চ: {cardSeat.branchNumber}</>}
+                        &nbsp;|&nbsp; আসন: {cardSeat.seatNumber}
                       </p>
                       {cardSeat.guardName && (
                         <p className="text-xs text-purple-600 mt-0.5">পরিদর্শক: {cardSeat.guardName}</p>
