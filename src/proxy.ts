@@ -5,7 +5,7 @@ const NIM_SESSION = 'nim_session';
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const protectedPrefixes = ['/admin', '/student', '/teacher'];
+  const protectedPrefixes = ['/admin', '/student', '/teacher/'];
   const isProtected = protectedPrefixes.some(p => pathname.startsWith(p));
 
   if (!isProtected) return NextResponse.next({ request });
