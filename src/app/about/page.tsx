@@ -1,5 +1,7 @@
 'use client';
+import { Suspense } from 'react';
 import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { COLLEGE_INFO, MADRASHA_CLASSES } from '@/lib/data';
@@ -11,20 +13,20 @@ import {
 } from 'lucide-react';
 
 const SECTIONS = [
-  { id: 'about',         label: 'পরিচিতি' },
-  { id: 'principal',     label: 'অধ্যক্ষ' },
-  { id: 'governing-body',label: 'পর্ষদ' },
-  { id: 'recognition',   label: 'স্বীকৃতি' },
-  { id: 'mpo',           label: 'এমপিও' },
-  { id: 'land',          label: 'ভূমি' },
-  { id: 'building',      label: 'ভবন' },
-  { id: 'campus-map',    label: 'ম্যাপ' },
-  { id: 'annual-report', label: 'বার্ষিক' },
-  { id: 'classes',       label: 'শ্রেণি' },
-  { id: 'exam-schedule', label: 'পরীক্ষা' },
-  { id: 'syllabus',      label: 'সিলেবাস' },
-  { id: 'scholarship',   label: 'বৃত্তি' },
-  { id: 'contact',       label: 'যোগাযোগ' },
+  { id: 'about',          label: 'পরিচিতি' },
+  { id: 'principal',      label: 'অধ্যক্ষ' },
+  { id: 'governing-body', label: 'পর্ষদ' },
+  { id: 'recognition',    label: 'স্বীকৃতি' },
+  { id: 'mpo',            label: 'এমপিও' },
+  { id: 'land',           label: 'ভূমি' },
+  { id: 'building',       label: 'ভবন' },
+  { id: 'campus-map',     label: 'ম্যাপ' },
+  { id: 'annual-report',  label: 'বার্ষিক' },
+  { id: 'classes',        label: 'শ্রেণি' },
+  { id: 'exam-schedule',  label: 'পরীক্ষা' },
+  { id: 'syllabus',       label: 'সিলেবাস' },
+  { id: 'scholarship',    label: 'বৃত্তি' },
+  { id: 'contact',        label: 'যোগাযোগ' },
 ];
 
 function SectionHeader({ icon: Icon, title, subtitle }: { icon: React.ElementType; title: string; subtitle?: string }) {
@@ -51,45 +53,36 @@ function InfoCard({ children, className = '' }: { children: React.ReactNode; cla
 }
 
 function PreText({ text }: { text: string }) {
-  return (
-    <p className="text-gray-600 text-sm leading-[1.9] whitespace-pre-line">{text}</p>
-  );
+  return <p className="text-gray-600 text-sm leading-[1.9] whitespace-pre-line">{text}</p>;
 }
 
-export default function AboutPage() {
+const LEVEL_COLORS: Record<string, string> = {
+  ebtedayi: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  'junior-dakhil': 'bg-blue-50 text-blue-700 border-blue-200',
+  dakhil: 'bg-purple-50 text-purple-700 border-purple-200',
+  alim: 'bg-amber-50 text-amber-700 border-amber-200',
+};
+const LEVEL_LABELS: Record<string, string> = {
+  ebtedayi: 'ইবতেদায়ী',
+  'junior-dakhil': 'জুনিয়র দাখিল',
+  dakhil: 'দাখিল',
+  alim: 'আলিম',
+};
+
+function AboutContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [about, setAbout] = useState<AboutPageContent>(DEFAULT_ABOUT);
-  const [active, setActive] = useState('about');
+
+  const raw = searchParams.get('section') ?? 'about';
+  const active = SECTIONS.some(s => s.id === raw) ? raw : 'about';
 
   useEffect(() => {
     setAbout(loadWebsiteContent().aboutPage);
-
-    const hash = window.location.hash.replace('#', '');
-    if (hash && SECTIONS.some(s => s.id === hash)) setActive(hash);
-
-    const onHashChange = () => {
-      const h = window.location.hash.replace('#', '');
-      if (h && SECTIONS.some(s => s.id === h)) setActive(h);
-    };
-    window.addEventListener('hashchange', onHashChange);
-    return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
   const navigate = (id: string) => {
-    setActive(id);
-    window.history.pushState(null, '', `/about#${id}`);
-  };
-
-  const LEVEL_COLORS: Record<string, string> = {
-    ebtedayi: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    'junior-dakhil': 'bg-blue-50 text-blue-700 border-blue-200',
-    dakhil: 'bg-purple-50 text-purple-700 border-purple-200',
-    alim: 'bg-amber-50 text-amber-700 border-amber-200',
-  };
-  const LEVEL_LABELS: Record<string, string> = {
-    ebtedayi: 'ইবতেদায়ী',
-    'junior-dakhil': 'জুনিয়র দাখিল',
-    dakhil: 'দাখিল',
-    alim: 'আলিম',
+    router.push(`/about?section=${id}`);
   };
 
   return (
@@ -213,9 +206,7 @@ export default function AboutPage() {
           {active === 'recognition' && (
             <div>
               <SectionHeader icon={Shield} title="অনুমতি ও স্বীকৃতি" subtitle="প্রতিষ্ঠানের সরকারি স্বীকৃতি ও অনুমোদন" />
-              <InfoCard>
-                <PreText text={about.recognitionText} />
-              </InfoCard>
+              <InfoCard><PreText text={about.recognitionText} /></InfoCard>
             </div>
           )}
 
@@ -223,9 +214,7 @@ export default function AboutPage() {
           {active === 'mpo' && (
             <div>
               <SectionHeader icon={Banknote} title="এমপিও তথ্য" subtitle="Monthly Pay Order সংক্রান্ত তথ্য" />
-              <InfoCard>
-                <PreText text={about.mpoText} />
-              </InfoCard>
+              <InfoCard><PreText text={about.mpoText} /></InfoCard>
             </div>
           )}
 
@@ -233,9 +222,7 @@ export default function AboutPage() {
           {active === 'land' && (
             <div>
               <SectionHeader icon={Map} title="ভূমি তথ্য" subtitle="প্রতিষ্ঠানের জমির বিবরণ" />
-              <InfoCard>
-                <PreText text={about.landText} />
-              </InfoCard>
+              <InfoCard><PreText text={about.landText} /></InfoCard>
             </div>
           )}
 
@@ -243,9 +230,7 @@ export default function AboutPage() {
           {active === 'building' && (
             <div>
               <SectionHeader icon={Building2} title="ভবন ও কক্ষ সংখ্যা" subtitle="অবকাঠামো ও ভবনের বিবরণ" />
-              <InfoCard>
-                <PreText text={about.buildingText} />
-              </InfoCard>
+              <InfoCard><PreText text={about.buildingText} /></InfoCard>
             </div>
           )}
 
@@ -287,9 +272,7 @@ export default function AboutPage() {
           {active === 'annual-report' && (
             <div>
               <SectionHeader icon={FileText} title="বার্ষিক প্রতিবেদন" subtitle="প্রতিষ্ঠানের বার্ষিক কার্যক্রম ও ফলাফলের সারসংক্ষেপ" />
-              <InfoCard>
-                <PreText text={about.annualReportText} />
-              </InfoCard>
+              <InfoCard><PreText text={about.annualReportText} /></InfoCard>
             </div>
           )}
 
@@ -314,9 +297,7 @@ export default function AboutPage() {
           {active === 'exam-schedule' && (
             <div>
               <SectionHeader icon={FileText} title="পরীক্ষার সময়সূচী" subtitle="বার্ষিক পরীক্ষার সময়সূচি ও রুটিন" />
-              <InfoCard>
-                <PreText text={about.examScheduleText} />
-              </InfoCard>
+              <InfoCard><PreText text={about.examScheduleText} /></InfoCard>
             </div>
           )}
 
@@ -324,9 +305,7 @@ export default function AboutPage() {
           {active === 'syllabus' && (
             <div>
               <SectionHeader icon={BookOpen} title="সিলেবাস" subtitle="পাঠ্যক্রম ও বিষয়সমূহ" />
-              <InfoCard>
-                <PreText text={about.syllabusText} />
-              </InfoCard>
+              <InfoCard><PreText text={about.syllabusText} /></InfoCard>
             </div>
           )}
 
@@ -334,9 +313,7 @@ export default function AboutPage() {
           {active === 'scholarship' && (
             <div>
               <SectionHeader icon={Award} title="বৃত্তি ও সুবিধা" subtitle="মেধাবী ও দরিদ্র শিক্ষার্থীদের জন্য সুযোগ-সুবিধা" />
-              <InfoCard>
-                <PreText text={about.scholarshipText} />
-              </InfoCard>
+              <InfoCard><PreText text={about.scholarshipText} /></InfoCard>
             </div>
           )}
 
@@ -379,5 +356,13 @@ export default function AboutPage() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+export default function AboutPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#f5f7f5]" />}>
+      <AboutContent />
+    </Suspense>
   );
 }
