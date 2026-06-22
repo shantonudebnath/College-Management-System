@@ -1,8 +1,8 @@
-﻿'use client';
+'use client';
 import { useState, useEffect, useMemo } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { useTeachers } from '@/context/TeachersContext';
-import { Shield, Shuffle, Download, Calendar, X, Bell, CheckCircle } from 'lucide-react';
+import { Shield, Shuffle, Download, Calendar, X, Bell, CheckCircle, ChevronDown, Users } from 'lucide-react';
 import { useNotices } from '@/context/NoticesContext';
 import type { Teacher } from '@/lib/types';
 
@@ -10,45 +10,54 @@ const EXAMS_KEY = 'nim_exams_v1';
 const ENTRIES_KEY = 'nim_exam_entries_v1';
 const HALLS_KEY = 'nim_halls_v1';
 const GUARDS_KEY = 'nim_guard_assignments_v1';
+const AVAIL_KEY = 'nim_guard_availability_v1';
 
 interface Exam { id: string; name: string; year: string; }
 interface ExamEntry { examId: string; subject: string; date: string; startTime: string; endTime: string; classIds: string[]; }
 interface Hall { id: string; examId: string; hallName: string; capacity: number; }
 interface GuardAssignment { examId: string; date: string; hallId: string; teacherId: string; }
+interface TeacherAvail { available: boolean; maxDays: number; }
+type AvailMap = Record<string, TeacherAvail>;
 
 const MONTHS_BN = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
-
 function fmtDate(d: string) {
   if (!d) return d;
   const p = d.split('-');
   if (p.length !== 3) return d;
   return `${parseInt(p[2])} ${MONTHS_BN[parseInt(p[1]) - 1] ?? ''}, ${p[0]}`;
 }
-
 function todayBn() {
   const d = new Date();
   return `${d.getDate()} ${MONTHS_BN[d.getMonth()]}, ${d.getFullYear()}`;
 }
 
-function runAutoAssign(examId: string, dates: string[], halls: Hall[], teachers: Teacher[]): GuardAssignment[] {
-  if (!dates.length || !halls.length || !teachers.length) return [];
+function runAutoAssign(
+  examId: string,
+  dates: string[],
+  halls: Hall[],
+  pool: { teacher: Teacher; maxDays: number }[]
+): GuardAssignment[] {
+  if (!dates.length || !halls.length || !pool.length) return [];
   const result: GuardAssignment[] = [];
-  const inHall: Record<string, Set<string>> = {};
-  halls.forEach(h => { inHall[h.id] = new Set(); });
+  const hallHistory: Record<string, Set<string>> = {};
+  halls.forEach(h => { hallHistory[h.id] = new Set(); });
+  const usedDays: Record<string, number> = {};
+  pool.forEach(({ teacher }) => { usedDays[teacher.id] = 0; });
 
   [...dates].sort().forEach((date, di) => {
     const todayUsed = new Set<string>();
     halls.forEach((hall, hi) => {
-      // 1st: not in this hall before + not used today
-      let pool = teachers.filter(t => !inHall[hall.id].has(t.id) && !todayUsed.has(t.id));
-      // 2nd: not used today
-      if (!pool.length) pool = teachers.filter(t => !todayUsed.has(t.id));
-      // 3rd: anyone (unavoidable repeat)
-      if (!pool.length) pool = [...teachers];
-      const pick = pool[(di + hi) % pool.length];
-      result.push({ examId, date, hallId: hall.id, teacherId: pick.id });
-      inHall[hall.id].add(pick.id);
-      todayUsed.add(pick.id);
+      const eligible = pool.filter(({ teacher, maxDays }) =>
+        usedDays[teacher.id] < maxDays && !todayUsed.has(teacher.id)
+      );
+      const best = eligible.filter(({ teacher }) => !hallHistory[hall.id].has(teacher.id));
+      const candidates = best.length ? best : eligible.length ? eligible : pool.filter(({ teacher }) => !todayUsed.has(teacher.id));
+      if (!candidates.length) return;
+      const pick = candidates[(di * halls.length + hi) % candidates.length];
+      result.push({ examId, date, hallId: hall.id, teacherId: pick.teacher.id });
+      hallHistory[hall.id].add(pick.teacher.id);
+      todayUsed.add(pick.teacher.id);
+      usedDays[pick.teacher.id]++;
     });
   });
   return result;
@@ -89,8 +98,10 @@ export default function AdminGuardListPage() {
   const [entries, setEntries] = useState<ExamEntry[]>([]);
   const [halls, setHalls] = useState<Hall[]>([]);
   const [guards, setGuards] = useState<GuardAssignment[]>([]);
+  const [allAvail, setAllAvail] = useState<Record<string, AvailMap>>({});
   const [selectedExamId, setSelectedExamId] = useState<string | null>(null);
   const [guardNoticePublished, setGuardNoticePublished] = useState<string | null>(null);
+  const [showAvailPanel, setShowAvailPanel] = useState(false);
 
   useEffect(() => {
     try {
@@ -99,6 +110,7 @@ export default function AdminGuardListPage() {
       const en = localStorage.getItem(ENTRIES_KEY); if (en) setEntries(JSON.parse(en));
       const h = localStorage.getItem(HALLS_KEY); if (h) setHalls(JSON.parse(h));
       const g = localStorage.getItem(GUARDS_KEY); if (g) setGuards(JSON.parse(g));
+      const av = localStorage.getItem(AVAIL_KEY); if (av) setAllAvail(JSON.parse(av));
     } catch {}
   }, []);
 
@@ -107,9 +119,17 @@ export default function AdminGuardListPage() {
     localStorage.setItem(GUARDS_KEY, JSON.stringify(data));
   };
 
+  const saveAvail = (avail: AvailMap) => {
+    if (!selectedExamId) return;
+    const updated = { ...allAvail, [selectedExamId]: avail };
+    setAllAvail(updated);
+    localStorage.setItem(AVAIL_KEY, JSON.stringify(updated));
+  };
+
   const selectedExam = exams.find(e => e.id === selectedExamId);
   const examHalls = halls.filter(h => h.examId === selectedExamId);
   const examGuards = guards.filter(g => g.examId === selectedExamId);
+  const examAvail: AvailMap = allAvail[selectedExamId ?? ''] ?? {};
 
   const examDates = useMemo(() => {
     const s = new Set<string>();
@@ -123,15 +143,28 @@ export default function AdminGuardListPage() {
     return m;
   }, [entries, selectedExamId]);
 
+  const getTeacherAvail = (teacherId: string): TeacherAvail =>
+    examAvail[teacherId] ?? { available: true, maxDays: Math.max(1, examDates.length) };
+
+  const updateAvail = (teacherId: string, update: Partial<TeacherAvail>) => {
+    const cur = getTeacherAvail(teacherId);
+    saveAvail({ ...examAvail, [teacherId]: { ...cur, ...update } });
+  };
+
+  const availableTeachers = teachers.filter(t => getTeacherAvail(t.id).available);
+
+  const buildAvailPool = () =>
+    availableTeachers.map(t => ({ teacher: t, maxDays: getTeacherAvail(t.id).maxDays }));
+
   const handleAutoAssign = () => {
-    if (!selectedExamId || !examDates.length || !examHalls.length || !teachers.length) return;
-    const newG = runAutoAssign(selectedExamId, examDates, examHalls, teachers);
+    if (!selectedExamId || !examDates.length || !examHalls.length) return;
+    const pool = buildAvailPool();
+    if (!pool.length) return;
+    const newG = runAutoAssign(selectedExamId, examDates, examHalls, pool);
     saveGuards([...guards.filter(g => g.examId !== selectedExamId), ...newG]);
   };
 
-  const clearAssignments = () => {
-    saveGuards(guards.filter(g => g.examId !== selectedExamId));
-  };
+  const clearAssignments = () => saveGuards(guards.filter(g => g.examId !== selectedExamId));
 
   const publishGuardNotice = () => {
     if (!selectedExam) return;
@@ -242,11 +275,14 @@ export default function AdminGuardListPage() {
               <div>
                 <h2 className="font-bold">{selectedExam.name}</h2>
                 <p className="text-purple-300 text-xs mt-0.5">
-                  {examHalls.length}টি হল &nbsp;·&nbsp; {examDates.length}টি পরীক্ষার তারিখ &nbsp;·&nbsp; {teachers.length} জন শিক্ষক
+                  {examHalls.length}টি হল &nbsp;·&nbsp; {examDates.length}টি দিন &nbsp;·&nbsp;
+                  <span className={availableTeachers.length === 0 ? 'text-red-300' : 'text-green-300'}>
+                    {availableTeachers.length}/{teachers.length} জন শিক্ষক উপলব্ধ
+                  </span>
                 </p>
               </div>
               <div className="flex gap-2 flex-wrap">
-                {examHalls.length > 0 && examDates.length > 0 && teachers.length > 0 && (
+                {examHalls.length > 0 && examDates.length > 0 && availableTeachers.length > 0 && (
                   <button onClick={handleAutoAssign}
                     className="flex items-center gap-1.5 bg-amber-400 hover:bg-amber-500 text-amber-900 text-xs px-4 py-2 rounded-lg font-semibold">
                     <Shuffle size={13} /> স্বয়ংক্রিয় বরাদ্দ
@@ -264,7 +300,7 @@ export default function AdminGuardListPage() {
                       </span>
                     ) : (
                       <button onClick={publishGuardNotice}
-                        className="flex items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white text-xs px-4 py-2 rounded-lg font-semibold transition-colors">
+                        className="flex items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white text-xs px-4 py-2 rounded-lg font-semibold">
                         <Bell size={13} /> নোটিশ প্রকাশ করুন
                       </button>
                     )}
@@ -277,6 +313,92 @@ export default function AdminGuardListPage() {
               </div>
             </div>
 
+            {/* Teacher availability panel */}
+            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+              <button onClick={() => setShowAvailPanel(v => !v)}
+                className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-gray-50 transition-colors">
+                <div className="flex items-center gap-2">
+                  <Users size={15} className="text-purple-600" />
+                  <span className="font-semibold text-gray-700 text-sm">শিক্ষকের গার্ড প্রাপ্যতা নির্ধারণ</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${availableTeachers.length > 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
+                    {availableTeachers.length}/{teachers.length} জন সক্রিয়
+                  </span>
+                </div>
+                <ChevronDown size={14} className={`text-gray-400 transition-transform ${showAvailPanel ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showAvailPanel && (
+                <div className="border-t border-gray-100 p-5 space-y-4">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <p className="text-xs text-gray-500">
+                      পরীক্ষা মোট <strong>{examDates.length} দিন</strong>।
+                      প্রতিটি শিক্ষকের জন্য নির্ধারণ করুন — তিনি গার্ড দেবেন কিনা এবং সর্বোচ্চ কতদিন।
+                    </p>
+                    <div className="flex gap-2">
+                      <button onClick={() => saveAvail(Object.fromEntries(teachers.map(t => [t.id, { available: true, maxDays: examDates.length || 1 }])))}
+                        className="text-xs px-3 py-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-lg font-medium">
+                        সবাইকে সক্রিয়
+                      </button>
+                      <button onClick={() => saveAvail(Object.fromEntries(teachers.map(t => [t.id, { available: false, maxDays: 0 }])))}
+                        className="text-xs px-3 py-1.5 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg font-medium">
+                        সবাইকে বন্ধ
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
+                    {teachers.map(t => {
+                      const avail = getTeacherAvail(t.id);
+                      const maxLimit = Math.max(1, examDates.length);
+                      return (
+                        <div key={t.id} className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${avail.available ? 'bg-purple-50/60 border-purple-200' : 'bg-gray-50 border-gray-200'}`}>
+                          <div className="w-8 h-8 gradient-primary rounded-lg text-white text-xs font-bold flex items-center justify-center shrink-0">
+                            {(t.nameBn || t.name)[0]}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-gray-800 truncate">{t.nameBn || t.name}</p>
+                            <p className="text-[10px] text-gray-400 truncate">{t.designation}</p>
+                          </div>
+                          {avail.available && examDates.length > 0 && (
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                onClick={() => updateAvail(t.id, { maxDays: Math.max(1, avail.maxDays - 1) })}
+                                className="w-5 h-5 bg-white border border-gray-300 rounded flex items-center justify-center text-gray-600 hover:bg-gray-100 text-xs font-bold leading-none">
+                                −
+                              </button>
+                              <span className="text-xs font-bold text-purple-700 w-6 text-center tabular-nums">{avail.maxDays}</span>
+                              <button
+                                onClick={() => updateAvail(t.id, { maxDays: Math.min(maxLimit, avail.maxDays + 1) })}
+                                className="w-5 h-5 bg-white border border-gray-300 rounded flex items-center justify-center text-gray-600 hover:bg-gray-100 text-xs font-bold leading-none">
+                                +
+                              </button>
+                              <span className="text-[9px] text-gray-400 ml-0.5">দিন</span>
+                            </div>
+                          )}
+                          <button
+                            onClick={() => updateAvail(t.id, { available: !avail.available, maxDays: avail.available ? 0 : maxLimit })}
+                            className={`shrink-0 text-[10px] px-2 py-1 rounded-lg font-semibold transition-colors ${avail.available ? 'bg-green-100 text-green-700 hover:bg-red-100 hover:text-red-600' : 'bg-red-50 text-red-500 hover:bg-green-100 hover:text-green-700'}`}>
+                            {avail.available ? 'সক্রিয়' : 'বন্ধ'}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {availableTeachers.length > 0 && (
+                    <div className="pt-2 border-t border-gray-100 flex flex-wrap gap-x-6 gap-y-1 text-xs text-gray-500">
+                      <span>সক্রিয়: <strong className="text-purple-700">{availableTeachers.length} জন</strong></span>
+                      <span>মোট বরাদ্দযোগ্য দিন: <strong className="text-purple-700">{availableTeachers.reduce((s, t) => s + getTeacherAvail(t.id).maxDays, 0)}</strong></span>
+                      <span>প্রয়োজনীয় দিন (হল × দিন): <strong className="text-purple-700">{examHalls.length * examDates.length}</strong></span>
+                      {availableTeachers.reduce((s, t) => s + getTeacherAvail(t.id).maxDays, 0) < examHalls.length * examDates.length && (
+                        <span className="text-amber-600">⚠ শিক্ষক ঘাটতি — কিছু দিন পুনরাবৃত্তি হতে পারে</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* Warnings */}
             {examHalls.length === 0 && (
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-sm text-amber-700">
@@ -286,6 +408,11 @@ export default function AdminGuardListPage() {
             {examDates.length === 0 && (
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-sm text-amber-700">
                 এই পরীক্ষার কোনো সময়সূচী এন্ট্রি নেই। <strong>পরীক্ষা সময়সূচী</strong> পাতা থেকে এন্ট্রি যোগ করুন।
+              </div>
+            )}
+            {availableTeachers.length === 0 && teachers.length > 0 && (
+              <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-sm text-red-700">
+                কোনো শিক্ষক সক্রিয় নেই। উপরে &quot;শিক্ষকের গার্ড প্রাপ্যতা&quot; অংশে অন্তত একজন শিক্ষককে সক্রিয় করুন।
               </div>
             )}
 
@@ -350,20 +477,32 @@ export default function AdminGuardListPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                   {teachers.map(t => {
                     const count = examGuards.filter(g => g.teacherId === t.id).length;
+                    const avail = getTeacherAvail(t.id);
+                    if (count === 0 && !avail.available) return (
+                      <div key={t.id} className="flex items-start gap-2.5 p-2.5 rounded-xl border border-gray-100 bg-gray-50 opacity-50">
+                        <div className="w-8 h-8 bg-gray-200 rounded-lg text-gray-400 text-xs font-bold flex items-center justify-center shrink-0">
+                          {(t.nameBn || t.name)[0]}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-gray-500 truncate">{t.nameBn || t.name}</p>
+                          <p className="text-[10px] text-gray-400">গার্ড দেবেন না</p>
+                        </div>
+                      </div>
+                    );
                     if (count === 0) return null;
                     const hallNames = [...new Set(
                       examGuards.filter(g => g.teacherId === t.id)
                         .map(g => examHalls.find(h => h.id === g.hallId)?.hallName ?? '?')
                     )].join(', ');
                     return (
-                      <div key={t.id} className="flex items-start gap-2.5 p-2.5 rounded-xl border border-gray-100 bg-gray-50">
+                      <div key={t.id} className="flex items-start gap-2.5 p-2.5 rounded-xl border border-purple-100 bg-purple-50/40">
                         <div className="w-8 h-8 gradient-primary rounded-lg text-white text-xs font-bold flex items-center justify-center shrink-0">
                           {(t.nameBn || t.name)[0]}
                         </div>
                         <div className="min-w-0">
                           <p className="text-xs font-semibold text-gray-800 truncate">{t.nameBn || t.name}</p>
-                          <p className="text-[10px] text-gray-400">{count}টি দিন</p>
-                          <p className="text-[10px] text-purple-600 truncate">{hallNames}</p>
+                          <p className="text-[10px] text-purple-700 font-semibold">{count}/{avail.maxDays} দিন</p>
+                          <p className="text-[10px] text-gray-400 truncate">{hallNames}</p>
                         </div>
                       </div>
                     );

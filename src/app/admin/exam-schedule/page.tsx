@@ -329,6 +329,18 @@ export default function AdminExamSchedulePage() {
     <th style="width:110px">সময়</th>
   </tr></thead>`;
 
+  const printClass = (cls: typeof MADRASHA_CLASSES[0]) => {
+    if (!selectedExam) return;
+    const ce = getClassEntries(cls.id);
+    if (ce.length === 0) return;
+    const header = `<div class="notice-box">
+      <div class="notice-label">পরীক্ষার সময়সূচী</div>
+      <div class="notice-title">${selectedExam.name}</div>
+      <div class="notice-sub">শিক্ষাবর্ষ: ${selectedExam.year} &nbsp;|&nbsp; শ্রেণি: ${cls.nameBn}</div>
+    </div>`;
+    openPrintWindow(`${selectedExam.name} — ${cls.nameBn}`, buildPrintPage(header, `<table>${tableHead}<tbody>${buildTableRows(ce)}</tbody></table>`));
+  };
+
   const printAll = () => {
     if (!selectedExam) return;
     const classSections = MADRASHA_CLASSES.map(cls => {
@@ -530,6 +542,12 @@ export default function AdminExamSchedulePage() {
                           <span className="text-xs bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full">{ce.length}টি বিষয়</span>
                         )}
                       </div>
+                      {ce.length > 0 && (
+                        <button onClick={() => printClass(cls)}
+                          className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg text-xs font-medium transition-colors">
+                          <Download size={11} /> PDF
+                        </button>
+                      )}
                     </div>
 
                     {ce.length === 0 ? (

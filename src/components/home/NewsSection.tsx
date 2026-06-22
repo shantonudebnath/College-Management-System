@@ -1,5 +1,7 @@
-﻿import Link from 'next/link';
+﻿'use client';
+import Link from 'next/link';
 import { NOTICES, COLLEGE_INFO } from '@/lib/data';
+import { useNotices } from '@/context/NoticesContext';
 import {
   Bell, BookOpen, FileText, Users, ChevronRight,
   AlertCircle, Phone, MapPin, Mail,
@@ -67,7 +69,8 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default function NewsSection() {
-  const notices = NOTICES.slice(0, 6);
+  const { notices: liveNotices } = useNotices();
+  const notices = (liveNotices.length > 0 ? liveNotices : NOTICES).slice(0, 6);
 
   return (
     <section className="py-16 bg-white">
