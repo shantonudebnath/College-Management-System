@@ -44,7 +44,7 @@ const NAV_LINKS: NavItem[] = [
   },
   { label: 'নোটিশ বোর্ড', href: '/notice' },
   { label: 'গ্যালারি', href: '/#gallery' },
-  { label: 'যোগাযোগ', href: '/about#contact' },
+  { label: 'যোগাযোগ', href: '/about?section=contact' },
 ];
 
 function DropdownMenu({ items, onClose }: { items: NavChild[]; onClose: () => void }) {
