@@ -6,6 +6,17 @@ export interface FaqItem { id: string; question: string; answer: string; }
 export interface LinkItem { id: string; label: string; url: string; icon?: string; }
 export interface StatItem { label: string; value: string; }
 export interface NoticeTickerItem { id: string; text: string; }
+export interface SlideItem {
+  id: string;
+  tag: string;
+  headline: string;
+  sub: string;
+  photo: string;
+  cta1Label: string;
+  cta1Href: string;
+  cta2Label: string;
+  cta2Href: string;
+}
 
 export interface WebsiteContent {
   heroSubtitle: string;
@@ -14,6 +25,7 @@ export interface WebsiteContent {
   faq: FaqItem[];
   importantLinks: LinkItem[];
   noticeTicker: NoticeTickerItem[];
+  slides: SlideItem[];
 }
 
 export const DEFAULT_CONTENT: WebsiteContent = {
@@ -52,6 +64,41 @@ export const DEFAULT_CONTENT: WebsiteContent = {
     { id: 'n1', text: '২০২৬ সালের বার্ষিক পরীক্ষার সময়সূচি প্রকাশিত হয়েছে।' },
     { id: 'n2', text: 'নতুন শিক্ষার্থী ভর্তি কার্যক্রম চলছে। আজই আবেদন করুন।' },
     { id: 'n3', text: 'দাখিল পরীক্ষার ফলাফল প্রকাশিত হয়েছে। ফলাফল দেখতে এখানে ক্লিক করুন।' },
+  ],
+  slides: [
+    {
+      id: 's1',
+      tag: 'বাংলাদেশ মাদ্রাসা শিক্ষা বোর্ড অনুমোদিত',
+      headline: 'এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা',
+      sub: 'ইসলামি শিক্ষা ও আধুনিক জ্ঞানের সমন্বয়ে একটি উজ্জ্বল ভবিষ্যৎ গড়ে তুলুন।',
+      photo: '/hero-1.jpg',
+      cta1Label: 'ভর্তি আবেদন করুন',
+      cta1Href: '/admission',
+      cta2Label: 'প্রতিষ্ঠান সম্পর্কে',
+      cta2Href: '/about',
+    },
+    {
+      id: 's2',
+      tag: 'ভর্তি চলছে — ২০২৬',
+      headline: 'আপনার সন্তানের ভবিষ্যৎ গড়ুন',
+      sub: 'এবতেদায়ী থেকে দাখিল পর্যন্ত সকল শ্রেণিতে ভর্তির সুযোগ। মানসম্মত ইসলামি শিক্ষা নিশ্চিত করুন।',
+      photo: '/hero-2.jpg',
+      cta1Label: 'এখনই আবেদন করুন',
+      cta1Href: '/admission',
+      cta2Label: 'ভর্তির বিজ্ঞপ্তি',
+      cta2Href: '/notice',
+    },
+    {
+      id: 's3',
+      tag: 'EIIN: 110590 | স্থাপিত ১৯৫৮',
+      headline: 'শিক্ষায় আলো, জীবনে শান্তি',
+      sub: '৬৬ বছরেরও বেশি সময় ধরে পাকুন্দিয়া, কিশোরগঞ্জের শিক্ষার্থীদের জ্ঞান ও নৈতিক মূল্যবোধে গড়ে তুলছে এই মাদ্রাসা।',
+      photo: '/hero-3.jpg',
+      cta1Label: 'ফলাফল দেখুন',
+      cta1Href: '/result',
+      cta2Label: 'শিক্ষক তালিকা',
+      cta2Href: '/teachers',
+    },
   ],
 };
 

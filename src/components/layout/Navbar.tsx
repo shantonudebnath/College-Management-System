@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Menu, X, ChevronDown, Phone, Mail } from 'lucide-react';
@@ -68,6 +68,16 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
+  const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleDropdownEnter = (label: string) => {
+    if (leaveTimer.current) clearTimeout(leaveTimer.current);
+    setActiveDropdown(label);
+  };
+
+  const handleDropdownLeave = () => {
+    leaveTimer.current = setTimeout(() => setActiveDropdown(null), 150);
+  };
 
   return (
     <>
@@ -137,8 +147,8 @@ export default function Navbar() {
                   <div
                     key={link.label}
                     className="relative"
-                    onMouseEnter={() => setActiveDropdown(link.label)}
-                    onMouseLeave={() => setActiveDropdown(null)}
+                    onMouseEnter={() => handleDropdownEnter(link.label)}
+                    onMouseLeave={handleDropdownLeave}
                   >
                     <button className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-lg transition-all whitespace-nowrap
                       ${activeDropdown === link.label ? 'text-[#006633] bg-green-50' : 'text-gray-700 hover:text-[#006633] hover:bg-green-50'}`}>

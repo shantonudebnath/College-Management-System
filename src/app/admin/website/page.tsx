@@ -2,9 +2,10 @@
 import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { loadWebsiteContent, saveWebsiteContent, DEFAULT_CONTENT, type WebsiteContent, type GalleryItem, type FaqItem, type LinkItem, type NoticeTickerItem } from '@/lib/website-content';
-import { Save, Plus, Trash2, Globe, Image as ImageIcon, HelpCircle, Link2, Bell, BarChart2, CheckCircle } from 'lucide-react';
+import { Save, Plus, Trash2, Globe, Image as ImageIcon, HelpCircle, Link2, Bell, BarChart2, CheckCircle, SlidersHorizontal } from 'lucide-react';
+import type { SlideItem } from '@/lib/website-content';
 
-type Tab = 'hero' | 'stats' | 'gallery' | 'faq' | 'links' | 'ticker';
+type Tab = 'hero' | 'slides' | 'stats' | 'gallery' | 'faq' | 'links' | 'ticker';
 
 export default function WebsiteSettingsPage() {
   const [content, setContent] = useState<WebsiteContent>(DEFAULT_CONTENT);
@@ -22,8 +23,12 @@ export default function WebsiteSettingsPage() {
   const set = <K extends keyof WebsiteContent>(k: K, v: WebsiteContent[K]) =>
     setContent(p => ({ ...p, [k]: v }));
 
+  const updateSlide = (i: number, patch: Partial<SlideItem>) =>
+    set('slides', content.slides.map((s, j) => j === i ? { ...s, ...patch } : s));
+
   const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
     { id: 'hero', label: 'হিরো সেকশন', icon: Globe },
+    { id: 'slides', label: 'স্লাইডশো', icon: SlidersHorizontal },
     { id: 'stats', label: 'পরিসংখ্যান', icon: BarChart2 },
     { id: 'gallery', label: 'গ্যালারি', icon: ImageIcon },
     { id: 'faq', label: 'FAQ', icon: HelpCircle },
@@ -61,6 +66,91 @@ export default function WebsiteSettingsPage() {
               <textarea value={content.heroSubtitle} onChange={e => set('heroSubtitle', e.target.value)} rows={3}
                 className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400 resize-none" />
             </div>
+          </div>
+        )}
+
+        {/* Slides tab */}
+        {tab === 'slides' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-500">হোম পেজের স্লাইডশো স্লাইডগুলো এখানে সম্পাদনা করুন।</p>
+              <button onClick={() => set('slides', [...content.slides, {
+                id: `s${Date.now()}`, tag: '', headline: '', sub: '', photo: '',
+                cta1Label: 'আরও জানুন', cta1Href: '/about',
+                cta2Label: 'যোগাযোগ', cta2Href: '/about#contact',
+              }])}
+                className="flex items-center gap-1.5 text-xs font-semibold text-purple-600 bg-purple-50 px-3 py-2 rounded-xl hover:bg-purple-100">
+                <Plus size={13} /> স্লাইড যোগ করুন
+              </button>
+            </div>
+
+            {content.slides.map((slide, i) => (
+              <div key={slide.id} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-purple-600 bg-purple-50 px-3 py-1 rounded-full">স্লাইড {i + 1}</span>
+                  <button onClick={() => set('slides', content.slides.filter((_, j) => j !== i))}
+                    className="flex items-center gap-1.5 text-xs text-red-500 bg-red-50 px-3 py-1.5 rounded-xl hover:bg-red-100">
+                    <Trash2 size={12} /> মুছে ফেলুন
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">ট্যাগ (ছোট শিরোনাম)</label>
+                    <input value={slide.tag} onChange={e => updateSlide(i, { tag: e.target.value })}
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400"
+                      placeholder="যেমন: ভর্তি চলছে — ২০২৬" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">ছবির URL (photo)</label>
+                    <input value={slide.photo} onChange={e => updateSlide(i, { photo: e.target.value })}
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400"
+                      placeholder="/hero-1.jpg বা https://..." />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-gray-600 block mb-1.5">মূল শিরোনাম</label>
+                  <input value={slide.headline} onChange={e => updateSlide(i, { headline: e.target.value })}
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold outline-none focus:border-purple-400"
+                    placeholder="বড় শিরোনাম লিখুন" />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-gray-600 block mb-1.5">বিবরণ</label>
+                  <textarea value={slide.sub} onChange={e => updateSlide(i, { sub: e.target.value })} rows={2}
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400 resize-none"
+                    placeholder="সংক্ষিপ্ত বিবরণ" />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">বোতাম ১ — লেখা</label>
+                    <input value={slide.cta1Label} onChange={e => updateSlide(i, { cta1Label: e.target.value })}
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400"
+                      placeholder="ভর্তি আবেদন করুন" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">বোতাম ১ — লিঙ্ক</label>
+                    <input value={slide.cta1Href} onChange={e => updateSlide(i, { cta1Href: e.target.value })}
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400"
+                      placeholder="/admission" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">বোতাম ২ — লেখা</label>
+                    <input value={slide.cta2Label} onChange={e => updateSlide(i, { cta2Label: e.target.value })}
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400"
+                      placeholder="আরও জানুন" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">বোতাম ২ — লিঙ্ক</label>
+                    <input value={slide.cta2Href} onChange={e => updateSlide(i, { cta2Href: e.target.value })}
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400"
+                      placeholder="/about" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 

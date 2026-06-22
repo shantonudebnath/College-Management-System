@@ -2,44 +2,17 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
-import { COLLEGE_INFO } from '@/lib/data';
-
-const year = new Date().getFullYear();
-const yearsOld = year - 1958;
-
-const SLIDES = [
-  {
-    id: 's1',
-    tag: 'বাংলাদেশ মাদ্রাসা শিক্ষা বোর্ড অনুমোদিত',
-    headline: COLLEGE_INFO.nameBn,
-    sub: 'ইসলামি শিক্ষা ও আধুনিক জ্ঞানের সমন্বয়ে একটি উজ্জ্বল ভবিষ্যৎ গড়ে তুলুন।',
-    cta1: { label: 'ভর্তি আবেদন করুন', href: '/admission' },
-    cta2: { label: 'প্রতিষ্ঠান সম্পর্কে', href: '/about' },
-    photo: '/hero-1.jpg',
-  },
-  {
-    id: 's2',
-    tag: `ভর্তি চলছে — ${year}`,
-    headline: 'আপনার সন্তানের ভবিষ্যৎ গড়ুন',
-    sub: 'এবতেদায়ী থেকে দাখিল পর্যন্ত সকল শ্রেণিতে ভর্তির সুযোগ। মানসম্মত ইসলামি শিক্ষা নিশ্চিত করুন।',
-    cta1: { label: 'এখনই আবেদন করুন', href: '/admission' },
-    cta2: { label: 'ভর্তির বিজ্ঞপ্তি', href: '/notice' },
-    photo: '/hero-2.jpg',
-  },
-  {
-    id: 's3',
-    tag: `EIIN: ${COLLEGE_INFO.eiin} | স্থাপিত ${COLLEGE_INFO.established}`,
-    headline: 'শিক্ষায় আলো, জীবনে শান্তি',
-    sub: `${yearsOld} বছরেরও বেশি সময় ধরে পাকুন্দিয়া, কিশোরগঞ্জের শিক্ষার্থীদের জ্ঞান ও নৈতিক মূল্যবোধে গড়ে তুলছে এই মাদ্রাসা।`,
-    cta1: { label: 'ফলাফল দেখুন', href: '/result' },
-    cta2: { label: 'শিক্ষক তালিকা', href: '/teachers' },
-    photo: '/hero-3.jpg',
-  },
-];
+import { loadWebsiteContent, DEFAULT_CONTENT, type SlideItem } from '@/lib/website-content';
 
 export default function SliderSection() {
+  const [slides, setSlides] = useState<SlideItem[]>(DEFAULT_CONTENT.slides);
   const [current, setCurrent] = useState(0);
   const [animating, setAnimating] = useState(false);
+
+  useEffect(() => {
+    const loaded = loadWebsiteContent().slides;
+    if (loaded?.length) setSlides(loaded);
+  }, []);
 
   const go = useCallback((idx: number) => {
     if (animating) return;
@@ -48,15 +21,15 @@ export default function SliderSection() {
     setTimeout(() => setAnimating(false), 500);
   }, [animating]);
 
-  const next = useCallback(() => go((current + 1) % SLIDES.length), [current, go]);
-  const prev = () => go((current - 1 + SLIDES.length) % SLIDES.length);
+  const next = useCallback(() => go((current + 1) % slides.length), [current, go, slides.length]);
+  const prev = () => go((current - 1 + slides.length) % slides.length);
 
   useEffect(() => {
     const t = setInterval(next, 6000);
     return () => clearInterval(t);
   }, [next]);
 
-  const slide = SLIDES[current];
+  const slide = slides[current] ?? DEFAULT_CONTENT.slides[0];
 
   return (
     <section
@@ -110,17 +83,17 @@ export default function SliderSection() {
             {/* CTAs */}
             <div className="flex flex-wrap gap-3">
               <Link
-                href={slide.cta1.href}
+                href={slide.cta1Href}
                 className="group inline-flex items-center gap-2 bg-[#006633] hover:bg-[#004d26] text-white font-bold px-6 py-3 rounded-lg text-sm transition-all shadow-lg shadow-black/40"
               >
-                {slide.cta1.label}
+                {slide.cta1Label}
                 <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
               </Link>
               <Link
-                href={slide.cta2.href}
+                href={slide.cta2Href}
                 className="inline-flex items-center gap-2 border border-white/25 text-white/80 font-semibold px-6 py-3 rounded-lg text-sm hover:bg-white/10 hover:border-white/45 hover:text-white transition-all backdrop-blur-sm"
               >
-                {slide.cta2.label}
+                {slide.cta2Label}
               </Link>
             </div>
           </div>
@@ -138,7 +111,7 @@ export default function SliderSection() {
         </button>
 
         <div className="flex items-center gap-2">
-          {SLIDES.map((_, i) => (
+          {slides.map((_, i) => (
             <button
               key={i}
               onClick={() => go(i)}
