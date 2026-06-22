@@ -21,10 +21,10 @@ export default function StatsSection() {
           {STATS.map(({ icon: Icon, value, label }) => (
             <div
               key={label}
-              className="flex flex-col items-center justify-center gap-2.5 px-4 py-10 text-center hover:bg-blue-50/60 transition-colors"
+              className="flex flex-col items-center justify-center gap-2.5 px-4 py-10 text-center hover:bg-green-50/60 transition-colors"
             >
-              <Icon size={22} className="text-blue-500" />
-              <p className="text-3xl md:text-4xl font-black text-blue-700 tracking-tight leading-none">{value}</p>
+              <Icon size={22} className="text-[#006633]" />
+              <p className="text-3xl md:text-4xl font-black text-[#004d26] tracking-tight leading-none">{value}</p>
               <p className="text-[11px] text-gray-500 font-medium leading-tight">{label}</p>
             </div>
           ))}

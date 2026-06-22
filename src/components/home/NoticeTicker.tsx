@@ -19,14 +19,14 @@ export default function NoticeTicker() {
   if (allItems.length === 0) return null;
 
   return (
-    <div className="bg-amber-50 border-b border-amber-200 py-2 overflow-hidden">
+    <div className="bg-[#fff8f0] border-b border-[#006633]/20 py-2 overflow-hidden">
       <div className="flex items-center max-w-full">
-        <div className="gradient-primary text-white text-xs font-bold px-4 py-1 flex items-center gap-2 shrink-0 z-10">
+        <div className="bg-[#c8102e] text-white text-xs font-bold px-4 py-1 flex items-center gap-2 shrink-0 z-10">
           <AlertCircle size={13} />
           <span>নোটিশ</span>
         </div>
         <div className="overflow-hidden flex-1 relative">
-          <div className="notice-marquee inline-block text-xs text-amber-800 font-medium whitespace-nowrap">
+          <div className="notice-marquee inline-block text-xs text-gray-700 font-medium whitespace-nowrap">
             {allItems.map((text, i) => (
               <span key={i} className="mx-8">🔔 {text}</span>
             ))}

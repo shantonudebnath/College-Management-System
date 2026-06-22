@@ -64,7 +64,7 @@ export default function SliderSection() {
       style={{ height: '68vh', minHeight: '460px', maxHeight: '680px' }}
     >
       {/* Fallback gradient — always present, visible when photo is missing */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-blue-800 to-slate-900" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[#071a0e] via-[#0a2d1a] to-[#07111e]" />
 
       {/* Photo layer — CSS bg-image, silently fails if file missing */}
       <div
@@ -100,7 +100,7 @@ export default function SliderSection() {
             </h1>
 
             {/* Accent bar */}
-            <div className="w-12 h-[3px] bg-blue-400 rounded-full mb-5" />
+            <div className="w-12 h-[3px] bg-[#00a854] rounded-full mb-5" />
 
             {/* Subtitle */}
             <p className="text-white/60 text-sm sm:text-[15px] leading-relaxed mb-8 max-w-xl">
@@ -111,7 +111,7 @@ export default function SliderSection() {
             <div className="flex flex-wrap gap-3">
               <Link
                 href={slide.cta1.href}
-                className="group inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-lg text-sm transition-all shadow-lg shadow-blue-900/40"
+                className="group inline-flex items-center gap-2 bg-[#006633] hover:bg-[#004d26] text-white font-bold px-6 py-3 rounded-lg text-sm transition-all shadow-lg shadow-black/40"
               >
                 {slide.cta1.label}
                 <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
@@ -144,7 +144,7 @@ export default function SliderSection() {
               onClick={() => go(i)}
               aria-label={`Slide ${i + 1}`}
               className={`rounded-full transition-all duration-300 ${
-                i === current ? 'w-6 h-2 bg-blue-400' : 'w-2 h-2 bg-white/30 hover:bg-white/60'
+                i === current ? 'w-6 h-2 bg-[#00c86a]' : 'w-2 h-2 bg-white/30 hover:bg-white/60'
               }`}
             />
           ))}
