@@ -38,6 +38,19 @@ type HallStudent = { seatNumber: number; branchNumber: number; seatInBranch: num
 const MONTHS = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
 function todayBn() { const d = new Date(); return `${d.getDate()} ${MONTHS[d.getMonth()]}, ${d.getFullYear()}`; }
 
+const CLASS_COLORS = [
+  'bg-purple-100 border-purple-300 text-purple-900',
+  'bg-blue-100 border-blue-300 text-blue-900',
+  'bg-emerald-100 border-emerald-300 text-emerald-900',
+  'bg-orange-100 border-orange-300 text-orange-900',
+  'bg-pink-100 border-pink-300 text-pink-900',
+  'bg-teal-100 border-teal-300 text-teal-900',
+  'bg-red-100 border-red-300 text-red-900',
+  'bg-yellow-100 border-yellow-300 text-yellow-900',
+  'bg-cyan-100 border-cyan-300 text-cyan-900',
+  'bg-indigo-100 border-indigo-300 text-indigo-900',
+];
+
 const PDF_CSS = `
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:Arial,sans-serif;color:#111;background:#fff;font-size:11px;line-height:1.5}
@@ -254,6 +267,7 @@ export default function SeatPlanPage() {
   const [editHallId, setEditHallId] = useState<string | null>(null);
   const [hallForm, setHallForm] = useState({ hallName: '', branches: '', seatsPerBranch: '', guardName: '', classIds: [] as string[] });
   const [expandedHall, setExpandedHall] = useState<string | null>(null);
+  const [viewModeMap, setViewModeMap] = useState<Record<string, 'table' | 'visual'>>({});
 
   useEffect(() => {
     try {
@@ -416,6 +430,11 @@ export default function SeatPlanPage() {
   const downloadHallPdf = (hall: Hall) => {
     if (!selectedExam) return;
     openPdf(buildCombinedPdf([hall], selectedExam.name, selectedExam.year, { [hall.id]: getHallStudents(hall.id) }));
+  };
+
+  const downloadHallStickers = (hall: Hall) => {
+    if (!selectedExam) return;
+    openPdf(buildStickerPdf([hall], selectedExam.name, { [hall.id]: getHallStudents(hall.id) }));
   };
 
   const downloadAll = () => {
@@ -688,6 +707,10 @@ export default function SeatPlanPage() {
                               className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium">
                               <Download size={12} /> PDF
                             </button>
+                            <button onClick={() => downloadHallStickers(hall)}
+                              className="flex items-center gap-1 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg text-xs font-medium">
+                              <Layers size={12} /> স্টিকার
+                            </button>
                             <button onClick={() => setExpandedHall(expanded ? null : hall.id)}
                               className="flex items-center gap-1 px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg text-xs font-medium">
                               <Users size={12} /> তালিকা
@@ -707,47 +730,130 @@ export default function SeatPlanPage() {
                                 কোনো শিক্ষার্থী বরাদ্দ হয়নি। উপরে &quot;মিশ্র আসন বরাদ্দ&quot; বাটনে ক্লিক করুন।
                               </p>
                             ) : (
-                              <div className="space-y-3">
-                                {Array.from({ length: branches }, (_, bi) => {
-                                  const branchStudents = hs.filter(a => a.branchNumber === bi + 1);
-                                  if (branchStudents.length === 0) return null;
-                                  return (
-                                    <div key={bi + 1}>
-                                      <div className="text-[10px] font-bold text-purple-700 uppercase tracking-wide mb-1 px-1">
-                                        বেঞ্চ — {bi + 1}
-                                      </div>
-                                      <div className="overflow-hidden rounded-xl border border-gray-200">
-                                        <table className="w-full text-xs border-collapse">
-                                          <thead>
-                                            <tr className="bg-purple-50">
-                                              <th className="px-3 py-2 text-center text-purple-600 font-semibold w-14">আসন</th>
-                                              <th className="px-3 py-2 text-left text-gray-600 font-semibold">নাম</th>
-                                              <th className="px-3 py-2 text-center text-gray-600 font-semibold w-32">শ্রেণি</th>
-                                              <th className="px-3 py-2 text-center text-gray-600 font-semibold w-20">রোল</th>
-                                            </tr>
-                                          </thead>
-                                          <tbody className="divide-y divide-gray-50">
-                                            {branchStudents.map((a, i) => {
-                                              const prevClass = i > 0 ? branchStudents[i - 1].student?.class : null;
-                                              const sameAsPrev = prevClass === a.student?.class;
-                                              return (
-                                                <tr key={a.seatNumber} className={`hover:bg-purple-50/20 ${sameAsPrev ? 'bg-red-50/30' : ''}`}>
-                                                  <td className="px-3 py-2 text-center font-bold text-purple-700">{a.seatInBranch}</td>
-                                                  <td className="px-3 py-2 font-medium text-gray-800">{a.student?.name}</td>
-                                                  <td className={`px-3 py-2 text-center text-[11px] ${sameAsPrev ? 'text-red-500 font-semibold' : 'text-gray-500'}`}>
-                                                    {MADRASHA_CLASSES.find(c => c.id === a.student?.class)?.nameBn ?? ''}
-                                                  </td>
-                                                  <td className="px-3 py-2 text-center text-gray-500">{a.student?.roll}</td>
-                                                </tr>
-                                              );
-                                            })}
-                                          </tbody>
-                                        </table>
+                              <>
+                                {/* View toggle */}
+                                <div className="flex items-center justify-between mb-3">
+                                  <span className="text-[10px] text-gray-400 font-medium">{hs.length} জন বরাদ্দ</span>
+                                  <div className="flex border border-gray-200 rounded-lg overflow-hidden text-[10px] font-semibold">
+                                    <button
+                                      onClick={() => setViewModeMap(p => ({ ...p, [hall.id]: 'table' }))}
+                                      className={`px-3 py-1.5 transition-colors ${(viewModeMap[hall.id] ?? 'table') === 'table' ? 'bg-purple-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>
+                                      তালিকা
+                                    </button>
+                                    <button
+                                      onClick={() => setViewModeMap(p => ({ ...p, [hall.id]: 'visual' }))}
+                                      className={`px-3 py-1.5 transition-colors ${viewModeMap[hall.id] === 'visual' ? 'bg-purple-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>
+                                      ভিজুয়াল
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {viewModeMap[hall.id] === 'visual' ? (
+                                  /* Visual classroom layout */
+                                  <div>
+                                    <div className="flex items-center justify-center mb-3">
+                                      <span className="text-[9px] font-semibold text-gray-400 uppercase tracking-widest bg-gray-100 border border-gray-200 px-4 py-1 rounded-full">
+                                        ▲ সামনে / ব্ল্যাকবোর্ড
+                                      </span>
+                                    </div>
+                                    <div className="overflow-x-auto pb-2">
+                                      <div className="space-y-1.5 min-w-fit">
+                                        {Array.from({ length: branches }, (_, bi) => {
+                                          const branchNum = bi + 1;
+                                          const branchStudents = hs.filter(a => a.branchNumber === branchNum);
+                                          return (
+                                            <div key={bi} className="flex items-center gap-2">
+                                              <div className="w-16 shrink-0 text-right">
+                                                <span className="text-[9px] font-bold text-purple-700 bg-purple-50 border border-purple-200 px-2 py-1 rounded-lg whitespace-nowrap">
+                                                  বেঞ্চ {branchNum}
+                                                </span>
+                                              </div>
+                                              <div className="flex gap-1">
+                                                {Array.from({ length: seatsPerBranch }, (_, si) => {
+                                                  const seatNum = si + 1;
+                                                  const a = branchStudents.find(x => x.seatInBranch === seatNum);
+                                                  if (!a) return (
+                                                    <div key={si} className="w-[72px] h-[64px] border border-dashed border-gray-200 rounded-lg flex items-center justify-center text-[9px] text-gray-300 shrink-0">
+                                                      খালি
+                                                    </div>
+                                                  );
+                                                  const classIdx = MADRASHA_CLASSES.findIndex(c => c.id === a.student?.class);
+                                                  const col = CLASS_COLORS[Math.max(0, classIdx) % CLASS_COLORS.length];
+                                                  const cls = MADRASHA_CLASSES.find(c => c.id === a.student?.class);
+                                                  return (
+                                                    <div key={si} title={`${a.student?.name} — ${cls?.nameBn ?? ''} — রোল: ${a.student?.roll}`}
+                                                      className={`w-[72px] h-[64px] border rounded-lg p-1 text-center shrink-0 cursor-default ${col}`}>
+                                                      <div className="text-xl font-black leading-none">{seatNum}</div>
+                                                      <div className="text-[7px] font-semibold leading-tight mt-0.5 truncate">{a.student?.name}</div>
+                                                      <div className="text-[6px] opacity-70 truncate mt-px">{cls?.nameBn ?? ''}</div>
+                                                    </div>
+                                                  );
+                                                })}
+                                              </div>
+                                            </div>
+                                          );
+                                        })}
                                       </div>
                                     </div>
-                                  );
-                                })}
-                              </div>
+                                    {/* Color legend */}
+                                    <div className="flex flex-wrap gap-1.5 mt-3 pt-2 border-t border-gray-100">
+                                      {(hall.classIds ?? []).map((cid, idx) => {
+                                        const cls = MADRASHA_CLASSES.find(c => c.id === cid);
+                                        const classIdx = MADRASHA_CLASSES.findIndex(c => c.id === cid);
+                                        const col = CLASS_COLORS[Math.max(0, classIdx) % CLASS_COLORS.length];
+                                        return (
+                                          <span key={cid} className={`text-[9px] px-2 py-0.5 rounded-full border font-medium ${col}`}>
+                                            {cls?.nameBn ?? cid}
+                                          </span>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  /* Table view */
+                                  <div className="space-y-3">
+                                    {Array.from({ length: branches }, (_, bi) => {
+                                      const branchStudents = hs.filter(a => a.branchNumber === bi + 1);
+                                      if (branchStudents.length === 0) return null;
+                                      return (
+                                        <div key={bi + 1}>
+                                          <div className="text-[10px] font-bold text-purple-700 uppercase tracking-wide mb-1 px-1">
+                                            বেঞ্চ — {bi + 1}
+                                          </div>
+                                          <div className="overflow-hidden rounded-xl border border-gray-200">
+                                            <table className="w-full text-xs border-collapse">
+                                              <thead>
+                                                <tr className="bg-purple-50">
+                                                  <th className="px-3 py-2 text-center text-purple-600 font-semibold w-14">আসন</th>
+                                                  <th className="px-3 py-2 text-left text-gray-600 font-semibold">নাম</th>
+                                                  <th className="px-3 py-2 text-center text-gray-600 font-semibold w-32">শ্রেণি</th>
+                                                  <th className="px-3 py-2 text-center text-gray-600 font-semibold w-20">রোল</th>
+                                                </tr>
+                                              </thead>
+                                              <tbody className="divide-y divide-gray-50">
+                                                {branchStudents.map((a, i) => {
+                                                  const prevClass = i > 0 ? branchStudents[i - 1].student?.class : null;
+                                                  const sameAsPrev = prevClass === a.student?.class;
+                                                  return (
+                                                    <tr key={a.seatNumber} className={`hover:bg-purple-50/20 ${sameAsPrev ? 'bg-red-50/30' : ''}`}>
+                                                      <td className="px-3 py-2 text-center font-bold text-purple-700">{a.seatInBranch}</td>
+                                                      <td className="px-3 py-2 font-medium text-gray-800">{a.student?.name}</td>
+                                                      <td className={`px-3 py-2 text-center text-[11px] ${sameAsPrev ? 'text-red-500 font-semibold' : 'text-gray-500'}`}>
+                                                        {MADRASHA_CLASSES.find(c => c.id === a.student?.class)?.nameBn ?? ''}
+                                                      </td>
+                                                      <td className="px-3 py-2 text-center text-gray-500">{a.student?.roll}</td>
+                                                    </tr>
+                                                  );
+                                                })}
+                                              </tbody>
+                                            </table>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                              </>
                             )}
                           </div>
                         )}
