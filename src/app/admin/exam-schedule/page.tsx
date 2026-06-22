@@ -1,8 +1,9 @@
 ﻿'use client';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { MADRASHA_CLASSES, SUBJECTS_BY_CLASS } from '@/lib/data';
-import { Plus, Trash2, Download, X, Calendar, Edit2, Bell, CheckCircle, Lock, Unlock } from 'lucide-react';
+import { Plus, Trash2, Download, X, Calendar, Edit2, Bell, CheckCircle, Lock, Unlock, ExternalLink } from 'lucide-react';
 import { useNotices } from '@/context/NoticesContext';
 
 const EXAMS_KEY = 'nim_exams_v1';
@@ -459,6 +460,10 @@ export default function AdminExamSchedulePage() {
                   <span className="flex items-center gap-2 bg-green-50 text-green-700 px-3 py-2 rounded-xl text-sm font-medium border border-green-200">
                     <CheckCircle size={13} /> {markSubmission.examName} ({markSubmission.year}) — সাবমিশন চলছে
                   </span>
+                  <Link href="/admin/results/entry"
+                    className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors">
+                    <ExternalLink size={13} /> নম্বর প্রবেশ করুন
+                  </Link>
                   <button onClick={closeMarkSubmission}
                     className="flex items-center gap-1.5 border border-red-200 text-red-600 hover:bg-red-50 px-4 py-2 rounded-xl text-sm font-medium transition-colors">
                     <Lock size={13} /> বন্ধ করুন
