@@ -12,7 +12,7 @@ import {
 
 function SectionHeader({ id, icon: Icon, title, subtitle }: { id: string; icon: React.ElementType; title: string; subtitle?: string }) {
   return (
-    <div id={id} className="scroll-mt-24 mb-8">
+    <div id={id} className="scroll-mt-32 mb-8">
       <div className="flex items-center gap-3 mb-2">
         <div className="w-9 h-9 bg-[#e8f5ee] rounded-xl flex items-center justify-center shrink-0">
           <Icon size={18} className="text-[#006633]" />
@@ -91,6 +91,7 @@ export default function AboutPage() {
                 ['land', 'ভূমি'],
                 ['building', 'ভবন'],
                 ['campus-map', 'ম্যাপ'],
+                ['annual-report', 'বার্ষিক'],
                 ['classes', 'শ্রেণি'],
                 ['exam-schedule', 'পরীক্ষা'],
                 ['syllabus', 'সিলেবাস'],
@@ -132,7 +133,7 @@ export default function AboutPage() {
           </section>
 
           {/* অধ্যক্ষের বার্তা */}
-          <section id="principal" className="scroll-mt-24">
+          <section id="principal" className="scroll-mt-32">
             <SectionHeader id="principal-header" icon={MessageSquare} title="অধ্যক্ষের বার্তা" />
             <InfoCard>
               <div className="flex gap-5 items-start">
@@ -153,32 +154,26 @@ export default function AboutPage() {
           {/* পরিচালনা পর্ষদ */}
           <section>
             <SectionHeader id="governing-body" icon={Users} title="পরিচালনা পর্ষদ" subtitle="প্রতিষ্ঠানের পরিচালনা কমিটির সদস্যবৃন্দ" />
-            <InfoCard>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-100">
-                      <th className="text-left py-2 px-3 text-xs font-bold text-gray-500 uppercase tracking-wide w-10">#</th>
-                      <th className="text-left py-2 px-3 text-xs font-bold text-gray-500 uppercase tracking-wide">পদবি</th>
-                      <th className="text-left py-2 px-3 text-xs font-bold text-gray-500 uppercase tracking-wide">নাম</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {about.governingBody.map((m, i) => (
-                      <tr key={i} className={`border-b border-gray-50 hover:bg-gray-50/60 transition-colors`}>
-                        <td className="py-3 px-3 text-gray-400 text-xs">{i + 1}</td>
-                        <td className="py-3 px-3">
-                          <span className="inline-block bg-[#e8f5ee] text-[#006633] text-[11px] font-semibold px-2.5 py-1 rounded-full">
-                            {m.role}
-                          </span>
-                        </td>
-                        <td className="py-3 px-3 font-semibold text-gray-800">{m.name}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </InfoCard>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {about.governingBody.map((m, i) => (
+                <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center hover:border-[#006633]/30 hover:shadow-md transition-all group">
+                  <div className="w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden border-2 border-[#006633]/20 bg-[#e8f5ee] flex items-center justify-center shrink-0">
+                    {m.photo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={m.photo} alt={m.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-2xl font-black text-[#006633] select-none">
+                        {m.name.replace(/^(জনাব|মো\.|মোছাঃ|উপজেলা)\s*/i, '').charAt(0)}
+                      </span>
+                    )}
+                  </div>
+                  <p className="font-bold text-gray-900 text-sm leading-snug mb-2">{m.name}</p>
+                  <span className="inline-block bg-[#e8f5ee] text-[#006633] text-[10px] font-semibold px-2.5 py-1 rounded-full leading-tight">
+                    {m.role}
+                  </span>
+                </div>
+              ))}
+            </div>
           </section>
 
           {/* অনুমতি ও স্বীকৃতি */}
@@ -242,6 +237,14 @@ export default function AboutPage() {
                   {COLLEGE_INFO.address}
                 </p>
               </div>
+            </InfoCard>
+          </section>
+
+          {/* বার্ষিক প্রতিবেদন */}
+          <section>
+            <SectionHeader id="annual-report" icon={FileText} title="বার্ষিক প্রতিবেদন" subtitle="প্রতিষ্ঠানের বার্ষিক কার্যক্রম ও ফলাফলের সারসংক্ষেপ" />
+            <InfoCard>
+              <PreText text={about.annualReportText} />
             </InfoCard>
           </section>
 

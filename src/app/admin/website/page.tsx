@@ -272,14 +272,18 @@ export default function WebsiteSettingsPage() {
                 </button>
               </div>
               {content.aboutPage.governingBody.map((m, i) => (
-                <div key={i} className="flex gap-2 items-center">
-                  <input value={m.role} onChange={e => updateMember(i, { role: e.target.value })}
-                    className="w-52 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400"
-                    placeholder="পদবি (যেমন: সভাপতি)" />
-                  <input value={m.name} onChange={e => updateMember(i, { name: e.target.value })}
-                    className={`flex-1 ${inp}`} placeholder="পুরো নাম" />
-                  <button onClick={() => setAbout('governingBody', content.aboutPage.governingBody.filter((_, j) => j !== i))}
-                    className="p-2 rounded-xl bg-red-50 text-red-500 hover:bg-red-100"><Trash2 size={14} /></button>
+                <div key={i} className="border border-gray-100 rounded-xl p-3 space-y-2">
+                  <div className="flex gap-2 items-center">
+                    <input value={m.role} onChange={e => updateMember(i, { role: e.target.value })}
+                      className="w-48 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400"
+                      placeholder="পদবি (যেমন: সভাপতি)" />
+                    <input value={m.name} onChange={e => updateMember(i, { name: e.target.value })}
+                      className={`flex-1 ${inp}`} placeholder="পুরো নাম" />
+                    <button onClick={() => setAbout('governingBody', content.aboutPage.governingBody.filter((_, j) => j !== i))}
+                      className="p-2 rounded-xl bg-red-50 text-red-500 hover:bg-red-100"><Trash2 size={14} /></button>
+                  </div>
+                  <input value={m.photo ?? ''} onChange={e => updateMember(i, { photo: e.target.value })}
+                    className={inp} placeholder="ছবির URL (https://... অথবা ফাঁকা রাখুন — তাহলে নামের আদ্যক্ষর দেখাবে)" />
                 </div>
               ))}
             </div>
@@ -340,6 +344,14 @@ export default function WebsiteSettingsPage() {
               <h3 className="font-bold text-gray-900 text-sm">বৃত্তি ও সুবিধা</h3>
               <textarea value={content.aboutPage.scholarshipText}
                 onChange={e => setAbout('scholarshipText', e.target.value)} rows={8} className={ta} />
+            </div>
+
+            {/* বার্ষিক প্রতিবেদন */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm space-y-3">
+              <h3 className="font-bold text-gray-900 text-sm">বার্ষিক প্রতিবেদন</h3>
+              <textarea value={content.aboutPage.annualReportText ?? ''}
+                onChange={e => setAbout('annualReportText', e.target.value)} rows={8} className={ta}
+                placeholder="বার্ষিক কার্যক্রম ও ফলাফলের সারসংক্ষেপ" />
             </div>
 
           </div>
