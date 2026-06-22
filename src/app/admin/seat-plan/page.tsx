@@ -3,7 +3,8 @@ import { useState, useEffect, useMemo } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { STUDENTS, MADRASHA_CLASSES } from '@/lib/data';
 import type { Student } from '@/lib/types';
-import { Plus, Trash2, Download, MapPin, Users, Edit2, Shuffle, ChevronDown, Calendar, Layers, CheckCircle2 } from 'lucide-react';
+import { Plus, Trash2, Download, MapPin, Users, Edit2, Shuffle, ChevronDown, Calendar, Layers, CheckCircle2, UserCheck } from 'lucide-react';
+import { useTeachers } from '@/context/TeachersContext';
 
 const EXAMS_KEY = 'nim_exams_v1';
 const ENTRIES_KEY = 'nim_exam_entries_v1';
@@ -21,6 +22,7 @@ export interface Hall {
   branches: number;        // number of bench rows
   seatsPerBranch: number;  // seats per bench
   guardName?: string;
+  guardTeacherId?: string;
   classIds: string[];
 }
 
@@ -265,7 +267,8 @@ export default function SeatPlanPage() {
 
   const [showHallForm, setShowHallForm] = useState(false);
   const [editHallId, setEditHallId] = useState<string | null>(null);
-  const [hallForm, setHallForm] = useState({ hallName: '', branches: '', seatsPerBranch: '', guardName: '', classIds: [] as string[] });
+  const [hallForm, setHallForm] = useState({ hallName: '', branches: '', seatsPerBranch: '', guardTeacherId: '', classIds: [] as string[] });
+  const { teachers } = useTeachers();
   const [expandedHall, setExpandedHall] = useState<string | null>(null);
   const [viewModeMap, setViewModeMap] = useState<Record<string, 'table' | 'visual'>>({});
 
@@ -356,20 +359,23 @@ export default function SeatPlanPage() {
     const seatsPerBranch = parseInt(hallForm.seatsPerBranch, 10);
     if (!hallForm.hallName.trim() || isNaN(branches) || branches < 1 || isNaN(seatsPerBranch) || seatsPerBranch < 1) return;
     const capacity = branches * seatsPerBranch;
+    const guardTeacher = teachers.find(t => t.id === hallForm.guardTeacherId);
+    const guardName = guardTeacher ? (guardTeacher.nameBn || guardTeacher.name) : undefined;
+    const guardTeacherId = guardTeacher?.id;
     if (editHallId) {
       saveHalls(halls.map(h => h.id === editHallId
-        ? { ...h, hallName: hallForm.hallName.trim(), capacity, branches, seatsPerBranch, guardName: hallForm.guardName.trim() || undefined, classIds: hallForm.classIds }
+        ? { ...h, hallName: hallForm.hallName.trim(), capacity, branches, seatsPerBranch, guardName, guardTeacherId, classIds: hallForm.classIds }
         : h));
       setEditHallId(null);
     } else {
       saveHalls([...halls, {
         id: `hall_${Date.now()}`, examId: selectedExamId,
         hallName: hallForm.hallName.trim(), capacity, branches, seatsPerBranch,
-        guardName: hallForm.guardName.trim() || undefined,
+        guardName, guardTeacherId,
         classIds: hallForm.classIds,
       }]);
     }
-    setHallForm({ hallName: '', branches: '', seatsPerBranch: '', guardName: '', classIds: [] });
+    setHallForm({ hallName: '', branches: '', seatsPerBranch: '', guardTeacherId: '', classIds: [] });
     setShowHallForm(false);
   };
 
@@ -384,7 +390,7 @@ export default function SeatPlanPage() {
       hallName: hall.hallName,
       branches: String(hall.branches ?? 1),
       seatsPerBranch: String(hall.seatsPerBranch ?? hall.capacity),
-      guardName: hall.guardName ?? '',
+      guardTeacherId: hall.guardTeacherId ?? '',
       classIds: hall.classIds ?? [],
     });
     setShowHallForm(true);
@@ -531,7 +537,7 @@ export default function SeatPlanPage() {
                 </div>
                 <div className="flex gap-2 flex-wrap">
                   <button
-                    onClick={() => { setShowHallForm(v => !v); setEditHallId(null); setHallForm({ hallName: '', branches: '', seatsPerBranch: '', guardName: '', classIds: [] }); }}
+                    onClick={() => { setShowHallForm(v => !v); setEditHallId(null); setHallForm({ hallName: '', branches: '', seatsPerBranch: '', guardTeacherId: '', classIds: [] }); }}
                     className="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white text-xs px-3 py-2 rounded-lg font-medium transition-colors">
                     <Plus size={13} /> হল যোগ
                   </button>
@@ -562,20 +568,56 @@ export default function SeatPlanPage() {
                     {editHallId ? 'হল সম্পাদনা' : 'নতুন পরীক্ষার হল'}
                   </h4>
 
-                  {/* Row 1: hall name + guard */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-xs font-semibold text-gray-600 block mb-1">হলের নাম *</label>
-                      <input value={hallForm.hallName} onChange={e => setHallForm(p => ({ ...p, hallName: e.target.value }))}
-                        placeholder="যেমন: কক্ষ-১" autoFocus
-                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400" />
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold text-gray-600 block mb-1">পরিদর্শকের নাম</label>
-                      <input value={hallForm.guardName} onChange={e => setHallForm(p => ({ ...p, guardName: e.target.value }))}
-                        placeholder="ঐচ্ছিক"
-                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400" />
-                    </div>
+                  {/* Row 1: hall name */}
+                  <div>
+                    <label className="text-xs font-semibold text-gray-600 block mb-1">হলের নাম *</label>
+                    <input value={hallForm.hallName} onChange={e => setHallForm(p => ({ ...p, hallName: e.target.value }))}
+                      placeholder="যেমন: কক্ষ-১" autoFocus
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400" />
+                  </div>
+
+                  {/* Row 1b: guard teacher select */}
+                  <div>
+                    <label className="text-xs font-semibold text-gray-600 block mb-1 flex items-center gap-1">
+                      <UserCheck size={11} /> পরিদর্শক শিক্ষক
+                      <span className="text-gray-400 font-normal">(ঐচ্ছিক — প্রতি শিক্ষক একটি হলে)</span>
+                    </label>
+                    {(() => {
+                      const assignedIds = new Set(
+                        examHalls.filter(h => h.id !== editHallId).map(h => h.guardTeacherId).filter(Boolean)
+                      );
+                      return (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5 max-h-36 overflow-y-auto pr-1">
+                          <label className={`flex items-center gap-1.5 px-2.5 py-2 rounded-lg border cursor-pointer text-xs font-medium transition-all ${
+                            hallForm.guardTeacherId === '' ? 'bg-gray-600 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'
+                          }`}>
+                            <input type="radio" className="sr-only" checked={hallForm.guardTeacherId === ''}
+                              onChange={() => setHallForm(p => ({ ...p, guardTeacherId: '' }))} />
+                            নির্ধারিত নেই
+                          </label>
+                          {teachers.map(t => {
+                            const taken = assignedIds.has(t.id);
+                            const selected = hallForm.guardTeacherId === t.id;
+                            return (
+                              <label key={t.id} className={`flex flex-col px-2.5 py-2 rounded-lg border cursor-pointer text-xs font-medium transition-all ${
+                                selected
+                                  ? 'bg-purple-600 border-purple-600 text-white'
+                                  : taken
+                                  ? 'bg-red-50 border-red-200 text-red-400 cursor-not-allowed'
+                                  : 'bg-white border-gray-200 text-gray-700 hover:border-purple-300 hover:bg-purple-50'
+                              }`}>
+                                <input type="radio" className="sr-only" checked={selected}
+                                  onChange={() => !taken && setHallForm(p => ({ ...p, guardTeacherId: t.id }))} />
+                                <span className="truncate font-semibold">{t.nameBn || t.name}</span>
+                                <span className={`text-[9px] truncate mt-0.5 ${selected ? 'text-purple-200' : taken ? 'text-red-300' : 'text-gray-400'}`}>
+                                  {taken ? 'অন্য হলে নির্ধারিত' : t.designation}
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* Row 2: branches + seatsPerBranch + calculated total */}
@@ -695,7 +737,14 @@ export default function SeatPlanPage() {
                               <p className="text-[10px] text-amber-600 mt-1">⚠ কোনো শ্রেণি নির্ধারিত নেই — সম্পাদনা করুন</p>
                             )}
                             {hall.guardName && (
-                              <p className="text-[10px] text-gray-400 mt-0.5">পরিদর্শক: {hall.guardName}</p>
+                              <div className="flex items-center gap-1 mt-0.5">
+                                <UserCheck size={10} className="text-purple-400" />
+                                <span className="text-[10px] text-purple-700 font-medium">{hall.guardName}</span>
+                                {hall.guardTeacherId && (() => {
+                                  const t = teachers.find(x => x.id === hall.guardTeacherId);
+                                  return t ? <span className="text-[9px] text-gray-400">({t.designation})</span> : null;
+                                })()}
+                              </div>
                             )}
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
