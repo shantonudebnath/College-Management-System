@@ -36,10 +36,10 @@ const NAV_LINKS: NavItem[] = [
   {
     label: 'শিক্ষক ও কর্মচারী',
     children: [
-      { label: 'অধ্যক্ষের বার্তা', href: '/teachers#principal' },
-      { label: 'শিক্ষক তালিকা', href: '/teachers' },
-      { label: 'কর্মচারী তালিকা', href: '/teachers#staff' },
-      { label: 'প্রতিষ্ঠাতা ও দাতা', href: '/teachers#founders' },
+      { label: 'অধ্যক্ষের বার্তা', href: '/teachers?section=principal' },
+      { label: 'শিক্ষক তালিকা', href: '/teachers?section=teachers' },
+      { label: 'কর্মচারী তালিকা', href: '/teachers?section=staff' },
+      { label: 'প্রতিষ্ঠাতা ও দাতা', href: '/teachers?section=founders' },
     ],
   },
   { label: 'নোটিশ বোর্ড', href: '/notice' },
