@@ -174,12 +174,6 @@ export default function Navbar() {
             {/* CTA buttons */}
             <div className="hidden lg:flex items-center gap-2 shrink-0">
               <Link
-                href="/login"
-                className="px-4 py-2 text-sm font-semibold text-gray-700 border border-gray-200 rounded-lg hover:border-[#006633] hover:text-[#006633] hover:bg-green-50 transition-all"
-              >
-                লগইন
-              </Link>
-              <Link
                 href="/admission"
                 className="px-5 py-2 text-sm font-bold bg-[#006633] text-white rounded-lg hover:bg-[#004d26] transition-all shadow-sm"
               >
