@@ -453,8 +453,11 @@ function MiniCard({ student, card, schedule, seatInfo }: { student: (typeof STUD
     </div>
   );
   return (
-    <div style={{ border: '2.5px solid #000', fontFamily: "'Noto Serif Bengali', 'Vrinda', serif", fontSize: '7pt', pageBreakInside: 'avoid', breakInside: 'avoid', overflow: 'hidden', background: '#fff' }}>
-      <div style={{ margin: '2px', border: '1px solid #000' }}>
+    <div style={{ border: '2.5px solid #000', fontFamily: "'Noto Serif Bengali', 'Vrinda', serif", fontSize: '7pt', pageBreakInside: 'avoid', breakInside: 'avoid', overflow: 'hidden', background: '#fff', position: 'relative' }}>
+      {/* Logo watermark */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/logo.png" alt="" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '80px', opacity: 0.06, pointerEvents: 'none', zIndex: 0 }} />
+      <div style={{ margin: '2px', border: '1px solid #000', position: 'relative', zIndex: 1 }}>
 
         {/* Header */}
         <div style={{ borderBottom: '1.5px solid #000', padding: '1.5mm 3mm', textAlign: 'center', background: '#f9f9f9' }}>
@@ -495,43 +498,6 @@ function MiniCard({ student, card, schedule, seatInfo }: { student: (typeof STUD
             <div style={{ fontSize: '5.5pt', color: '#666', textAlign: 'center', lineHeight: 1.3 }}>সত্যায়িত<br/>ছবি</div>
           </div>
         </div>
-
-        {/* Seat info */}
-        {seatInfo && (
-          <div style={{ borderTop: '1px solid #000', padding: '1mm 3mm', fontSize: '6.5pt', background: '#f5f5f5' }}>
-            <div style={{ display: 'flex', gap: '6mm', flexWrap: 'wrap' }}>
-              <span>{B('পরীক্ষা কক্ষ:')} {seatInfo.hallName}</span>
-              <span>{B('আসন নং:')} {seatInfo.seatNumber}</span>
-              {seatInfo.guardName && <span>{B('কক্ষ পরিদর্শক:')} {seatInfo.guardName}</span>}
-            </div>
-          </div>
-        )}
-
-        {/* Schedule */}
-        {schedule.length > 0 && (
-          <div style={{ borderTop: '1px solid #000', padding: '1.5mm 3mm' }}>
-            <div style={{ fontWeight: 700, fontSize: '6.5pt', marginBottom: '1mm' }}>পরীক্ষার সময়সূচী:</div>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '6pt' }}>
-              <thead>
-                <tr style={{ background: '#f0f0f0' }}>
-                  {['বিষয়', 'তারিখ', 'শুরু', 'শেষ'].map(h => (
-                    <th key={h} style={{ border: '0.5px solid #999', padding: '0.5mm 1mm', textAlign: 'left', fontWeight: 700 }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {schedule.map((e, i) => (
-                  <tr key={i}>
-                    <td style={{ border: '0.5px solid #ccc', padding: '0.5mm 1mm' }}>{e.subject}</td>
-                    <td style={{ border: '0.5px solid #ccc', padding: '0.5mm 1mm' }}>{e.date}</td>
-                    <td style={{ border: '0.5px solid #ccc', padding: '0.5mm 1mm' }}>{e.startTime}</td>
-                    <td style={{ border: '0.5px solid #ccc', padding: '0.5mm 1mm' }}>{e.endTime}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
 
         {/* Signatures */}
         <div style={{ borderTop: '1.5px solid #000', display: 'flex', justifyContent: 'space-between', padding: '2.5mm 4mm 2mm', fontSize: '6pt', color: '#333' }}>
