@@ -1,10 +1,10 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import { EXAM_RESULTS, MADRASHA_CLASSES } from '@/lib/data';
+import { EXAM_RESULTS, MADRASHA_CLASSES, COLLEGE_INFO } from '@/lib/data';
 import { loadResultsFromStorage } from '@/lib/result-utils';
 import type { ExamResult } from '@/lib/types';
-import { Award, CheckCircle, Download, Printer, Search, EyeOff, Lock, Unlock, ChevronDown, FileText } from 'lucide-react';
+import { Award, CheckCircle, Download, Printer, Search, EyeOff, Lock, Unlock, ChevronDown, BarChart3 } from 'lucide-react';
 import { useNotices } from '@/context/NoticesContext';
 
 const LS_KEY = 'published_results_v1';
@@ -14,89 +14,116 @@ function getPublished(): string[] {
   try { return JSON.parse(localStorage.getItem(LS_KEY) ?? '[]'); } catch { return []; }
 }
 
-function getGradeColor(grade: string) {
-  if (grade === 'A+') return 'text-green-700 bg-green-100';
-  if (grade.startsWith('A')) return 'text-blue-700 bg-blue-100';
-  if (grade === 'B') return 'text-amber-700 bg-amber-100';
-  return 'text-red-700 bg-red-100';
+function gradeChip(grade: string) {
+  if (grade === 'A+') return 'text-emerald-700 bg-emerald-50 border border-emerald-200';
+  if (grade.startsWith('A')) return 'text-blue-700 bg-blue-50 border border-blue-200';
+  if (grade === 'B') return 'text-amber-700 bg-amber-50 border border-amber-200';
+  if (grade === 'C' || grade === 'D') return 'text-orange-700 bg-orange-50 border border-orange-200';
+  return 'text-red-700 bg-red-50 border border-red-200';
 }
 
+// ─── PDF (summary only, no subject columns — avoids wrapping) ─────────────────
 async function downloadResultsPDF(results: ExamResult[], examName: string, classLabel: string) {
   if (results.length === 0) return;
   const { jsPDF } = await import('jspdf');
   const autoTable = (await import('jspdf-autotable')).default;
 
-  const doc = new jsPDF({ orientation: 'landscape' });
-  const passCount = results.filter(r => r.status === 'pass').length;
-  const passRate = results.length > 0 ? Math.round((passCount / results.length) * 100) : 0;
-  const avgGpa = results.length > 0
-    ? (results.reduce((s, r) => s + r.gpa, 0) / results.length).toFixed(2)
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const sorted = [...results].sort((a, b) => a.roll - b.roll);
+  const passCount = sorted.filter(r => r.status === 'pass').length;
+  const passRate = sorted.length > 0 ? Math.round((passCount / sorted.length) * 100) : 0;
+  const avgGpa = sorted.length > 0
+    ? (sorted.reduce((s, r) => s + r.gpa, 0) / sorted.length).toFixed(2)
     : '0.00';
   const today = new Date().toLocaleDateString('en-GB');
 
+  // Header band
   doc.setFillColor(0, 102, 51);
-  doc.rect(0, 0, 297, 22, 'F');
+  doc.rect(0, 0, 210, 28, 'F');
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(16);
+  doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.text('Noor-E-Islam Madrasha', 148, 10, { align: 'center' });
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`Result Sheet — ${examName}${classLabel !== 'সকল শ্রেণি' ? ' — ' + classLabel : ''}`, 148, 17, { align: 'center' });
-
-  doc.setTextColor(60, 60, 60);
+  doc.text(COLLEGE_INFO.name, 105, 11, { align: 'center' });
   doc.setFontSize(9);
-  doc.text(`Total Students: ${results.length}`, 14, 29);
-  doc.text(`Passed: ${passCount}`, 70, 29);
-  doc.text(`Pass Rate: ${passRate}%`, 110, 29);
-  doc.text(`Average GPA: ${avgGpa}`, 155, 29);
-  doc.text(`Generated: ${today}`, 230, 29);
+  doc.setFont('helvetica', 'normal');
+  doc.text(COLLEGE_INFO.address, 105, 17, { align: 'center' });
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`Result Sheet — ${examName}`, 105, 24, { align: 'center' });
 
-  const subjectNames = results[0]?.subjects.map(s => s.name) ?? [];
-  const fixedCols = ['Roll', 'Student Name', 'Class'];
-  const subjectCols = subjectNames.map(s => s.length > 10 ? s.slice(0, 8) + '..' : s);
-  const tailCols = ['Total', 'GPA', 'Grade', 'Result'];
-  const head = [[...fixedCols, ...subjectCols, ...tailCols]];
+  // Sub-info
+  doc.setTextColor(50, 50, 50);
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  const subLine = [
+    classLabel !== 'সকল শ্রেণি' ? `Class: ${classLabel}` : 'All Classes',
+    `Total: ${sorted.length}`,
+    `Passed: ${passCount}`,
+    `Pass Rate: ${passRate}%`,
+    `Avg GPA: ${avgGpa}`,
+    `Date: ${today}`,
+  ].join('   |   ');
+  doc.text(subLine, 105, 34, { align: 'center' });
 
-  const sorted = [...results].sort((a, b) => a.roll - b.roll);
-  const body = sorted.map(r => {
-    const subMarks = r.subjects.map(s => String(s.marks));
+  // Table
+  const head = [['SL', 'Roll', 'Student Name', 'Class', 'Total Marks', '%', 'GPA', 'Grade', 'Result']];
+  const body = sorted.map((r, i) => {
     const cn = MADRASHA_CLASSES.find(c => c.id === r.class)?.nameBn ?? r.class;
-    return [String(r.roll), r.studentName, cn, ...subMarks, String(r.totalMarks), r.gpa.toFixed(2), r.grade, r.status === 'pass' ? 'Pass' : 'Fail'];
+    const total = r.totalFullMarks ? `${r.totalMarks}/${r.totalFullMarks}` : String(r.totalMarks);
+    return [
+      String(i + 1),
+      String(r.roll),
+      r.studentName,
+      cn,
+      total,
+      r.percentage != null ? `${r.percentage.toFixed(1)}%` : '—',
+      r.gpa.toFixed(2),
+      r.grade,
+      r.status === 'pass' ? 'Pass' : 'Fail',
+    ];
   });
 
   autoTable(doc, {
     head,
     body,
-    startY: 34,
-    styles: { fontSize: 7.5, cellPadding: 2.5 },
-    headStyles: { fillColor: [0, 102, 51], textColor: 255, fontStyle: 'bold', fontSize: 7 },
-    alternateRowStyles: { fillColor: [240, 248, 244] },
+    startY: 38,
+    styles: { fontSize: 8, cellPadding: 2.8, font: 'helvetica', overflow: 'linebreak' },
+    headStyles: { fillColor: [0, 102, 51], textColor: 255, fontStyle: 'bold', fontSize: 7.5, halign: 'center' },
+    alternateRowStyles: { fillColor: [245, 252, 248] },
     columnStyles: {
-      0: { cellWidth: 12, halign: 'center' },
-      1: { cellWidth: 38 },
-      2: { cellWidth: 22 },
-      [fixedCols.length + subjectNames.length]:     { cellWidth: 14, halign: 'center', fontStyle: 'bold' },
-      [fixedCols.length + subjectNames.length + 1]: { cellWidth: 13, halign: 'center', fontStyle: 'bold', textColor: [0, 102, 51] },
-      [fixedCols.length + subjectNames.length + 2]: { cellWidth: 14, halign: 'center', fontStyle: 'bold' },
-      [fixedCols.length + subjectNames.length + 3]: { cellWidth: 14, halign: 'center', fontStyle: 'bold' },
+      0: { cellWidth: 10, halign: 'center' },
+      1: { cellWidth: 13, halign: 'center' },
+      2: { cellWidth: 52 },
+      3: { cellWidth: 30 },
+      4: { cellWidth: 22, halign: 'center' },
+      5: { cellWidth: 16, halign: 'center' },
+      6: { cellWidth: 14, halign: 'center', fontStyle: 'bold', textColor: [0, 102, 51] },
+      7: { cellWidth: 14, halign: 'center', fontStyle: 'bold' },
+      8: { cellWidth: 17, halign: 'center', fontStyle: 'bold' },
     },
     didParseCell: (data: Parameters<NonNullable<Parameters<typeof autoTable>[1]['didParseCell']>>[0]) => {
-      const lastCols = fixedCols.length + subjectNames.length;
-      if (data.section === 'body' && data.column.index === lastCols + 3) {
-        const res = (data.row.raw as string[])[lastCols + 3];
-        (data.cell.styles as { textColor: number[] }).textColor = res === 'Pass' ? [22, 163, 74] : [220, 38, 38];
+      if (data.section === 'body' && data.column.index === 8) {
+        const val = (data.row.raw as string[])[8];
+        (data.cell.styles as { textColor: number[] }).textColor = val === 'Pass' ? [21, 128, 61] : [220, 38, 38];
       }
     },
   });
 
-  const pageH = doc.internal.pageSize.height;
-  doc.setFontSize(8);
-  doc.setTextColor(150);
-  doc.text('Noor-E-Islam Madrasha | Confidential', 14, pageH - 8);
-  doc.save(`result-sheet-${examName.replace(/\s+/g, '-')}.pdf`);
+  // Footer
+  const totalPages = (doc as unknown as { internal: { getNumberOfPages: () => number } }).internal.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    const pageH = doc.internal.pageSize.height;
+    doc.setFontSize(7.5);
+    doc.setTextColor(140);
+    doc.text(`${COLLEGE_INFO.nameBn} | EIIN: ${COLLEGE_INFO.eiin} | Confidential`, 14, pageH - 8);
+    doc.text(`Page ${i} of ${totalPages}`, 196, pageH - 8, { align: 'right' });
+  }
+
+  doc.save(`result-${examName.replace(/\s+/g, '-')}.pdf`);
 }
 
+// ─── Print ─────────────────────────────────────────────────────────────────────
 function printResultSheet(results: ExamResult[], examName: string, classLabel: string) {
   if (results.length === 0) return;
   const sorted = [...results].sort((a, b) => a.roll - b.roll);
@@ -107,12 +134,14 @@ function printResultSheet(results: ExamResult[], examName: string, classLabel: s
   const rows = sorted.map((r, i) => {
     const cn = MADRASHA_CLASSES.find(c => c.id === r.class)?.nameBn ?? r.class;
     const sc = r.status === 'pass' ? '#15803d' : '#dc2626';
+    const total = r.totalFullMarks ? `${r.totalMarks}/${r.totalFullMarks}` : String(r.totalMarks);
     return `<tr style="background:${i % 2 === 0 ? '#fff' : '#f0f8f4'}">
+      <td style="text-align:center">${i + 1}</td>
       <td style="text-align:center">${r.roll}</td>
       <td>${r.studentName}</td>
       <td style="text-align:center">${cn}</td>
-      <td style="text-align:center">${r.totalMarks}${r.totalFullMarks ? '/' + r.totalFullMarks : ''}</td>
-      <td style="text-align:center">${r.percentage != null ? r.percentage.toFixed(1) : '—'}%</td>
+      <td style="text-align:center">${total}</td>
+      <td style="text-align:center">${r.percentage != null ? r.percentage.toFixed(1) + '%' : '—'}</td>
       <td style="text-align:center;font-weight:700;color:#006633">${r.gpa.toFixed(2)}</td>
       <td style="text-align:center;font-weight:700">${r.grade}</td>
       <td style="text-align:center;font-weight:700;color:${sc}">${r.status === 'pass' ? 'উত্তীর্ণ' : 'অনুত্তীর্ণ'}</td>
@@ -126,53 +155,62 @@ function printResultSheet(results: ExamResult[], examName: string, classLabel: s
 <title>ফলাফল — ${examName}</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:Arial,sans-serif;padding:20px;font-size:11px;color:#111}
+  body{font-family:Arial,sans-serif;padding:20px 24px;font-size:11px;color:#111}
   .hdr{text-align:center;border-bottom:3px double #006633;padding-bottom:10px;margin-bottom:12px}
-  .inst-name{font-size:20px;font-weight:900;color:#006633}
-  .inst-en{font-size:9px;color:#666;font-style:italic;margin-top:2px}
-  .exam-title{font-size:14px;font-weight:bold;color:#111;margin:8px 0 4px}
-  .meta{font-size:10px;color:#555}
-  .stats{display:flex;gap:16px;margin:10px 0 14px}
-  .stat-item{background:#f0f8f4;border:1px solid #c6e8d6;border-radius:4px;padding:6px 16px;text-align:center}
-  .stat-val{font-size:16px;font-weight:700;color:#006633}
-  .stat-lbl{font-size:9px;color:#555;margin-top:2px}
-  table{width:100%;border-collapse:collapse;font-size:10.5px}
-  th{background:#006633;color:#fff;padding:6px 8px;border:1px solid #005529}
-  th:nth-child(2){text-align:left}
-  td{padding:5px 8px;border:1px solid #ddd;text-align:center}
-  td:nth-child(2){text-align:left}
-  .footer{margin-top:30px;display:flex;justify-content:space-between}
-  .sig-col{text-align:center;min-width:140px}
+  .inst-name{font-size:18px;font-weight:900;color:#006633}
+  .inst-en{font-size:9.5px;color:#555;margin-top:2px}
+  .inst-addr{font-size:9px;color:#777;margin-top:2px}
+  .exam-title{font-size:13px;font-weight:bold;color:#111;margin:8px 0 3px;text-decoration:underline;text-decoration-color:#006633}
+  .meta{font-size:9.5px;color:#555}
+  .stats{display:flex;gap:12px;margin:10px 0 14px;flex-wrap:wrap}
+  .stat{background:#f0f8f4;border:1px solid #c6e8d6;border-radius:4px;padding:5px 14px;text-align:center;min-width:80px}
+  .sv{font-size:15px;font-weight:700;color:#006633}
+  .sl{font-size:8.5px;color:#555;margin-top:1px}
+  table{width:100%;border-collapse:collapse;font-size:10px}
+  th{background:#006633;color:#fff;padding:5px 7px;border:1px solid #004d26}
+  td{padding:4px 7px;border:1px solid #ddd}
+  td:nth-child(3){text-align:left}
+  .footer{margin-top:28px;display:flex;justify-content:space-between;align-items:flex-end}
+  .sig{text-align:center;min-width:140px}
   .sig-line{border-top:1px solid #333;padding-top:4px;font-size:10px;font-weight:600}
-  .sig-sub{font-size:9px;color:#666;margin-top:2px}
-  @media print{@page{size:A4 landscape;margin:1cm}}
+  .sig-sub{font-size:8.5px;color:#666;margin-top:1px}
+  .watermark{text-align:center;margin-top:10px;font-size:9px;color:#bbb;border-top:1px dashed #ddd;padding-top:6px}
+  @media print{@page{size:A4 portrait;margin:1.2cm}}
 </style>
 </head>
 <body>
 <div class="hdr">
-  <div class="inst-name">এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা</div>
-  <div class="inst-en">Noor-e-Islam Madrasha, Egarsindur, Bangladesh</div>
+  <div class="inst-name">${COLLEGE_INFO.nameBn}</div>
+  <div class="inst-en">${COLLEGE_INFO.name}</div>
+  <div class="inst-addr">${COLLEGE_INFO.address} | EIIN: ${COLLEGE_INFO.eiin}</div>
   <div class="exam-title">${examName}${classLabel !== 'সকল শ্রেণি' ? ' — ' + classLabel : ''}</div>
-  <div class="meta">মুদ্রণের তারিখ: ${today} | মোট শিক্ষার্থী: ${sorted.length} জন</div>
+  <div class="meta">মুদ্রণের তারিখ: ${today} | শিক্ষাবর্ষ: ${new Date().getFullYear()}</div>
 </div>
 <div class="stats">
-  <div class="stat-item"><div class="stat-val">${sorted.length}</div><div class="stat-lbl">মোট</div></div>
-  <div class="stat-item"><div class="stat-val" style="color:#15803d">${passCount}</div><div class="stat-lbl">উত্তীর্ণ</div></div>
-  <div class="stat-item"><div class="stat-val" style="color:#dc2626">${sorted.length - passCount}</div><div class="stat-lbl">অনুত্তীর্ণ</div></div>
-  <div class="stat-item"><div class="stat-val">${passRate}%</div><div class="stat-lbl">পাশের হার</div></div>
+  <div class="stat"><div class="sv">${sorted.length}</div><div class="sl">মোট শিক্ষার্থী</div></div>
+  <div class="stat"><div class="sv" style="color:#15803d">${passCount}</div><div class="sl">উত্তীর্ণ</div></div>
+  <div class="stat"><div class="sv" style="color:#dc2626">${sorted.length - passCount}</div><div class="sl">অনুত্তীর্ণ</div></div>
+  <div class="stat"><div class="sv">${passRate}%</div><div class="sl">পাশের হার</div></div>
 </div>
 <table>
-  <thead>
-    <tr>
-      <th>রোল</th><th>নাম</th><th>শ্রেণি</th><th>মোট নম্বর</th><th>শতকরা</th><th>GPA</th><th>গ্রেড</th><th>ফলাফল</th>
-    </tr>
-  </thead>
+  <thead><tr>
+    <th style="width:28px">ক্র.</th>
+    <th style="width:36px">রোল</th>
+    <th>শিক্ষার্থীর নাম</th>
+    <th>শ্রেণি</th>
+    <th>মোট নম্বর</th>
+    <th>শতকরা</th>
+    <th>GPA</th>
+    <th>গ্রেড</th>
+    <th>ফলাফল</th>
+  </tr></thead>
   <tbody>${rows}</tbody>
 </table>
 <div class="footer">
-  <div class="sig-col"><div class="sig-line">পরীক্ষা নিয়ন্ত্রক</div><div class="sig-sub">এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা</div></div>
-  <div class="sig-col"><div class="sig-line">অধ্যক্ষ</div><div class="sig-sub">এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা</div></div>
+  <div class="sig"><div class="sig-line">পরীক্ষা নিয়ন্ত্রক</div><div class="sig-sub">${COLLEGE_INFO.nameBn}</div></div>
+  <div class="sig"><div class="sig-line">প্রধান শিক্ষক / অধ্যক্ষ</div><div class="sig-sub">${COLLEGE_INFO.nameBn}</div></div>
 </div>
+<div class="watermark">${COLLEGE_INFO.name} | এই ফলাফল শুধুমাত্র অভ্যন্তরীণ ব্যবহারের জন্য</div>
 <script>window.addEventListener('load',function(){setTimeout(function(){window.print();},400);});<\/script>
 </body>
 </html>`;
@@ -183,9 +221,80 @@ function printResultSheet(results: ExamResult[], examName: string, classLabel: s
   setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 
+// ─── Types ─────────────────────────────────────────────────────────────────────
 interface LiveExam { id: string; name: string; year: string; }
 interface MarkSubmission { examId: string; examName: string; year: string; }
 
+// ─── Class-wise result table ───────────────────────────────────────────────────
+function ClassGroup({ classId, results }: { classId: string; results: ExamResult[] }) {
+  const [open, setOpen] = useState(true);
+  const cn = MADRASHA_CLASSES.find(c => c.id === classId)?.nameBn ?? classId;
+  const pass = results.filter(r => r.status === 'pass').length;
+  const rate = results.length > 0 ? Math.round((pass / results.length) * 100) : 0;
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <ChevronDown size={15} className={`text-[#006633] transition-transform ${open ? '' : '-rotate-90'}`} />
+          <span className="font-semibold text-gray-900">{cn}</span>
+          <div className="flex gap-2 text-xs">
+            <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{results.length} জন</span>
+            <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full">উত্তীর্ণ {pass}</span>
+            <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">{rate}%</span>
+          </div>
+        </div>
+      </button>
+      {open && (
+        <div className="overflow-x-auto border-t border-gray-100">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 text-xs text-gray-500">
+              <tr>
+                <th className="px-4 py-2.5 text-center w-10">ক্র.</th>
+                <th className="px-4 py-2.5 text-center">রোল</th>
+                <th className="px-4 py-2.5 text-left">নাম</th>
+                <th className="px-4 py-2.5 text-center">মোট</th>
+                <th className="px-4 py-2.5 text-center">%</th>
+                <th className="px-4 py-2.5 text-center">GPA</th>
+                <th className="px-4 py-2.5 text-center">গ্রেড</th>
+                <th className="px-4 py-2.5 text-center">ফলাফল</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {[...results].sort((a, b) => a.roll - b.roll).map((r, i) => (
+                <tr key={r.studentId + r.examName + r.year} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-2.5 text-center text-gray-400 text-xs">{i + 1}</td>
+                  <td className="px-4 py-2.5 text-center font-semibold text-gray-700">{r.roll}</td>
+                  <td className="px-4 py-2.5 font-medium text-gray-900">{r.studentName}</td>
+                  <td className="px-4 py-2.5 text-center text-gray-700 font-medium">
+                    {r.totalMarks}{r.totalFullMarks ? `/${r.totalFullMarks}` : ''}
+                  </td>
+                  <td className="px-4 py-2.5 text-center text-gray-500 text-xs">
+                    {r.percentage != null ? `${r.percentage.toFixed(1)}%` : '—'}
+                  </td>
+                  <td className="px-4 py-2.5 text-center font-bold text-[#006633]">{r.gpa.toFixed(2)}</td>
+                  <td className="px-4 py-2.5 text-center">
+                    <span className={`text-xs font-bold px-2.5 py-0.5 rounded-lg ${gradeChip(r.grade)}`}>{r.grade}</span>
+                  </td>
+                  <td className="px-4 py-2.5 text-center">
+                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${r.status === 'pass' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                      {r.status === 'pass' ? 'উত্তীর্ণ' : 'অনুত্তীর্ণ'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Main page ─────────────────────────────────────────────────────────────────
 export default function AdminResultsPage() {
   const { addNotice } = useNotices();
   const [allResults, setAllResults] = useState<ExamResult[]>([]);
@@ -224,7 +333,7 @@ export default function AdminResultsPage() {
   const passRate = filtered.length > 0 ? Math.round((passCount / filtered.length) * 100) : 0;
   const avgGpa = filtered.length > 0
     ? (filtered.reduce((s, r) => s + r.gpa, 0) / filtered.length).toFixed(2)
-    : '0.00';
+    : '—';
 
   const published = !!examFilter && publishedExams.includes(examFilter);
 
@@ -268,37 +377,51 @@ export default function AdminResultsPage() {
     ? (MADRASHA_CLASSES.find(c => c.id === classFilter)?.nameBn ?? classFilter)
     : 'সকল শ্রেণি';
 
+  // Class-wise grouping (when no class filter and no search)
+  const showGrouped = !classFilter && !search;
+  const groupedByClass = useMemo(() => {
+    if (!showGrouped) return null;
+    const groups: Record<string, ExamResult[]> = {};
+    filtered.forEach(r => {
+      if (!groups[r.class]) groups[r.class] = [];
+      groups[r.class].push(r);
+    });
+    return groups;
+  }, [filtered, showGrouped]);
+
   return (
     <div>
-      <DashboardHeader title="ফলাফল ব্যবস্থাপনা" subtitle="পরীক্ষার ফলাফল পর্যালোচনা ও প্রকাশ" userName="Admin" role="Super Admin" />
+      <DashboardHeader
+        title="ফলাফল ব্যবস্থাপনা"
+        subtitle="পরীক্ষার ফলাফল পর্যালোচনা, প্রকাশ ও প্রিন্ট"
+        userName="Admin"
+        role="Super Admin"
+      />
       <div className="p-6 space-y-5">
 
-        {/* Exam + Class filter */}
+        {/* ── Exam + Class filter ── */}
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
-          <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <FileText size={15} className="text-purple-600" /> পরীক্ষা ও শ্রেণি নির্বাচন
-          </h3>
-          <div className="flex flex-wrap gap-4">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-gray-500">পরীক্ষার নাম</label>
+          <div className="flex flex-wrap gap-4 items-end">
+            <div>
+              <label className="text-xs font-medium text-gray-500 block mb-1.5">পরীক্ষার নাম</label>
               <div className="relative">
                 <select
                   value={examFilter}
-                  onChange={e => { setExamFilter(e.target.value); setClassFilter(''); }}
-                  className="px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400 appearance-none pr-8 min-w-[220px]">
+                  onChange={e => { setExamFilter(e.target.value); setClassFilter(''); setSearch(''); }}
+                  className="px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#006633] appearance-none pr-8 min-w-[230px]">
                   <option value="">— সব পরীক্ষা —</option>
                   {availableExams.map(e => <option key={e} value={e}>{e}</option>)}
                 </select>
                 <ChevronDown size={14} className="absolute right-2.5 top-3 text-gray-400 pointer-events-none" />
               </div>
             </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-gray-500">শ্রেণি</label>
+            <div>
+              <label className="text-xs font-medium text-gray-500 block mb-1.5">শ্রেণি</label>
               <div className="relative">
                 <select
                   value={classFilter}
-                  onChange={e => setClassFilter(e.target.value)}
-                  className="px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400 appearance-none pr-8 min-w-[180px]">
+                  onChange={e => { setClassFilter(e.target.value); setSearch(''); }}
+                  className="px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#006633] appearance-none pr-8 min-w-[180px]">
                   <option value="">— সব শ্রেণি —</option>
                   {availableClasses.map(c => (
                     <option key={c} value={c}>{MADRASHA_CLASSES.find(m => m.id === c)?.nameBn ?? c}</option>
@@ -307,57 +430,78 @@ export default function AdminResultsPage() {
                 <ChevronDown size={14} className="absolute right-2.5 top-3 text-gray-400 pointer-events-none" />
               </div>
             </div>
+            {/* Search only when a class is selected */}
+            {classFilter && (
+              <div>
+                <label className="text-xs font-medium text-gray-500 block mb-1.5">খুঁজুন</label>
+                <div className="relative">
+                  <Search size={14} className="absolute left-3 top-3 text-gray-400" />
+                  <input
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    placeholder="নাম বা রোল…"
+                    className="pl-9 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#006633] w-44"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Summary cards */}
+        {/* ── Stats ── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
-            { label: 'মোট শিক্ষার্থী', value: filtered.length, color: 'bg-purple-50 text-purple-700' },
-            { label: 'উত্তীর্ণ', value: passCount, color: 'bg-green-50 text-green-700' },
-            { label: 'পাশের হার', value: `${passRate}%`, color: 'bg-blue-50 text-blue-700' },
-            { label: 'গড় GPA', value: avgGpa, color: 'bg-amber-50 text-amber-700' },
-          ].map(({ label, value, color }) => (
-            <div key={label} className={`${color} rounded-2xl p-4 text-center`}>
-              <p className="text-2xl font-bold">{value}</p>
-              <p className="text-xs font-medium mt-1 opacity-70">{label}</p>
+            { label: 'মোট শিক্ষার্থী', value: filtered.length, sub: examFilter ? examFilter : 'সব পরীক্ষা', color: 'bg-[#006633]' },
+            { label: 'উত্তীর্ণ', value: passCount, sub: `${passRate}% পাশের হার`, color: 'bg-emerald-500' },
+            { label: 'অনুত্তীর্ণ', value: filtered.length - passCount, sub: `${filtered.length > 0 ? 100 - passRate : 0}%`, color: 'bg-rose-500' },
+            { label: 'গড় GPA', value: avgGpa, sub: 'সকল শিক্ষার্থী', color: 'bg-amber-500' },
+          ].map(({ label, value, sub, color }) => (
+            <div key={label} className="bg-white rounded-2xl border border-gray-100 p-5 flex items-center gap-4">
+              <div className={`w-10 h-10 ${color} rounded-xl flex items-center justify-center shrink-0`}>
+                <BarChart3 size={18} className="text-white" />
+              </div>
+              <div>
+                <p className="text-xl font-bold text-gray-900">{value}</p>
+                <p className="text-xs text-gray-500">{label}</p>
+                <p className="text-[10px] text-gray-400 mt-0.5 truncate max-w-[120px]">{sub}</p>
+              </div>
             </div>
           ))}
         </div>
 
-        {/* Mark submission control */}
+        {/* ── Mark submission control ── */}
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                <Lock size={15} className="text-blue-600" /> শিক্ষক মার্ক সাবমিশন নিয়ন্ত্রণ
+              <h3 className="font-semibold text-gray-900 flex items-center gap-2 text-sm">
+                <Lock size={14} className="text-blue-500" /> শিক্ষক মার্ক সাবমিশন নিয়ন্ত্রণ
               </h3>
-              <p className="text-xs text-gray-400 mt-0.5">কোন পরীক্ষার মার্ক শিক্ষকরা দিতে পারবেন তা এখান থেকে নিয়ন্ত্রণ করুন</p>
+              <p className="text-xs text-gray-400 mt-0.5">শিক্ষকরা কোন পরীক্ষার মার্ক দিতে পারবেন তা নিয়ন্ত্রণ করুন</p>
             </div>
             {markSubmission ? (
               <div className="flex items-center gap-3 flex-wrap">
-                <span className="flex items-center gap-2 bg-green-50 text-green-700 px-3 py-2 rounded-xl text-sm font-medium border border-green-200">
-                  <CheckCircle size={13} /> {markSubmission.examName} ({markSubmission.year}) — খোলা আছে
+                <span className="flex items-center gap-2 bg-green-50 text-green-700 px-3 py-2 rounded-xl text-xs font-medium border border-green-200">
+                  <CheckCircle size={12} /> {markSubmission.examName} ({markSubmission.year}) — খোলা আছে
                 </span>
                 <button onClick={closeMarkSubmission}
-                  className="flex items-center gap-1.5 border border-red-200 text-red-600 hover:bg-red-50 px-4 py-2 rounded-xl text-sm font-medium transition-colors">
-                  <Lock size={13} /> বন্ধ করুন
+                  className="flex items-center gap-1.5 border border-red-200 text-red-600 hover:bg-red-50 px-4 py-2 rounded-xl text-xs font-medium transition-colors">
+                  <Lock size={12} /> বন্ধ করুন
                 </button>
               </div>
             ) : (
               <div className="flex items-center gap-2 flex-wrap">
                 {liveExams.length === 0 ? (
-                  <p className="text-xs text-gray-400 italic">কোনো পরীক্ষা তৈরি হয়নি। আগে পরীক্ষার সময়সূচী থেকে পরীক্ষা তৈরি করুন।</p>
+                  <p className="text-xs text-gray-400 italic">পরীক্ষার সময়সূচী থেকে আগে পরীক্ষা তৈরি করুন।</p>
                 ) : (
                   <>
                     <select value={submissionExamId} onChange={e => setSubmissionExamId(e.target.value)}
-                      className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400">
+                      className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none focus:border-[#006633]">
                       <option value="">-- পরীক্ষা বেছে নিন --</option>
                       {liveExams.map(e => <option key={e.id} value={e.id}>{e.name} ({e.year})</option>)}
                     </select>
                     <button onClick={openMarkSubmission} disabled={!submissionExamId}
-                      className="flex items-center gap-1.5 btn-primary px-4 py-2 rounded-xl text-sm font-semibold disabled:opacity-40 transition-opacity">
-                      <Unlock size={13} /> খুলুন
+                      className="flex items-center gap-1.5 bg-[#006633] text-white px-4 py-2 rounded-xl text-xs font-semibold disabled:opacity-40 hover:bg-[#004d26] transition-colors">
+                      <Unlock size={12} /> খুলুন
                     </button>
                   </>
                 )}
@@ -366,102 +510,107 @@ export default function AdminResultsPage() {
           </div>
         </div>
 
-        {/* Print / PDF / Publish bar */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 flex flex-wrap items-center justify-between gap-3">
+        {/* ── Action bar ── */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h3 className="font-semibold text-gray-900">
+            <p className="font-semibold text-gray-900 text-sm">
               {examFilter || 'পরীক্ষা নির্বাচন করুন'}
               {classFilter ? ` — ${classLabel}` : ''}
-            </h3>
-            <p className="text-xs text-gray-400 mt-0.5">{filtered.length} জন শিক্ষার্থীর ফলাফল</p>
+            </p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {filtered.length} জন শিক্ষার্থী
+              {published ? ' • প্রকাশিত' : ' • অপ্রকাশিত'}
+            </p>
           </div>
           <div className="flex gap-2 flex-wrap">
             <button
               onClick={() => printResultSheet(filtered, examFilter || 'ফলাফল', classLabel)}
               disabled={filtered.length === 0}
-              className="flex items-center gap-2 border border-gray-200 bg-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 disabled:opacity-40 transition-colors">
-              <Printer size={14} /> প্রিন্ট করুন
+              className="flex items-center gap-2 border border-gray-200 bg-white px-4 py-2 rounded-xl text-xs font-medium hover:bg-gray-50 disabled:opacity-40 transition-colors">
+              <Printer size={13} /> প্রিন্ট
             </button>
             <button
               onClick={() => downloadResultsPDF(filtered, examFilter || 'ফলাফল', classLabel)}
               disabled={filtered.length === 0}
-              className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-emerald-700 shadow-sm disabled:opacity-40 transition-colors">
-              <Download size={14} /> PDF Export
+              className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-medium hover:bg-emerald-700 shadow-sm disabled:opacity-40 transition-colors">
+              <Download size={13} /> PDF
             </button>
             {!published ? (
               <button
                 onClick={togglePublish}
-                disabled={!examFilter || filtered.length === 0}
-                className="flex items-center gap-2 btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-40">
-                <Award size={15} /> ফলাফল প্রকাশ করুন
+                disabled={!examFilter || allResults.filter(r => r.examName === examFilter).length === 0}
+                className="flex items-center gap-2 bg-[#006633] text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-[#004d26] disabled:opacity-40 transition-colors shadow-sm">
+                <Award size={13} /> বোর্ডে প্রকাশ করুন
               </button>
             ) : (
               <div className="flex items-center gap-2">
-                <span className="flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2.5 rounded-xl text-sm font-semibold">
-                  <CheckCircle size={15} /> প্রকাশিত
+                <span className="flex items-center gap-1.5 bg-green-100 text-green-700 px-3 py-2 rounded-xl text-xs font-semibold border border-green-200">
+                  <CheckCircle size={13} /> প্রকাশিত
                 </span>
                 <button onClick={togglePublish}
-                  className="flex items-center gap-2 border border-red-200 text-red-600 hover:bg-red-50 px-4 py-2.5 rounded-xl text-sm font-medium">
-                  <EyeOff size={14} /> প্রত্যাহার
+                  className="flex items-center gap-1.5 border border-red-200 text-red-600 hover:bg-red-50 px-3 py-2 rounded-xl text-xs font-medium transition-colors">
+                  <EyeOff size={12} /> প্রত্যাহার
                 </button>
               </div>
             )}
           </div>
         </div>
 
-        {/* Search */}
-        <div className="relative w-64">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="নাম বা রোল খুঁজুন"
-            className="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400"
-          />
-        </div>
-
-        {/* Results table */}
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-          {filtered.length === 0 ? (
-            <div className="p-10 text-center text-gray-400 text-sm">
+        {/* ── Results ── */}
+        {filtered.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+            <BarChart3 size={36} className="text-gray-200 mx-auto mb-3" />
+            <p className="text-gray-400 text-sm">
               {allResults.length === 0
-                ? 'কোনো ফলাফল সংরক্ষিত নেই। নম্বর প্রবেশ পেজ থেকে ফলাফল যোগ করুন।'
-                : 'নির্বাচিত ফিল্টারে কোনো ফলাফল নেই।'}
-            </div>
-          ) : (
+                ? 'কোনো ফলাফল নেই। নম্বর প্রবেশ পেজ থেকে ফলাফল যোগ করুন।'
+                : 'এই ফিল্টারে কোনো ফলাফল নেই।'}
+            </p>
+          </div>
+        ) : showGrouped && groupedByClass ? (
+          // Class-wise grouped view
+          <div className="space-y-3">
+            {availableClasses.map(cls => groupedByClass[cls] && (
+              <ClassGroup key={cls} classId={cls} results={groupedByClass[cls]} />
+            ))}
+          </div>
+        ) : (
+          // Single table (when class filter or search is active)
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
+                <thead className="bg-gray-50 text-xs text-gray-500">
                   <tr>
-                    <th className="px-5 py-3 text-left">রোল</th>
-                    <th className="px-5 py-3 text-left">নাম</th>
-                    <th className="px-5 py-3 text-center">শ্রেণি</th>
-                    <th className="px-5 py-3 text-center">মোট নম্বর</th>
-                    <th className="px-5 py-3 text-center">শতকরা</th>
-                    <th className="px-5 py-3 text-center">GPA</th>
-                    <th className="px-5 py-3 text-center">গ্রেড</th>
-                    <th className="px-5 py-3 text-center">ফলাফল</th>
+                    <th className="px-4 py-3 text-center w-10">ক্র.</th>
+                    <th className="px-4 py-3 text-center">রোল</th>
+                    <th className="px-4 py-3 text-left">নাম</th>
+                    <th className="px-4 py-3 text-center">শ্রেণি</th>
+                    <th className="px-4 py-3 text-center">মোট</th>
+                    <th className="px-4 py-3 text-center">%</th>
+                    <th className="px-4 py-3 text-center">GPA</th>
+                    <th className="px-4 py-3 text-center">গ্রেড</th>
+                    <th className="px-4 py-3 text-center">ফলাফল</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {[...filtered].sort((a, b) => a.roll - b.roll).map(r => (
+                  {[...filtered].sort((a, b) => a.roll - b.roll).map((r, i) => (
                     <tr key={r.studentId + r.examName + r.year} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-5 py-3 font-semibold text-gray-700">{r.roll}</td>
-                      <td className="px-5 py-3 font-medium text-gray-900">{r.studentName}</td>
-                      <td className="px-5 py-3 text-center text-gray-500 text-xs">
+                      <td className="px-4 py-3 text-center text-gray-400 text-xs">{i + 1}</td>
+                      <td className="px-4 py-3 text-center font-semibold text-gray-700">{r.roll}</td>
+                      <td className="px-4 py-3 font-medium text-gray-900">{r.studentName}</td>
+                      <td className="px-4 py-3 text-center text-xs text-gray-500">
                         {MADRASHA_CLASSES.find(c => c.id === r.class)?.nameBn ?? r.class}
                       </td>
-                      <td className="px-5 py-3 text-center font-semibold">
+                      <td className="px-4 py-3 text-center font-medium text-gray-700">
                         {r.totalMarks}{r.totalFullMarks ? `/${r.totalFullMarks}` : ''}
                       </td>
-                      <td className="px-5 py-3 text-center text-gray-500">
+                      <td className="px-4 py-3 text-center text-xs text-gray-500">
                         {r.percentage != null ? `${r.percentage.toFixed(1)}%` : '—'}
                       </td>
-                      <td className="px-5 py-3 text-center font-bold text-purple-700">{r.gpa.toFixed(2)}</td>
-                      <td className="px-5 py-3 text-center">
-                        <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${getGradeColor(r.grade)}`}>{r.grade}</span>
+                      <td className="px-4 py-3 text-center font-bold text-[#006633]">{r.gpa.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-lg ${gradeChip(r.grade)}`}>{r.grade}</span>
                       </td>
-                      <td className="px-5 py-3 text-center">
+                      <td className="px-4 py-3 text-center">
                         <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${r.status === 'pass' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                           {r.status === 'pass' ? 'উত্তীর্ণ' : 'অনুত্তীর্ণ'}
                         </span>
@@ -471,8 +620,8 @@ export default function AdminResultsPage() {
                 </tbody>
               </table>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
       </div>
     </div>
