@@ -42,22 +42,11 @@ function packEntries(entries: string[], maxChars: number): string[][] {
   return lines;
 }
 
-// ─── Board-style PDF ──────────────────────────────────────────────
-async function downloadBoardStylePDF(results: ExamResult[], examName: string) {
+// ─── Board-style result sheet (HTML → browser print/save-as-PDF) ─
+function openBoardStyleSheet(results: ExamResult[], examName: string) {
   if (results.length === 0) return;
-  const { jsPDF } = await import('jspdf');
 
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-  const PW = 210, PH = 297;
-  const ML = 12, MR = 12, MT = 16, MB = 14;
-  const UW = PW - ML - MR;
-  const FS = 7.5, LH = 4.4;
-
-  doc.setFont('courier', 'normal');
-  doc.setFontSize(FS);
-
-  const CW = doc.getStringUnitWidth('M') * FS / doc.internal.scaleFactor;
-  const CPL = Math.floor(UW / CW);
+  const CPL = 100; // estimated chars per line for Courier 9pt on A4
 
   const sorted = [...results].sort((a, b) => a.roll - b.roll);
   const passCount = sorted.filter(r => r.status === 'pass').length;
@@ -71,25 +60,6 @@ async function downloadBoardStylePDF(results: ExamResult[], examName: string) {
   const byClass: Record<string, ExamResult[]> = {};
   sorted.forEach(r => { (byClass[r.class] ??= []).push(r); });
 
-  let y = MT;
-
-  function ensureSpace(linesNeeded = 1) {
-    if (y + LH * linesNeeded > PH - MB) { doc.addPage(); y = MT; }
-  }
-
-  function writeLine(text: string, bold = false, center = false) {
-    ensureSpace();
-    doc.setFont('courier', bold ? 'bold' : 'normal');
-    doc.setFontSize(FS);
-    if (center) {
-      const tw = doc.getStringUnitWidth(text) * FS / doc.internal.scaleFactor;
-      doc.text(text, ML + (UW - tw) / 2, y);
-    } else {
-      doc.text(text, ML, y);
-    }
-    y += LH;
-  }
-
   function divider(label?: string) {
     if (!label) return '-'.repeat(CPL);
     const inner = ` : ${label} : `;
@@ -97,30 +67,26 @@ async function downloadBoardStylePDF(results: ExamResult[], examName: string) {
     return '-'.repeat(side) + inner + '-'.repeat(Math.max(2, CPL - side - inner.length));
   }
 
-  // Header
-  writeLine('BANGLADESH MADRASHA EDUCATION BOARD', true, true);
-  writeLine(`RESULT OF ${examName.toUpperCase()}`, true, true);
-  y += LH * 0.5;
-  writeLine(`Institution: ${COLLEGE_INFO.name} (EIIN: ${COLLEGE_INFO.eiin})`);
-  writeLine(`Address: ${COLLEGE_INFO.address}`);
-  writeLine(`No. of Students: { Examinee: ${sorted.length}, Passed: ${passCount}, Failed: ${failCount}, Percentage of Pass: ${passRate}, GPA 5: ${gpa5Count} }`);
-  writeLine(divider());
+  function esc(s: string) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
 
-  // Class sections
+  let sections = '';
   for (const classId of classOrder) {
     const cr = byClass[classId];
-    const clsLabel = (MADRASHA_CLASSES.find(c => c.id === classId)?.name ?? classId).toUpperCase();
+    const clsInfo = MADRASHA_CLASSES.find(c => c.id === classId);
+    const clsLabel = (clsInfo?.name ?? classId).toUpperCase();
+
     const passed = cr.filter(r => r.status === 'pass');
     const failed = cr.filter(r => r.status !== 'pass');
 
-    ensureSpace(4);
-    writeLine(divider(clsLabel));
+    sections += `<div class="line">${esc(divider(clsLabel))}</div>`;
 
     if (passed.length > 0) {
       const entries = passed.map(r => `${r.roll}[${r.gpa.toFixed(2)}]`);
       const packed = packEntries(entries, CPL - 6);
       packed.forEach((items, idx) => {
-        writeLine(items.join(', ') + (idx === packed.length - 1 ? ` =${passed.length}` : ''));
+        sections += `<div class="line">${esc(items.join(', '))}${idx === packed.length - 1 ? ` =${passed.length}` : ''}</div>`;
       });
     }
 
@@ -131,28 +97,55 @@ async function downloadBoardStylePDF(results: ExamResult[], examName: string) {
       });
       const packed = packEntries(entries, CPL - 6);
       packed.forEach((items, idx) => {
-        writeLine(items.join(', ') + (idx === packed.length - 1 ? ` =${failed.length}` : ''));
+        sections += `<div class="line failed">${esc(items.join(', '))}${idx === packed.length - 1 ? ` =${failed.length}` : ''}</div>`;
       });
     }
   }
 
-  writeLine(divider(`END OF RESULT [ ${dateCode} ]`));
+  const statsLine = `No. of Students: { Examinee: ${sorted.length}, Passed: ${passCount}, Failed: ${failCount}, Percentage of Pass: ${passRate}, GPA 5: ${gpa5Count} }`;
 
-  // Page numbers + footer on every page
-  const totalPages = (doc as unknown as { internal: { getNumberOfPages(): number } }).internal.getNumberOfPages();
-  for (let p = 1; p <= totalPages; p++) {
-    doc.setPage(p);
-    doc.setFont('courier', 'normal');
-    doc.setFontSize(FS);
-    const pgStr = `Page ${p} of ${totalPages}`;
-    const tw = doc.getStringUnitWidth(pgStr) * FS / doc.internal.scaleFactor;
-    doc.text(pgStr, ML + (UW - tw) / 2, MT - 5);
-    doc.setFontSize(6.5);
-    doc.text(`${COLLEGE_INFO.name} | EIIN: ${COLLEGE_INFO.eiin} | Confidential`, ML, PH - 6);
-    doc.text(today.toLocaleDateString('en-GB'), PW - MR, PH - 6, { align: 'right' });
-  }
+  const html = `<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>Result — ${esc(examName)}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Courier New',Courier,monospace;font-size:9pt;padding:14mm 13mm 12mm;color:#000;background:#fff}
+.page-num{text-align:center;margin-bottom:4pt;font-size:8.5pt}
+.bold{font-weight:bold}
+.center{text-align:center}
+.info{margin:1.5pt 0;font-size:8.5pt}
+.line{white-space:pre;font-size:8.5pt;line-height:1.55}
+.line.failed{color:#333}
+.gap{margin-top:5pt}
+.footer{margin-top:14pt;border-top:1px dashed #aaa;padding-top:4pt;font-size:7.5pt;color:#666;display:flex;justify-content:space-between}
+@media print{@page{size:A4 portrait;margin:10mm 12mm}body{padding:0}}
+</style>
+</head>
+<body>
+<div class="page-num">Page 1 of 1</div>
+<div class="bold center">BANGLADESH MADRASHA EDUCATION BOARD</div>
+<div class="bold center gap">${esc(examName.toUpperCase())}</div>
+<div class="gap"></div>
+<div class="info">Institution: ${esc(COLLEGE_INFO.name)} (EIIN: ${COLLEGE_INFO.eiin})</div>
+<div class="info">Address: ${esc(COLLEGE_INFO.address)}</div>
+<div class="info">${esc(statsLine)}</div>
+<div class="line">${'-'.repeat(CPL)}</div>
+${sections}
+<div class="line">${esc(divider(`END OF RESULT [ ${dateCode} ]`))}</div>
+<div class="footer">
+  <span>${esc(COLLEGE_INFO.name)} | Confidential</span>
+  <span>${today.toLocaleDateString('en-GB')}</span>
+</div>
+<script>window.addEventListener('load',()=>setTimeout(()=>window.print(),300));<\/script>
+</body>
+</html>`;
 
-  doc.save(`board-result-${examName.replace(/\s+/g, '-')}.pdf`);
+  const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 
 // ─── Print ─────────────────────────────────────────────────────────────────────
@@ -562,7 +555,7 @@ export default function AdminResultsPage() {
               <Printer size={13} /> প্রিন্ট
             </button>
             <button
-              onClick={() => downloadBoardStylePDF(filtered, examFilter || 'ফলাফল')}
+              onClick={() => openBoardStyleSheet(filtered, examFilter || 'ফলাফল')}
               disabled={filtered.length === 0}
               className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-medium hover:bg-emerald-700 shadow-sm disabled:opacity-40 transition-colors">
               <Download size={13} /> বোর্ড PDF
