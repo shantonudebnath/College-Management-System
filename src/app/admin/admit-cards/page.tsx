@@ -444,51 +444,111 @@ interface MiniCardGridProps {
 }
 
 function MiniCard({ student, card, schedule, seatInfo }: { student: (typeof STUDENTS)[0]; card: AdmitCardConfig; schedule: ScheduleItem[]; seatInfo: SeatInfo | null }) {
+  const cls = MADRASHA_CLASSES.find(c => c.id === student.class)?.nameBn ?? student.class;
+  const B = (v: string) => <strong style={{ fontWeight: 700 }}>{v}</strong>;
+  const Row = ({ label, value }: { label: string; value: string }) => (
+    <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: '1.2mm' }}>
+      <span style={{ minWidth: '17mm', fontSize: '6.5pt', color: '#333', flexShrink: 0 }}>{label} :</span>
+      <span style={{ flex: 1, fontWeight: 700, fontSize: '7pt', borderBottom: '0.8px solid #555', paddingBottom: '0.3mm', minWidth: '20mm' }}>{value}</span>
+    </div>
+  );
   return (
-    <div style={{ border: '1.5px solid #444', fontFamily: 'serif', fontSize: '7.5pt', pageBreakInside: 'avoid', breakInside: 'avoid', overflow: 'hidden' }}>
-      <div style={{ background: '#1e1b4b', color: '#fff', padding: '3mm 4mm', textAlign: 'center' }}>
-        <div style={{ fontWeight: 'bold', fontSize: '8.5pt' }}>{COLLEGE_INFO.nameBn}</div>
-        <div style={{ fontSize: '6pt', opacity: 0.8 }}>{COLLEGE_INFO.address}</div>
-        <div style={{ marginTop: '1.5mm', fontWeight: 'bold', fontSize: '7.5pt', letterSpacing: '0.5px' }}>প্রবেশপত্র — {card.examName}</div>
-      </div>
-      <div style={{ padding: '2.5mm 3mm', display: 'flex', gap: '2.5mm' }}>
-        <div style={{ flex: 1 }}>
-          {[['নাম', student.name], ['বাংলা নাম', student.nameBn], ['পিতার নাম', student.fatherName], ['রোল নং', String(student.roll)], ['রেজি. নং', student.studentId], ['শ্রেণি', MADRASHA_CLASSES.find(c => c.id === student.class)?.nameBn ?? student.class], ['শাখা', student.section], ['সেশন', student.session]].map(([label, value]) => (
-            <div key={label} style={{ display: 'flex', gap: '1.5mm', borderBottom: '0.5px solid #e5e7eb', paddingBottom: '0.8mm', marginBottom: '0.8mm' }}>
-              <span style={{ color: '#6b7280', minWidth: '14mm', fontSize: '6.5pt' }}>{label}</span>
-              <span style={{ fontWeight: 'bold', color: '#111827' }}>{value}</span>
+    <div style={{ border: '2.5px solid #000', fontFamily: "'Noto Serif Bengali', 'Vrinda', serif", fontSize: '7pt', pageBreakInside: 'avoid', breakInside: 'avoid', overflow: 'hidden', background: '#fff' }}>
+      <div style={{ margin: '2px', border: '1px solid #000' }}>
+
+        {/* Header */}
+        <div style={{ borderBottom: '1.5px solid #000', padding: '1.5mm 3mm', textAlign: 'center', background: '#f9f9f9' }}>
+          <div style={{ fontWeight: 900, fontSize: '9.5pt', lineHeight: 1.3 }}>{COLLEGE_INFO.nameBn}</div>
+          <div style={{ fontSize: '6pt', color: '#555', marginTop: '0.5mm' }}>{COLLEGE_INFO.address}</div>
+          <div style={{ fontSize: '5.5pt', color: '#666' }}>ইআইআইএন: {COLLEGE_INFO.eiin} &nbsp;|&nbsp; ফোন: {COLLEGE_INFO.phone}</div>
+        </div>
+
+        {/* Title bar */}
+        <div style={{ borderBottom: '1.5px solid #000', padding: '1mm 3mm', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#111', color: '#fff' }}>
+          <span style={{ fontWeight: 700, fontSize: '8pt', letterSpacing: '1px' }}>প্রবেশপত্র</span>
+          <span style={{ fontSize: '6pt', letterSpacing: '0.5px' }}>ADMIT CARD</span>
+          <span style={{ fontWeight: 700, fontSize: '7pt' }}>{card.examName} — {card.examYear ?? ''}</span>
+        </div>
+
+        {/* Body */}
+        <div style={{ display: 'flex', gap: 0 }}>
+          {/* Info */}
+          <div style={{ flex: 1, padding: '2mm 3mm 2mm', borderRight: '1px solid #000' }}>
+            <Row label="নাম" value={student.name} />
+            <Row label="পিতার নাম" value={student.fatherName} />
+            <Row label="মাতার নাম" value={student.motherName || '—'} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 2mm' }}>
+              <Row label="শ্রেণি" value={cls} />
+              <Row label="শাখা" value={student.section || '—'} />
+              <Row label="রোল নং" value={String(student.roll)} />
+              <Row label="সেশন" value={student.session || '—'} />
             </div>
-          ))}
-        </div>
-        <div style={{ width: '18mm', minHeight: '22mm', border: '1px solid #9ca3af', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, flexDirection: 'column', color: '#9ca3af', fontSize: '6pt' }}>
-          <div style={{ fontSize: '14pt', marginBottom: '1mm' }}>👤</div>ছবি
-        </div>
-      </div>
-      {seatInfo && (
-        <div style={{ borderTop: '0.5px solid #c4b5fd', margin: '0 3mm', padding: '1.5mm 2mm', background: '#f5f3ff', fontSize: '6.5pt' }}>
-          <div style={{ display: 'flex', gap: '3mm', flexWrap: 'wrap', alignItems: 'center' }}>
-            <span style={{ fontWeight: 'bold', color: '#4c1d95' }}>আসন নং: {seatInfo.seatNumber}</span>
-            <span style={{ color: '#374151' }}>হল: <strong>{seatInfo.hallName}</strong></span>
-            {seatInfo.guardName && <span style={{ color: '#374151' }}>পরিদর্শক: {seatInfo.guardName}</span>}
+            <Row label="রেজি. নং" value={student.studentId} />
+          </div>
+          {/* Photo */}
+          <div style={{ width: '22mm', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2mm', gap: '1.5mm' }}>
+            <div style={{ width: '18mm', height: '22mm', border: '1px solid #777', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: '#aaa', fontSize: '5.5pt', textAlign: 'center', overflow: 'hidden' }}>
+              {student.image
+                ? <img src={student.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                : <><div style={{ fontSize: '16pt', lineHeight: 1, color: '#ddd' }}>☐</div><span>ছবি</span></>}
+            </div>
+            <div style={{ fontSize: '5.5pt', color: '#666', textAlign: 'center', lineHeight: 1.3 }}>সত্যায়িত<br/>ছবি</div>
           </div>
         </div>
-      )}
-      {schedule.length > 0 && (
-        <div style={{ borderTop: '0.5px solid #d1d5db', margin: '0 3mm', paddingTop: '1.5mm', paddingBottom: '1.5mm' }}>
-          <div style={{ fontWeight: 'bold', fontSize: '6.5pt', marginBottom: '1mm', color: '#374151' }}>পরীক্ষার সময়সূচী:</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr 1.5fr', gap: '0 2mm', fontSize: '6pt' }}>
-            <span style={{ color: '#6b7280', fontWeight: 'bold' }}>বিষয়</span>
-            <span style={{ color: '#6b7280', fontWeight: 'bold' }}>তারিখ</span>
-            <span style={{ color: '#6b7280', fontWeight: 'bold' }}>সময়</span>
-            {schedule.map((e, i) => (
-              <><span key={`s-${i}`} style={{ color: '#111827' }}>{e.subject}</span><span key={`d-${i}`} style={{ color: '#374151' }}>{e.date}</span><span key={`t-${i}`} style={{ color: '#374151' }}>{e.startTime}–{e.endTime}</span></>
-            ))}
+
+        {/* Seat info */}
+        {seatInfo && (
+          <div style={{ borderTop: '1px solid #000', padding: '1mm 3mm', fontSize: '6.5pt', background: '#f5f5f5' }}>
+            <div style={{ display: 'flex', gap: '6mm', flexWrap: 'wrap' }}>
+              <span>{B('পরীক্ষা কক্ষ:')} {seatInfo.hallName}</span>
+              <span>{B('আসন নং:')} {seatInfo.seatNumber}</span>
+              {seatInfo.guardName && <span>{B('কক্ষ পরিদর্শক:')} {seatInfo.guardName}</span>}
+            </div>
+          </div>
+        )}
+
+        {/* Schedule */}
+        {schedule.length > 0 && (
+          <div style={{ borderTop: '1px solid #000', padding: '1.5mm 3mm' }}>
+            <div style={{ fontWeight: 700, fontSize: '6.5pt', marginBottom: '1mm' }}>পরীক্ষার সময়সূচী:</div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '6pt' }}>
+              <thead>
+                <tr style={{ background: '#f0f0f0' }}>
+                  {['বিষয়', 'তারিখ', 'শুরু', 'শেষ'].map(h => (
+                    <th key={h} style={{ border: '0.5px solid #999', padding: '0.5mm 1mm', textAlign: 'left', fontWeight: 700 }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {schedule.map((e, i) => (
+                  <tr key={i}>
+                    <td style={{ border: '0.5px solid #ccc', padding: '0.5mm 1mm' }}>{e.subject}</td>
+                    <td style={{ border: '0.5px solid #ccc', padding: '0.5mm 1mm' }}>{e.date}</td>
+                    <td style={{ border: '0.5px solid #ccc', padding: '0.5mm 1mm' }}>{e.startTime}</td>
+                    <td style={{ border: '0.5px solid #ccc', padding: '0.5mm 1mm' }}>{e.endTime}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Signatures */}
+        <div style={{ borderTop: '1.5px solid #000', display: 'flex', justifyContent: 'space-between', padding: '2.5mm 4mm 2mm', fontSize: '6pt', color: '#333' }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ height: '7mm' }} />
+            <div style={{ borderTop: '0.8px solid #333', paddingTop: '0.5mm', minWidth: '24mm' }}>পরীক্ষার্থীর স্বাক্ষর</div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ height: '7mm' }} />
+            <div style={{ borderTop: '0.8px solid #333', paddingTop: '0.5mm', minWidth: '24mm' }}>কক্ষ পরিদর্শকের স্বাক্ষর</div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ height: '7mm' }} />
+            <div style={{ borderTop: '0.8px solid #333', paddingTop: '0.5mm', minWidth: '24mm' }}>অধ্যক্ষ / প্রধান শিক্ষক</div>
           </div>
         </div>
-      )}
-      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2mm 4mm 3mm', fontSize: '6pt', color: '#6b7280' }}>
-        <div style={{ textAlign: 'center' }}><div style={{ borderTop: '0.5px solid #9ca3af', paddingTop: '1mm', width: '22mm' }}>ছাত্রের স্বাক্ষর</div></div>
-        <div style={{ textAlign: 'center' }}><div style={{ borderTop: '0.5px solid #9ca3af', paddingTop: '1mm', width: '22mm' }}>প্রধান শিক্ষক</div></div>
+
       </div>
     </div>
   );
