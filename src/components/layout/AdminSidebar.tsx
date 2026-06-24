@@ -18,6 +18,7 @@ const MENU = [
   { label: 'ক্লাস অ্যাসাইন', href: '/admin/classes', icon: FileText },
   { label: 'নম্বর প্রবেশ',   href: '/admin/results/entry', icon: ClipboardList },
   { label: 'ফলাফল প্রকাশ', href: '/admin/results', icon: Award },
+  { label: 'প্রশংসাপত্র', href: '/admin/certificates', icon: FileText },
   { label: 'ফি ম্যানেজমেন্ট', href: '/admin/fees', icon: CreditCard },
   { label: 'এডমিট কার্ড', href: '/admin/admit-cards', icon: IdCard },
   { label: 'ক্লাস রুটিন', href: '/admin/routine', icon: LayoutGrid },
