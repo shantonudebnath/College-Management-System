@@ -47,7 +47,7 @@ function toBnNum(n: string | number) {
 /* URL-encoded SVG diamond tile for the border pattern */
 const DIAMOND_SVG = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Crect width='20' height='20' fill='%23e8eaf6'/%3E%3Cpath d='M10,1 L19,10 L10,19 L1,10 Z' fill='none' stroke='%231a237e' stroke-width='1.3'/%3E%3Ccircle cx='10' cy='10' r='2' fill='%231a237e' opacity='0.5'/%3E%3C/svg%3E")`;
 
-function certHTML(f: CertForm): string {
+function certHTML(f: CertForm, logoSrc = ''): string {
   const cls = MADRASHA_CLASSES.find(c => c.id === f.classId)?.nameBn ?? f.classId;
   const year = toBnNum(f.year);
   const roll = f.roll ? toBnNum(f.roll) : '';
@@ -103,15 +103,13 @@ html,body{width:210mm;background:#fff;font-family:'Noto Serif Bengali',serif;col
   color:rgba(13,71,161,0.06);
   line-height:1.5;padding:20px;
 }
-.wm-text{
+.wm-logo{
   position:absolute;
   top:50%;left:50%;
-  transform:translate(-50%,-50%) rotate(-35deg);
-  font-size:54pt;font-weight:900;
-  color:rgba(13,71,161,0.04);
-  white-space:nowrap;
+  transform:translate(-50%,-50%);
+  width:180px;
+  opacity:0.07;
   pointer-events:none;z-index:0;
-  letter-spacing:2px;
 }
 
 /* ── All content above watermark ── */
@@ -183,7 +181,7 @@ html,body{width:210mm;background:#fff;font-family:'Noto Serif Bengali',serif;col
   <div class="cert-inner">
 
     <!-- Watermarks -->
-    <div class="wm-text">${COLLEGE_INFO.nameBn}</div>
+    ${logoSrc ? `<img src="${logoSrc}" class="wm-logo" alt="" />` : ''}
     <div class="wm-circle">${COLLEGE_INFO.nameBn}<br>ইআইআইএন: ${COLLEGE_INFO.eiin}<br>প্রতিষ্ঠিত: ${COLLEGE_INFO.established}</div>
 
     <div class="content">
@@ -263,11 +261,10 @@ function CertPreview({ f }: { f: CertForm }) {
       <div style={{ background: '#fff', border: '2px solid #0d47a1', padding: '24px 32px', position: 'relative', overflow: 'hidden', minHeight: '500px' }}>
 
         {/* Watermarks */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.png" alt="" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '160px', opacity: 0.07, pointerEvents: 'none', zIndex: 0 }} />
         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '200px', height: '200px', borderRadius: '50%', border: '3px solid rgba(13,71,161,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 0, fontSize: '10px', fontWeight: 700, color: 'rgba(13,71,161,0.06)', textAlign: 'center', lineHeight: 1.5, padding: '20px' }}>
           {COLLEGE_INFO.nameBn}<br />ইআইআইএন: {COLLEGE_INFO.eiin}
-        </div>
-        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%) rotate(-35deg)', fontSize: '42px', fontWeight: 900, color: 'rgba(13,71,161,0.04)', whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 0 }}>
-          {COLLEGE_INFO.nameBn}
         </div>
 
         {/* Content */}
@@ -355,8 +352,18 @@ export default function CertificatesPage() {
   const set = (k: keyof CertForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm(f => ({ ...f, [k]: e.target.value }));
 
-  function printCert() {
-    const html = certHTML(form);
+  async function printCert() {
+    let logoDataUrl = '';
+    try {
+      const resp = await fetch('/logo.png');
+      const imgBlob = await resp.blob();
+      logoDataUrl = await new Promise<string>((res) => {
+        const reader = new FileReader();
+        reader.onload = () => res(reader.result as string);
+        reader.readAsDataURL(imgBlob);
+      });
+    } catch { /* logo optional */ }
+    const html = certHTML(form, logoDataUrl);
     const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
     const url = URL.createObjectURL(blob);
     window.open(url, '_blank');
