@@ -507,10 +507,11 @@ function MiniCard({ student, card, schedule, seatInfo }: { student: (typeof STUD
           </div>
           <div style={{ textAlign: 'center' }}>
             <div style={{ height: '7mm' }} />
-            <div style={{ borderTop: '0.8px solid #333', paddingTop: '0.5mm', minWidth: '24mm' }}>কক্ষ পরিদর্শকের স্বাক্ষর</div>
+            <div style={{ borderTop: '0.8px solid #333', paddingTop: '0.5mm', minWidth: '24mm' }}>শ্রেণী শিক্ষকের স্বাক্ষর</div>
           </div>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ height: '7mm' }} />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/principal-sign.png" alt="" style={{ height: '7mm', maxWidth: '28mm', objectFit: 'contain', display: 'block', margin: '0 auto' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             <div style={{ borderTop: '0.8px solid #333', paddingTop: '0.5mm', minWidth: '24mm' }}>অধ্যক্ষ / প্রধান শিক্ষক</div>
           </div>
         </div>
