@@ -18,6 +18,8 @@ export interface SlideItem {
   cta2Href: string;
 }
 export interface GoverningMember { name: string; role: string; photo?: string; }
+export interface StaffMember { name: string; role: string; phone?: string; joinDate: string; }
+export interface FounderMember { name: string; role: string; year: string; contribution: string; }
 
 export interface AboutPageContent {
   introText: string;
@@ -33,6 +35,8 @@ export interface AboutPageContent {
   annualReportText: string;
   principalName: string;
   principalMessage: string;
+  staffList: StaffMember[];
+  foundersList: FounderMember[];
 }
 
 export interface WebsiteContent {
@@ -226,6 +230,24 @@ A+ প্রাপ্ত শিক্ষার্থী  : ১২ জন
 
 বিস্তারিত প্রতিবেদনের জন্য প্রতিষ্ঠানের অফিসে যোগাযোগ করুন।`,
 
+  staffList: [
+    { name: 'মো. আবদুল হক', role: 'অফিস সহকারী কাম কম্পিউটার অপারেটর', phone: '', joinDate: '২০০৫' },
+    { name: 'মো. রহিমুদ্দিন', role: 'অফিস সহকারী কাম কম্পিউটার অপারেটর', phone: '', joinDate: '২০১০' },
+    { name: 'মো. কামাল হোসেন', role: 'পিয়ন', phone: '', joinDate: '২০০২' },
+    { name: 'মো. সিরাজুল ইসলাম', role: 'পিয়ন', phone: '', joinDate: '২০০৮' },
+    { name: 'মো. জালাল উদ্দিন', role: 'নৈশ প্রহরী', phone: '', joinDate: '২০১২' },
+    { name: 'মো. আনোয়ার হোসেন', role: 'নৈশ প্রহরী', phone: '', joinDate: '২০১৫' },
+    { name: 'মো. মনির হোসেন', role: 'আয়া / পরিচ্ছন্নতাকর্মী', phone: '', joinDate: '২০১৮' },
+  ],
+
+  foundersList: [
+    { name: 'মাওলানা নূর মোহাম্মদ', role: 'প্রতিষ্ঠাতা', year: '১৯৫৮', contribution: 'মাদ্রাসার মূল স্থপতি ও প্রথম সুপারিনটেন্ডেন্ট। নিজ জমিতে প্রতিষ্ঠানের গোড়াপত্তন করেন।' },
+    { name: 'জনাব মো. ইদ্রিস মিয়া', role: 'সহ-প্রতিষ্ঠাতা ও দাতা', year: '১৯৫৮', contribution: 'প্রতিষ্ঠাকালীন জমি দানকারী এবং নির্মাণ ব্যয় বহনকারী প্রধান দাতা।' },
+    { name: 'মো. আজিজুর রহমান খান', role: 'প্রধান দাতা', year: '১৯৬২', contribution: 'প্রথম স্থায়ী ভবন নির্মাণে আর্থিক সহায়তা প্রদান ও সরকারি স্বীকৃতি প্রাপ্তিতে ভূমিকা রাখেন।' },
+    { name: 'মো. আব্দুল মান্নান', role: 'বিশেষ দাতা', year: '১৯৭৫', contribution: 'MPO তালিকাভুক্তির প্রক্রিয়ায় অগ্রণী ভূমিকা রাখেন এবং পাঠাগার ভবন নির্মাণে অর্থায়ন করেন।' },
+    { name: 'আলহাজ্ব মো. নূরুল হক', role: 'সম্মানিত দাতা', year: '১৯৯০', contribution: 'বিজ্ঞান ভবন ও ল্যাবরেটরি নির্মাণে উল্লেখযোগ্য অর্থায়ন করেন।' },
+  ],
+
   principalName: 'মো. শফিকুল ইসলাম',
   principalMessage: `বিসমিল্লাহির রাহমানির রাহীম
 
@@ -327,7 +349,12 @@ export function loadWebsiteContent(): WebsiteContent {
     return {
       ...DEFAULT_CONTENT,
       ...stored,
-      aboutPage: { ...DEFAULT_ABOUT, ...(stored.aboutPage ?? {}) },
+      aboutPage: {
+        ...DEFAULT_ABOUT,
+        ...(stored.aboutPage ?? {}),
+        staffList: stored.aboutPage?.staffList ?? DEFAULT_ABOUT.staffList,
+        foundersList: stored.aboutPage?.foundersList ?? DEFAULT_ABOUT.foundersList,
+      },
     };
   } catch { return DEFAULT_CONTENT; }
 }

@@ -3,11 +3,11 @@ import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import {
   loadWebsiteContent, saveWebsiteContent, DEFAULT_CONTENT, DEFAULT_ABOUT,
-  type WebsiteContent, type GalleryItem, type FaqItem, type LinkItem, type SlideItem, type GoverningMember,
+  type WebsiteContent, type GalleryItem, type FaqItem, type LinkItem, type SlideItem, type GoverningMember, type StaffMember, type FounderMember,
 } from '@/lib/website-content';
-import { Save, Plus, Trash2, Globe, Image as ImageIcon, HelpCircle, Link2, BarChart2, CheckCircle, SlidersHorizontal, Landmark } from 'lucide-react';
+import { Save, Plus, Trash2, Globe, Image as ImageIcon, HelpCircle, Link2, BarChart2, CheckCircle, SlidersHorizontal, Landmark, Users } from 'lucide-react';
 
-type Tab = 'hero' | 'slides' | 'stats' | 'gallery' | 'faq' | 'links' | 'about';
+type Tab = 'hero' | 'slides' | 'stats' | 'gallery' | 'faq' | 'links' | 'about' | 'teachers';
 
 const inp = 'w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400';
 const ta = `${inp} resize-none`;
@@ -37,6 +37,12 @@ export default function WebsiteSettingsPage() {
   const updateMember = (i: number, patch: Partial<GoverningMember>) =>
     setAbout('governingBody', content.aboutPage.governingBody.map((m, j) => j === i ? { ...m, ...patch } : m));
 
+  const updateStaff = (i: number, patch: Partial<StaffMember>) =>
+    setAbout('staffList', content.aboutPage.staffList.map((s, j) => j === i ? { ...s, ...patch } : s));
+
+  const updateFounder = (i: number, patch: Partial<FounderMember>) =>
+    setAbout('foundersList', content.aboutPage.foundersList.map((f, j) => j === i ? { ...f, ...patch } : f));
+
   const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
     { id: 'hero', label: 'হিরো সেকশন', icon: Globe },
     { id: 'slides', label: 'স্লাইডশো', icon: SlidersHorizontal },
@@ -45,6 +51,7 @@ export default function WebsiteSettingsPage() {
     { id: 'faq', label: 'FAQ', icon: HelpCircle },
     { id: 'links', label: 'গুরুত্বপূর্ণ লিঙ্ক', icon: Link2 },
     { id: 'about', label: 'প্রতিষ্ঠান তথ্য', icon: Landmark },
+    { id: 'teachers', label: 'শিক্ষক তথ্য', icon: Users },
   ];
 
   return (
@@ -170,13 +177,24 @@ export default function WebsiteSettingsPage() {
               </button>
             </div>
             {content.gallery.map((g, i) => (
-              <div key={g.id} className="flex gap-3 items-center">
-                <input value={g.url} onChange={e => set('gallery', content.gallery.map((x, j) => j === i ? { ...x, url: e.target.value } : x))}
-                  className={`flex-1 ${inp}`} placeholder="ছবির URL (https://...)" />
-                <input value={g.caption} onChange={e => set('gallery', content.gallery.map((x, j) => j === i ? { ...x, caption: e.target.value } : x))}
-                  className="w-40 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400" placeholder="ক্যাপশন" />
-                <button onClick={() => set('gallery', content.gallery.filter((_, j) => j !== i))}
-                  className="p-2 rounded-xl bg-red-50 text-red-500 hover:bg-red-100"><Trash2 size={14} /></button>
+              <div key={g.id} className="border border-gray-100 rounded-xl p-3 space-y-2">
+                <div className="flex gap-3 items-center">
+                  {g.url ? (
+                    <img src={g.url} alt={g.caption} className="w-16 h-16 rounded-lg object-cover border border-gray-200 shrink-0" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                  ) : (
+                    <div className="w-16 h-16 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0">
+                      <ImageIcon size={20} className="text-gray-300" />
+                    </div>
+                  )}
+                  <div className="flex-1 space-y-2">
+                    <input value={g.url} onChange={e => set('gallery', content.gallery.map((x, j) => j === i ? { ...x, url: e.target.value } : x))}
+                      className={inp} placeholder="ছবির URL (https://...)" />
+                    <input value={g.caption} onChange={e => set('gallery', content.gallery.map((x, j) => j === i ? { ...x, caption: e.target.value } : x))}
+                      className={inp} placeholder="ক্যাপশন" />
+                  </div>
+                  <button onClick={() => set('gallery', content.gallery.filter((_, j) => j !== i))}
+                    className="p-2 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 self-start"><Trash2 size={14} /></button>
+                </div>
               </div>
             ))}
           </div>
@@ -352,6 +370,71 @@ export default function WebsiteSettingsPage() {
               <textarea value={content.aboutPage.annualReportText ?? ''}
                 onChange={e => setAbout('annualReportText', e.target.value)} rows={8} className={ta}
                 placeholder="বার্ষিক কার্যক্রম ও ফলাফলের সারসংক্ষেপ" />
+            </div>
+
+          </div>
+        )}
+
+        {/* Teachers page tab */}
+        {tab === 'teachers' && (
+          <div className="space-y-5">
+
+            {/* কর্মচারী তালিকা */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-gray-900 text-sm">কর্মচারী তালিকা</h3>
+                <button onClick={() => setAbout('staffList', [...content.aboutPage.staffList, { name: '', role: '', phone: '', joinDate: '' }])}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-purple-600 bg-purple-50 px-3 py-2 rounded-xl hover:bg-purple-100">
+                  <Plus size={13} /> কর্মচারী যোগ করুন
+                </button>
+              </div>
+              {content.aboutPage.staffList.map((s, i) => (
+                <div key={i} className="border border-gray-100 rounded-xl p-3 space-y-2">
+                  <div className="flex gap-2 items-center">
+                    <input value={s.name} onChange={e => updateStaff(i, { name: e.target.value })}
+                      className={`flex-1 ${inp}`} placeholder="নাম" />
+                    <button onClick={() => setAbout('staffList', content.aboutPage.staffList.filter((_, j) => j !== i))}
+                      className="p-2 rounded-xl bg-red-50 text-red-500 hover:bg-red-100"><Trash2 size={14} /></button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <input value={s.role} onChange={e => updateStaff(i, { role: e.target.value })}
+                      className={inp} placeholder="পদবি" />
+                    <input value={s.phone ?? ''} onChange={e => updateStaff(i, { phone: e.target.value })}
+                      className={inp} placeholder="ফোন (ঐচ্ছিক)" />
+                    <input value={s.joinDate} onChange={e => updateStaff(i, { joinDate: e.target.value })}
+                      className={inp} placeholder="যোগদানের বছর" />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* প্রতিষ্ঠাতা ও দাতা */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-gray-900 text-sm">প্রতিষ্ঠাতা ও দাতা</h3>
+                <button onClick={() => setAbout('foundersList', [...content.aboutPage.foundersList, { name: '', role: '', year: '', contribution: '' }])}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-purple-600 bg-purple-50 px-3 py-2 rounded-xl hover:bg-purple-100">
+                  <Plus size={13} /> সদস্য যোগ করুন
+                </button>
+              </div>
+              {content.aboutPage.foundersList.map((f, i) => (
+                <div key={i} className="border border-gray-100 rounded-xl p-3 space-y-2">
+                  <div className="flex gap-2 items-center">
+                    <input value={f.name} onChange={e => updateFounder(i, { name: e.target.value })}
+                      className={`flex-1 ${inp}`} placeholder="নাম" />
+                    <button onClick={() => setAbout('foundersList', content.aboutPage.foundersList.filter((_, j) => j !== i))}
+                      className="p-2 rounded-xl bg-red-50 text-red-500 hover:bg-red-100"><Trash2 size={14} /></button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input value={f.role} onChange={e => updateFounder(i, { role: e.target.value })}
+                      className={inp} placeholder="পদবি (যেমন: প্রতিষ্ঠাতা)" />
+                    <input value={f.year} onChange={e => updateFounder(i, { year: e.target.value })}
+                      className={inp} placeholder="সাল (যেমন: ১৯৫৮)" />
+                  </div>
+                  <textarea value={f.contribution} onChange={e => updateFounder(i, { contribution: e.target.value })}
+                    rows={2} className={ta} placeholder="অবদানের বিবরণ" />
+                </div>
+              ))}
             </div>
 
           </div>

@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { useTeachers } from '@/context/TeachersContext';
-import { loadWebsiteContent, DEFAULT_ABOUT } from '@/lib/website-content';
+import { loadWebsiteContent, DEFAULT_ABOUT, type StaffMember, type FounderMember } from '@/lib/website-content';
 import { User, Phone, Mail, GraduationCap, Briefcase, Award, Star } from 'lucide-react';
 
 const SECTIONS = [
@@ -13,49 +13,6 @@ const SECTIONS = [
   { id: 'teachers', label: 'শিক্ষক তালিকা' },
   { id: 'staff', label: 'কর্মচারী তালিকা' },
   { id: 'founders', label: 'প্রতিষ্ঠাতা ও দাতা' },
-];
-
-const STAFF_LIST = [
-  { name: 'মো. আবদুল হক', role: 'অফিস সহকারী কাম কম্পিউটার অপারেটর', phone: '০১৭XX-XXXXXX', joinDate: '২০০৫' },
-  { name: 'মো. রহিমুদ্দিন', role: 'অফিস সহকারী কাম কম্পিউটার অপারেটর', phone: '০১৮XX-XXXXXX', joinDate: '২০১০' },
-  { name: 'মো. কামাল হোসেন', role: 'পিয়ন', phone: '', joinDate: '২০০২' },
-  { name: 'মো. সিরাজুল ইসলাম', role: 'পিয়ন', phone: '', joinDate: '২০০৮' },
-  { name: 'মো. জালাল উদ্দিন', role: 'নৈশ প্রহরী', phone: '', joinDate: '২০১২' },
-  { name: 'মো. আনোয়ার হোসেন', role: 'নৈশ প্রহরী', phone: '', joinDate: '২০১৫' },
-  { name: 'মো. মনির হোসেন', role: 'আয়া / পরিচ্ছন্নতাকর্মী', phone: '', joinDate: '২০১৮' },
-];
-
-const FOUNDERS_LIST = [
-  {
-    name: 'মাওলানা নূর মোহাম্মদ',
-    role: 'প্রতিষ্ঠাতা',
-    year: '১৯৫৮',
-    contribution: 'মাদ্রাসার মূল স্থপতি ও প্রথম সুপারিনটেন্ডেন্ট। নিজ জমিতে প্রতিষ্ঠানের গোড়াপত্তন করেন।',
-  },
-  {
-    name: 'জনাব মো. ইদ্রিস মিয়া',
-    role: 'সহ-প্রতিষ্ঠাতা ও দাতা',
-    year: '১৯৫৮',
-    contribution: 'প্রতিষ্ঠাকালীন জমি দানকারী এবং নির্মাণ ব্যয় বহনকারী প্রধান দাতা।',
-  },
-  {
-    name: 'মো. আজিজুর রহমান খান',
-    role: 'প্রধান দাতা',
-    year: '১৯৬২',
-    contribution: 'প্রথম স্থায়ী ভবন নির্মাণে আর্থিক সহায়তা প্রদান ও সরকারি স্বীকৃতি প্রাপ্তিতে ভূমিকা রাখেন।',
-  },
-  {
-    name: 'মো. আব্দুল মান্নান',
-    role: 'বিশেষ দাতা',
-    year: '১৯৭৫',
-    contribution: 'MPO তালিকাভুক্তির প্রক্রিয়ায় অগ্রণী ভূমিকা রাখেন এবং পাঠাগার ভবন নির্মাণে অর্থায়ন করেন।',
-  },
-  {
-    name: 'আলহাজ্ব মো. নূরুল হক',
-    role: 'সম্মানিত দাতা',
-    year: '১৯৯০',
-    contribution: 'বিজ্ঞান ভবন ও ল্যাবরেটরি নির্মাণে উল্লেখযোগ্য অর্থায়ন করেন।',
-  },
 ];
 
 function PrincipalSection() {
@@ -167,10 +124,13 @@ function TeacherSection() {
 }
 
 function StaffSection() {
+  const [staffList, setStaffList] = useState<StaffMember[]>(DEFAULT_ABOUT.staffList);
+  useEffect(() => { setStaffList(loadWebsiteContent().aboutPage.staffList); }, []);
+
   return (
     <div className="max-w-4xl mx-auto">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {STAFF_LIST.map((s, i) => (
+        {staffList.map((s, i) => (
           <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex gap-4 items-start hover:border-green-200 transition-colors">
             <div className="w-12 h-12 rounded-full bg-[#006633]/10 flex items-center justify-center shrink-0">
               <User size={22} className="text-[#006633]" />
@@ -186,15 +146,18 @@ function StaffSection() {
           </div>
         ))}
       </div>
-      <p className="text-xs text-gray-400 mt-6 text-center">মোট কর্মচারী: {STAFF_LIST.length} জন (MPO ভুক্ত ও অস্থায়ী সহ)</p>
+      <p className="text-xs text-gray-400 mt-6 text-center">মোট কর্মচারী: {staffList.length} জন (MPO ভুক্ত ও অস্থায়ী সহ)</p>
     </div>
   );
 }
 
 function FoundersSection() {
+  const [foundersList, setFoundersList] = useState<FounderMember[]>(DEFAULT_ABOUT.foundersList);
+  useEffect(() => { setFoundersList(loadWebsiteContent().aboutPage.foundersList); }, []);
+
   return (
     <div className="max-w-3xl mx-auto space-y-5">
-      {FOUNDERS_LIST.map((f, i) => (
+      {foundersList.map((f, i) => (
         <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex gap-5 hover:border-green-200 transition-colors">
           <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#006633] to-[#004d26] flex items-center justify-center shrink-0 text-white font-bold text-lg">
             {f.name.replace(/^(মাওলানা|জনাব|আলহাজ্ব|মো\.)\s*/i, '')[0]}
