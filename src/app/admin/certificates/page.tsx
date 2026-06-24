@@ -1,25 +1,29 @@
 'use client';
 import { useState } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import { MADRASHA_CLASSES, COLLEGE_INFO } from '@/lib/data';
+import { COLLEGE_INFO } from '@/lib/data';
 import { Award, Printer, RotateCcw, Eye } from 'lucide-react';
 
-const GRADES = ['A+', 'A', 'A-', 'B', 'C', 'D'];
-const BEHAVIOURS = ['অত্যন্ত ভালো', 'ভালো', 'সন্তোষজনক'];
-const POSITIONS = ['১ম', '২য়', '৩য়', '৪র্থ', '৫ম', '—'];
+const EXAM_TYPES = ['দাখিল', 'আলিম', 'ফাজিল', 'কামিল', '৮ম'];
+const SUBJECTS = ['সাধারণ', 'বিজ্ঞান', 'মানবিক', 'ব্যবসায় শিক্ষা', 'দাখিল ভোকেশনাল'];
 
 interface CertForm {
   studentName: string;
   fatherName: string;
   motherName: string;
-  classId: string;
-  roll: string;
-  examName: string;
-  year: string;
-  grade: string;
+  village: string;
+  postOffice: string;
+  upazila: string;
+  district: string;
+  examYear: string;
+  examType: string;
+  subject: string;
   gpa: string;
-  position: string;
-  behaviour: string;
+  roll: string;
+  regNo: string;
+  dob: string;
+  session: string;
+  grade: string;
   issueDate: string;
   certNo: string;
 }
@@ -28,14 +32,19 @@ const BLANK: CertForm = {
   studentName: '',
   fatherName: '',
   motherName: '',
-  classId: '',
+  village: '',
+  postOffice: '',
+  upazila: '',
+  district: '',
+  examYear: '',
+  examType: 'দাখিল',
+  subject: 'সাধারণ',
+  gpa: '',
   roll: '',
-  examName: '',
-  year: new Date().getFullYear().toString(),
-  grade: 'A+',
-  gpa: '5.00',
-  position: '১ম',
-  behaviour: 'অত্যন্ত ভালো',
+  regNo: '',
+  dob: '',
+  session: '',
+  grade: '',
   issueDate: new Date().toLocaleDateString('bn-BD'),
   certNo: '',
 };
@@ -44,14 +53,16 @@ function toBnNum(n: string | number) {
   return String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[+d]);
 }
 
-/* URL-encoded SVG diamond tile for the border pattern */
 const DIAMOND_SVG = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Crect width='20' height='20' fill='%23e8eaf6'/%3E%3Cpath d='M10,1 L19,10 L10,19 L1,10 Z' fill='none' stroke='%231a237e' stroke-width='1.3'/%3E%3Ccircle cx='10' cy='10' r='2' fill='%231a237e' opacity='0.5'/%3E%3C/svg%3E")`;
 
-function certHTML(f: CertForm, logoSrc = ''): string {
-  const cls = MADRASHA_CLASSES.find(c => c.id === f.classId)?.nameBn ?? f.classId;
-  const year = toBnNum(f.year);
-  const roll = f.roll ? toBnNum(f.roll) : '';
+/* Fills value or dotted line for the HTML cert */
+function d(val: string, len = 28): string {
+  return val.trim()
+    ? `<span class="val">${val}</span>`
+    : `<span class="dots">${'.'.repeat(len)}</span>`;
+}
 
+function certHTML(f: CertForm, logoSrc = ''): string {
   return `<!DOCTYPE html>
 <html lang="bn">
 <head>
@@ -64,7 +75,6 @@ function certHTML(f: CertForm, logoSrc = ''): string {
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:210mm;background:#fff;font-family:'Noto Serif Bengali','Vrinda','Nirmala UI',serif;color:#0a0820}
 
-/* ── Outer wrapper: the diamond-pattern border strip ── */
 .cert-outer{
   width:210mm;min-height:297mm;
   padding:12px;
@@ -73,104 +83,64 @@ html,body{width:210mm;background:#fff;font-family:'Noto Serif Bengali','Vrinda',
   border:3px solid #0d47a1;
   position:relative;
 }
-/* Outer solid line on top of pattern */
 .cert-outer::before{
   content:'';position:absolute;inset:3px;
   border:2px solid #0d47a1;
   pointer-events:none;z-index:0;
 }
-
-/* ── Inner white content area ── */
 .cert-inner{
   position:relative;
   background:#fff;
   border:2px solid #0d47a1;
   min-height:calc(297mm - 48px);
-  padding:8mm 10mm 8mm;
+  padding:8mm 10mm;
   overflow:hidden;
 }
-
-/* ── Watermark ── */
 .wm-circle{
-  position:absolute;
-  top:50%;left:50%;
+  position:absolute;top:50%;left:50%;
   transform:translate(-50%,-50%);
-  width:220px;height:220px;
-  border-radius:50%;
+  width:220px;height:220px;border-radius:50%;
   border:3px solid rgba(13,71,161,0.07);
   display:flex;align-items:center;justify-content:center;
   pointer-events:none;z-index:0;
-  text-align:center;
-  font-size:11pt;font-weight:700;
-  color:rgba(13,71,161,0.06);
-  line-height:1.5;padding:20px;
+  text-align:center;font-size:11pt;font-weight:700;
+  color:rgba(13,71,161,0.06);line-height:1.5;padding:20px;
 }
 .wm-logo{
-  position:absolute;
-  top:50%;left:50%;
+  position:absolute;top:50%;left:50%;
   transform:translate(-50%,-50%);
-  width:180px;
-  opacity:0.07;
+  width:180px;opacity:0.07;
   pointer-events:none;z-index:0;
 }
-
-/* ── All content above watermark ── */
 .content{position:relative;z-index:1}
-
-/* ── Header ── */
 .header{text-align:center;padding-bottom:5mm;border-bottom:2.5px solid #0d47a1}
 .inst-bn{font-size:17pt;font-weight:900;color:#0d47a1;line-height:1.3}
 .inst-en{font-size:8.5pt;color:#555;margin-top:1mm;letter-spacing:.3px}
 .inst-addr{font-size:9pt;color:#333;margin-top:1.5mm}
 .inst-meta{font-size:8pt;color:#777;margin-top:1mm}
 .cert-no-right{text-align:right;font-size:8pt;color:#888;margin-top:1.5mm}
-
-/* ── Title ── */
 .title-row{display:flex;align-items:center;justify-content:center;margin:5mm 0 3mm}
 .title-pill{
   background:#0d47a1;color:#fff;
   font-size:20pt;font-weight:700;
   padding:3mm 18mm;border-radius:40px;
   letter-spacing:2px;
-  border:2px solid #e8eaf6;
   box-shadow:0 2px 8px rgba(13,71,161,.25);
 }
-
-/* ── Dividers ── */
 .divider{border:none;border-top:1.5px solid #90caf9;margin:3mm 0}
-
-/* ── Body ── */
 .body-para{
-  font-size:11pt;line-height:2.1;
+  font-size:11pt;line-height:2.3;
   text-align:justify;
-  margin:3mm 0;
+  margin:4mm 0;
 }
-.hl{font-weight:700;text-decoration:underline;text-underline-offset:3px;text-decoration-color:#0d47a1}
-.val{font-weight:700;color:#0d47a1}
-
-/* ── Footer ── */
-.footer{
-  margin-top:10mm;
-  display:flex;justify-content:space-between;align-items:flex-end;
-}
-.footer-date{font-size:10pt;line-height:2;color:#222}
-
-/* ── Seal ── */
-.seal-wrap{display:flex;flex-direction:column;align-items:center;gap:2mm}
-.seal-circle{
-  width:72px;height:72px;border-radius:50%;
-  border:2px dashed rgba(13,71,161,.35);
-  display:flex;align-items:center;justify-content:center;
-  font-size:7.5pt;color:rgba(13,71,161,.3);
-  text-align:center;line-height:1.4;
-}
-
-/* ── Signature ── */
+.val{font-weight:700;color:#0d47a1;border-bottom:1px solid #90caf9;padding-bottom:1px}
+.dots{color:#555;letter-spacing:1px}
+.footer{margin-top:14mm;display:flex;justify-content:space-between;align-items:flex-end}
+.footer-date{font-size:10pt;line-height:2.2;color:#222}
 .sig-wrap{text-align:center}
-.sig-space{height:15mm}
-.sig-line{border-top:1.5px solid #0d47a1;padding-top:2mm;font-size:10pt;font-weight:700;min-width:50mm}
+.sig-space{height:18mm}
+.sig-line{border-top:1.5px solid #0d47a1;padding-top:2mm;font-size:10pt;font-weight:700;min-width:55mm}
 .sig-sub{font-size:8pt;color:#555;margin-top:1mm}
-
 @media print{
   @page{size:A4 portrait;margin:0}
   html,body{width:210mm}
@@ -182,13 +152,11 @@ html,body{width:210mm;background:#fff;font-family:'Noto Serif Bengali','Vrinda',
 <div class="cert-outer">
   <div class="cert-inner">
 
-    <!-- Watermarks -->
     ${logoSrc ? `<img src="${logoSrc}" class="wm-logo" alt="" />` : ''}
     <div class="wm-circle">${COLLEGE_INFO.nameBn}<br>ইআইআইএন: ${COLLEGE_INFO.eiin}<br>প্রতিষ্ঠিত: ${COLLEGE_INFO.established}</div>
 
     <div class="content">
 
-      <!-- Header -->
       <div class="header">
         <div class="inst-bn">${COLLEGE_INFO.nameBn}</div>
         <div class="inst-en">${COLLEGE_INFO.name}</div>
@@ -197,45 +165,44 @@ html,body{width:210mm;background:#fff;font-family:'Noto Serif Bengali','Vrinda',
         ${f.certNo ? `<div class="cert-no-right">সনদ নং: ${toBnNum(f.certNo)}</div>` : ''}
       </div>
 
-      <!-- Title -->
       <div class="title-row">
         <div class="title-pill">প্রশংসাপত্র</div>
       </div>
 
       <hr class="divider">
 
-      <!-- Body -->
       <div class="body-para">
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;এতদ্বারা প্রত্যয়ন করা যাইতেছে যে,
-        <span class="hl"> ${f.studentName} </span>,
-        পিতা: <span class="val">${f.fatherName}</span>${f.motherName ? `, মাতা: <span class="val">${f.motherName}</span>` : ''},
-        ${roll ? `রোল নং: <span class="val">${roll}</span>,` : ''}
-        এই মাদ্রাসার <span class="val">${cls}</span> শ্রেণিতে অধ্যয়নরত আছে।
-        উপরোক্ত শিক্ষার্থী <span class="val">${f.examName}</span> পরীক্ষায়
-        অংশগ্রহণ করিয়া <span class="val">${f.grade}</span> গ্রেড এবং
-        <span class="val">${f.gpa}</span> জি.পি.এ. প্রাপ্ত হইয়া কৃতিত্বের সহিত উত্তীর্ণ হইয়াছে।
-        ${f.position && f.position !== '—' ? `শ্রেণিতে তাহার অবস্থান <span class="val">${f.position}</span>।` : ''}
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;এই মর্মে প্রত্যয়ন করা যাচ্ছে যে,
+        ${d(f.studentName, 35)},
+        পিতা: ${d(f.fatherName, 30)},
+        মাতা: ${d(f.motherName, 30)},
+        গ্রাম: ${d(f.village, 25)},
+        ডাকঘর: ${d(f.postOffice, 25)},
+        উপজেলা: ${d(f.upazila, 20)},
+        জেলা: ${d(f.district, 20)};
+        অত্র প্রতিষ্ঠান হতে বাংলাদেশ মাদ্রাসা শিক্ষা বোর্ড, ঢাকা-এর অধীনে অনুষ্ঠিত
+        ২০${d(f.examYear, 6)} সনের ${d(f.examType, 10)} পরীক্ষায়
+        ${d(f.subject, 12)} শাখায় অংশগ্রহণ করে G.P.A ${d(f.gpa, 8)} অর্জন করেছে।
       </div>
 
       <div class="body-para">
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;তাহার আচরণ ও চরিত্র <span class="val">${f.behaviour}</span>।
-        আমি তাহার সার্বিক উন্নতি ও মঙ্গল কামনা করি এবং সকলকে তাহার প্রতি
-        সকল প্রকার সহযোগিতা করিবার জন্য বিনীত অনুরোধ জানাইতেছি।
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;তাঁর পরীক্ষার রোল নম্বর: ${d(f.roll, 18)},
+        রেজিস্ট্রেশন নম্বর: ${d(f.regNo, 18)},
+        জন্ম তারিখ: ${d(f.dob, 18)},
+        সেশন: ${d(f.session, 12)} এবং তিনি
+        গ্রেড পয়েন্ট/বিভাগ: ${d(f.grade, 15)} অর্জন করেছেন।
+      </div>
+
+      <div class="body-para">
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;আমার জানা মতে, তিনি অত্র প্রতিষ্ঠানে অধ্যয়নকালে কোনো রাষ্ট্রবিরোধী বা শৃঙ্খলাভঙ্গমূলক কার্যকলাপের সঙ্গে জড়িত ছিলেন না। আমি তাঁর জীবনের সর্বাঙ্গীণ উন্নতি ও মঙ্গল কামনা করি।
       </div>
 
       <hr class="divider">
 
-      <!-- Footer -->
       <div class="footer">
         <div class="footer-date">
-          তারিখ: ${f.issueDate}<br>
-          সাল: ${year} খ্রিস্টাব্দ
+          তারিখ: ${f.issueDate}
         </div>
-
-        <div class="seal-wrap">
-          <div class="seal-circle">সরকারি<br>সীলমোহর</div>
-        </div>
-
         <div class="sig-wrap">
           <div class="sig-space"></div>
           <div class="sig-line">অধ্যক্ষ / প্রধান শিক্ষক</div>
@@ -243,9 +210,9 @@ html,body{width:210mm;background:#fff;font-family:'Noto Serif Bengali','Vrinda',
         </div>
       </div>
 
-    </div><!-- /content -->
-  </div><!-- /cert-inner -->
-</div><!-- /cert-outer -->
+    </div>
+  </div>
+</div>
 <script>
 window.addEventListener('load', function() {
   if (document.fonts && document.fonts.ready) {
@@ -259,28 +226,28 @@ window.addEventListener('load', function() {
 </html>`;
 }
 
-/* ── React Preview Component ───────────────────────────────────── */
+/* ── React Preview ───────────────────────────────────────────────── */
 const DIAMOND_BG = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Crect width='20' height='20' fill='%23e8eaf6'/%3E%3Cpath d='M10,1 L19,10 L10,19 L1,10 Z' fill='none' stroke='%231a237e' stroke-width='1.3'/%3E%3Ccircle cx='10' cy='10' r='2' fill='%231a237e' opacity='0.5'/%3E%3C/svg%3E")`;
 
-function CertPreview({ f }: { f: CertForm }) {
-  const cls = MADRASHA_CLASSES.find(c => c.id === f.classId)?.nameBn ?? '';
-  const roll = f.roll ? toBnNum(f.roll) : '';
+function PVal({ v, len = 28 }: { v: string; len?: number }) {
+  return v.trim()
+    ? <strong style={{ color: '#0d47a1', borderBottom: '1px solid #90caf9', paddingBottom: '1px' }}>{v}</strong>
+    : <span style={{ color: '#aaa', letterSpacing: '1px' }}>{'·'.repeat(Math.max(6, Math.floor(len / 4)))}</span>;
+}
 
+function CertPreview({ f }: { f: CertForm }) {
   return (
-    <div style={{ backgroundImage: DIAMOND_BG, backgroundSize: '20px 20px', border: '3px solid #0d47a1', padding: '10px', fontFamily: "'Noto Serif Bengali', serif" }}>
+    <div style={{ backgroundImage: DIAMOND_BG, backgroundSize: '20px 20px', border: '3px solid #0d47a1', padding: '10px', fontFamily: "'Noto Serif Bengali', Vrinda, serif" }}>
       <div style={{ background: '#fff', border: '2px solid #0d47a1', padding: '24px 32px', position: 'relative', overflow: 'hidden', minHeight: '500px' }}>
 
-        {/* Watermarks */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo.png" alt="" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '160px', opacity: 0.07, pointerEvents: 'none', zIndex: 0 }} />
         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '200px', height: '200px', borderRadius: '50%', border: '3px solid rgba(13,71,161,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 0, fontSize: '10px', fontWeight: 700, color: 'rgba(13,71,161,0.06)', textAlign: 'center', lineHeight: 1.5, padding: '20px' }}>
           {COLLEGE_INFO.nameBn}<br />ইআইআইএন: {COLLEGE_INFO.eiin}
         </div>
 
-        {/* Content */}
         <div style={{ position: 'relative', zIndex: 1 }}>
 
-          {/* Header */}
           <div style={{ textAlign: 'center', paddingBottom: '12px', borderBottom: '2.5px solid #0d47a1' }}>
             <div style={{ fontSize: '18px', fontWeight: 900, color: '#0d47a1', lineHeight: 1.3 }}>{COLLEGE_INFO.nameBn}</div>
             <div style={{ fontSize: '10px', color: '#555', marginTop: '2px' }}>{COLLEGE_INFO.name}</div>
@@ -289,44 +256,34 @@ function CertPreview({ f }: { f: CertForm }) {
             {f.certNo && <div style={{ textAlign: 'right', fontSize: '10px', color: '#888', marginTop: '4px' }}>সনদ নং: {toBnNum(f.certNo)}</div>}
           </div>
 
-          {/* Title */}
           <div style={{ textAlign: 'center', margin: '16px 0 10px' }}>
             <span style={{ background: '#0d47a1', color: '#fff', fontSize: '20px', fontWeight: 700, padding: '8px 48px', borderRadius: '40px', letterSpacing: '2px', display: 'inline-block', boxShadow: '0 2px 8px rgba(13,71,161,.25)' }}>প্রশংসাপত্র</span>
           </div>
 
           <div style={{ borderTop: '1.5px solid #90caf9', margin: '8px 0' }} />
 
-          {/* Body */}
-          <div style={{ fontSize: '13px', lineHeight: 2, textAlign: 'justify', margin: '8px 0' }}>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;এতদ্বারা প্রত্যয়ন করা যাইতেছে যে,
-            <strong style={{ textDecoration: 'underline', textDecorationColor: '#0d47a1' }}> {f.studentName} </strong>,
-            পিতা: <strong style={{ color: '#0d47a1' }}>{f.fatherName}</strong>
-            {f.motherName && <>, মাতা: <strong style={{ color: '#0d47a1' }}>{f.motherName}</strong></>},
-            {roll && <> রোল নং: <strong style={{ color: '#0d47a1' }}>{roll}</strong>,</>}{' '}
-            এই মাদ্রাসার <strong style={{ color: '#0d47a1' }}>{cls}</strong> শ্রেণিতে অধ্যয়নরত আছে।
-            উপরোক্ত শিক্ষার্থী <strong style={{ color: '#0d47a1' }}>{f.examName}</strong> পরীক্ষায়
-            অংশগ্রহণ করিয়া <strong style={{ color: '#0d47a1' }}>{f.grade}</strong> গ্রেড এবং{' '}
-            <strong style={{ color: '#0d47a1' }}>{f.gpa}</strong> জি.পি.এ. প্রাপ্ত হইয়া কৃতিত্বের সহিত উত্তীর্ণ হইয়াছে।
-            {f.position && f.position !== '—' && (
-              <> শ্রেণিতে তাহার অবস্থান <strong style={{ color: '#0d47a1' }}>{f.position}</strong>।</>
-            )}
+          <div style={{ fontSize: '13px', lineHeight: 2.2, textAlign: 'justify', margin: '10px 0' }}>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;এই মর্মে প্রত্যয়ন করা যাচ্ছে যে, <PVal v={f.studentName} len={35} />, পিতা: <PVal v={f.fatherName} len={30} />,{' '}
+            মাতা: <PVal v={f.motherName} len={30} />, গ্রাম: <PVal v={f.village} len={25} />, ডাকঘর: <PVal v={f.postOffice} len={25} />,{' '}
+            উপজেলা: <PVal v={f.upazila} len={20} />, জেলা: <PVal v={f.district} len={20} />;{' '}
+            অত্র প্রতিষ্ঠান হতে বাংলাদেশ মাদ্রাসা শিক্ষা বোর্ড, ঢাকা-এর অধীনে অনুষ্ঠিত ২০<PVal v={f.examYear} len={6} /> সনের{' '}
+            <PVal v={f.examType} len={10} /> পরীক্ষায় <PVal v={f.subject} len={12} /> শাখায় অংশগ্রহণ করে G.P.A <PVal v={f.gpa} len={8} /> অর্জন করেছে।
           </div>
 
-          <div style={{ fontSize: '13px', lineHeight: 2, textAlign: 'justify', margin: '8px 0' }}>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;তাহার আচরণ ও চরিত্র <strong style={{ color: '#0d47a1' }}>{f.behaviour}</strong>।
-            আমি তাহার সার্বিক উন্নতি ও মঙ্গল কামনা করি এবং সকলকে তাহার প্রতি সকল প্রকার সহযোগিতা করিবার জন্য বিনীত অনুরোধ জানাইতেছি।
+          <div style={{ fontSize: '13px', lineHeight: 2.2, textAlign: 'justify', margin: '10px 0' }}>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;তাঁর পরীক্ষার রোল নম্বর: <PVal v={f.roll} len={18} />, রেজিস্ট্রেশন নম্বর: <PVal v={f.regNo} len={18} />,{' '}
+            জন্ম তারিখ: <PVal v={f.dob} len={18} />, সেশন: <PVal v={f.session} len={12} /> এবং তিনি গ্রেড পয়েন্ট/বিভাগ: <PVal v={f.grade} len={15} /> অর্জন করেছেন।
+          </div>
+
+          <div style={{ fontSize: '13px', lineHeight: 2.2, textAlign: 'justify', margin: '10px 0' }}>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;আমার জানা মতে, তিনি অত্র প্রতিষ্ঠানে অধ্যয়নকালে কোনো রাষ্ট্রবিরোধী বা শৃঙ্খলাভঙ্গমূলক কার্যকলাপের সঙ্গে জড়িত ছিলেন না। আমি তাঁর জীবনের সর্বাঙ্গীণ উন্নতি ও মঙ্গল কামনা করি।
           </div>
 
           <div style={{ borderTop: '1.5px solid #90caf9', margin: '8px 0' }} />
 
-          {/* Footer */}
           <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-            <div style={{ fontSize: '12px', lineHeight: 2 }}>
-              তারিখ: {f.issueDate}<br />
-              সাল: {toBnNum(f.year)} খ্রিস্টাব্দ
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
-              <div style={{ width: '64px', height: '64px', borderRadius: '50%', border: '2px dashed rgba(13,71,161,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', color: 'rgba(13,71,161,0.35)', textAlign: 'center', lineHeight: 1.4 }}>সরকারি<br />সীলমোহর</div>
+            <div style={{ fontSize: '12px', lineHeight: 2.2 }}>
+              তারিখ: {f.issueDate}
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ height: '48px' }} />
@@ -341,7 +298,7 @@ function CertPreview({ f }: { f: CertForm }) {
   );
 }
 
-/* ── Form field wrapper ─────────────────────────────────────────── */
+/* ── Form helpers ───────────────────────────────────────────────── */
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
@@ -380,7 +337,7 @@ export default function CertificatesPage() {
     setTimeout(() => URL.revokeObjectURL(url), 60000);
   }
 
-  const ready = !!(form.studentName && form.fatherName && form.classId && form.examName);
+  const ready = !!(form.studentName && form.fatherName);
 
   return (
     <div>
@@ -392,7 +349,6 @@ export default function CertificatesPage() {
       />
       <div className="p-6 space-y-5 max-w-5xl">
 
-        {/* Form */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
           <h2 className="font-semibold text-gray-900 mb-5 flex items-center gap-2 text-sm">
             <Award size={16} className="text-[#006633]" /> শিক্ষার্থীর তথ্য
@@ -405,45 +361,53 @@ export default function CertificatesPage() {
               <input value={form.fatherName} onChange={set('fatherName')} placeholder="পিতার নাম" className={inp} />
             </Field>
             <Field label="মাতার নাম">
-              <input value={form.motherName} onChange={set('motherName')} placeholder="মাতার নাম (ঐচ্ছিক)" className={inp} />
+              <input value={form.motherName} onChange={set('motherName')} placeholder="মাতার নাম" className={inp} />
             </Field>
-            <Field label="শ্রেণি *">
-              <select value={form.classId} onChange={set('classId')} className={sel}>
-                <option value="">— শ্রেণি বেছে নিন —</option>
-                {MADRASHA_CLASSES.map(c => (
-                  <option key={c.id} value={c.id}>{c.nameBn}</option>
-                ))}
+            <Field label="গ্রাম">
+              <input value={form.village} onChange={set('village')} placeholder="গ্রামের নাম" className={inp} />
+            </Field>
+            <Field label="ডাকঘর">
+              <input value={form.postOffice} onChange={set('postOffice')} placeholder="ডাকঘর" className={inp} />
+            </Field>
+            <Field label="উপজেলা">
+              <input value={form.upazila} onChange={set('upazila')} placeholder="উপজেলা" className={inp} />
+            </Field>
+            <Field label="জেলা">
+              <input value={form.district} onChange={set('district')} placeholder="জেলা" className={inp} />
+            </Field>
+            <Field label="পরীক্ষার সন (২০-এর পর)">
+              <input value={form.examYear} onChange={set('examYear')} placeholder="যেমন: ২৫" className={inp} />
+            </Field>
+            <Field label="পরীক্ষার ধরন">
+              <select value={form.examType} onChange={set('examType')} className={sel}>
+                {EXAM_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
+            </Field>
+            <Field label="শাখা">
+              <select value={form.subject} onChange={set('subject')} className={sel}>
+                {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </Field>
+            <Field label="G.P.A">
+              <input value={form.gpa} onChange={set('gpa')} placeholder="যেমন: 5.00" className={inp} />
             </Field>
             <Field label="রোল নম্বর">
-              <input value={form.roll} onChange={set('roll')} placeholder="রোল নং" className={inp} type="number" />
+              <input value={form.roll} onChange={set('roll')} placeholder="রোল নম্বর" className={inp} />
             </Field>
-            <Field label="পরীক্ষার নাম *">
-              <input value={form.examName} onChange={set('examName')} placeholder="যেমন: অর্ধ-বার্ষিক পরীক্ষা ২০২৬" className={inp} />
+            <Field label="রেজিস্ট্রেশন নম্বর">
+              <input value={form.regNo} onChange={set('regNo')} placeholder="রেজিস্ট্রেশন নম্বর" className={inp} />
             </Field>
-            <Field label="গ্রেড">
-              <select value={form.grade} onChange={set('grade')} className={sel}>
-                {GRADES.map(g => <option key={g} value={g}>{g}</option>)}
-              </select>
+            <Field label="জন্ম তারিখ">
+              <input value={form.dob} onChange={set('dob')} placeholder="যেমন: ০১/০১/২০১০" className={inp} />
             </Field>
-            <Field label="জি.পি.এ.">
-              <input value={form.gpa} onChange={set('gpa')} placeholder="5.00" className={inp} />
+            <Field label="সেশন">
+              <input value={form.session} onChange={set('session')} placeholder="যেমন: ২০২৪-২৫" className={inp} />
             </Field>
-            <Field label="শ্রেণিতে অবস্থান">
-              <select value={form.position} onChange={set('position')} className={sel}>
-                {POSITIONS.map(p => <option key={p} value={p}>{p || 'উল্লেখ নেই'}</option>)}
-              </select>
-            </Field>
-            <Field label="আচরণ ও চরিত্র">
-              <select value={form.behaviour} onChange={set('behaviour')} className={sel}>
-                {BEHAVIOURS.map(b => <option key={b} value={b}>{b}</option>)}
-              </select>
+            <Field label="গ্রেড পয়েন্ট/বিভাগ">
+              <input value={form.grade} onChange={set('grade')} placeholder="যেমন: A+ / প্রথম বিভাগ" className={inp} />
             </Field>
             <Field label="তারিখ">
-              <input value={form.issueDate} onChange={set('issueDate')} placeholder="তারিখ লিখুন" className={inp} />
-            </Field>
-            <Field label="সাল">
-              <input value={form.year} onChange={set('year')} placeholder="২০২৬" className={inp} />
+              <input value={form.issueDate} onChange={set('issueDate')} placeholder="তারিখ" className={inp} />
             </Field>
             <Field label="সনদ নম্বর (ঐচ্ছিক)">
               <input value={form.certNo} onChange={set('certNo')} placeholder="001" className={inp} />
@@ -471,11 +435,10 @@ export default function CertificatesPage() {
           </div>
 
           {!ready && (
-            <p className="text-xs text-amber-600 mt-3">* নাম, পিতার নাম, শ্রেণি ও পরীক্ষার নাম পূরণ করুন।</p>
+            <p className="text-xs text-amber-600 mt-3">* শিক্ষার্থীর নাম ও পিতার নাম পূরণ করুন।</p>
           )}
         </div>
 
-        {/* Preview */}
         {preview && ready && (
           <div className="bg-white rounded-2xl border border-gray-100 p-6">
             <h3 className="font-semibold text-gray-900 mb-4 text-sm flex items-center gap-2">
