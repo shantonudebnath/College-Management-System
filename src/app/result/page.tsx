@@ -3,8 +3,26 @@ import { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { EXAM_RESULTS, MADRASHA_CLASSES, getGradeScale } from '@/lib/data';
-import { Search, Award, Download, Printer, CheckCircle, XCircle } from 'lucide-react';
+import { Search, Award, Download, Printer, CheckCircle, XCircle, Clock } from 'lucide-react';
 import type { ExamResult } from '@/lib/types';
+
+function getAllResults(): ExamResult[] {
+  try {
+    const stored: ExamResult[] = JSON.parse(localStorage.getItem('results_store') ?? '[]');
+    return [...EXAM_RESULTS, ...stored];
+  } catch {
+    return [...EXAM_RESULTS];
+  }
+}
+
+function isPublished(examName: string): boolean {
+  try {
+    const list: string[] = JSON.parse(localStorage.getItem('published_results_v1') ?? '[]');
+    return list.includes(examName);
+  } catch {
+    return false;
+  }
+}
 
 export default function ResultPage() {
   const [roll, setRoll] = useState('');
@@ -13,6 +31,7 @@ export default function ResultPage() {
   const [result, setResult] = useState<ExamResult | null>(null);
   const [searched, setSearched] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [notPublished, setNotPublished] = useState(false);
 
   const downloadPdf = () => {
     if (!result) return;
@@ -96,8 +115,19 @@ export default function ResultPage() {
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await new Promise(r => setTimeout(r, 800));
-    const found = EXAM_RESULTS.find(r => r.roll === parseInt(roll) && r.class === classId && r.examName === exam);
+    await new Promise(r => setTimeout(r, 600));
+
+    if (!isPublished(exam)) {
+      setResult(null);
+      setSearched(true);
+      setNotPublished(true);
+      setLoading(false);
+      return;
+    }
+
+    setNotPublished(false);
+    const all = getAllResults();
+    const found = all.find(r => r.roll === parseInt(roll) && r.class === classId && r.examName === exam);
     setResult(found || null);
     setSearched(true);
     setLoading(false);
@@ -157,7 +187,15 @@ export default function ResultPage() {
           </div>
 
           {/* Result */}
-          {searched && !result && (
+          {searched && notPublished && (
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-8 text-center">
+              <Clock size={36} className="text-amber-400 mx-auto mb-3" />
+              <p className="font-semibold text-amber-800">ফলাফল এখনো প্রকাশিত হয়নি</p>
+              <p className="text-amber-600 text-sm mt-1">{exam} পরীক্ষার ফলাফল প্রকাশের অপেক্ষায় আছে। প্রকাশিত হলে জানানো হবে।</p>
+            </div>
+          )}
+
+          {searched && !notPublished && !result && (
             <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
               <XCircle size={36} className="text-red-400 mx-auto mb-3" />
               <p className="font-semibold text-red-800">ফলাফল পাওয়া যায়নি</p>
