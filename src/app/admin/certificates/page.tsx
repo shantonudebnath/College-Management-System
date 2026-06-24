@@ -44,12 +44,13 @@ function toBnNum(n: string | number) {
   return String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[+d]);
 }
 
+/* URL-encoded SVG diamond tile for the border pattern */
+const DIAMOND_SVG = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Crect width='20' height='20' fill='%23e8eaf6'/%3E%3Cpath d='M10,1 L19,10 L10,19 L1,10 Z' fill='none' stroke='%231a237e' stroke-width='1.3'/%3E%3Ccircle cx='10' cy='10' r='2' fill='%231a237e' opacity='0.5'/%3E%3C/svg%3E")`;
+
 function certHTML(f: CertForm): string {
   const cls = MADRASHA_CLASSES.find(c => c.id === f.classId)?.nameBn ?? f.classId;
   const year = toBnNum(f.year);
-  const roll = toBnNum(f.roll);
-  const gpa = f.gpa;
-  const certNoLine = f.certNo ? `<div class="cert-no">সনদ নং: ${toBnNum(f.certNo)}</div>` : '';
+  const roll = f.roll ? toBnNum(f.roll) : '';
 
   return `<!DOCTYPE html>
 <html lang="bn">
@@ -57,137 +58,283 @@ function certHTML(f: CertForm): string {
 <meta charset="utf-8">
 <title>প্রশংসাপত্র — ${f.studentName}</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@400;600;700;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{width:210mm;min-height:297mm;background:#fff}
-body{font-family:'Noto Serif Bengali','Kalpurush',serif;color:#0a0a2e;padding:10mm}
-.page{
-  width:190mm;min-height:277mm;
+html,body{width:210mm;background:#fff;font-family:'Noto Serif Bengali',serif;color:#0a0820}
+
+/* ── Outer wrapper: the diamond-pattern border strip ── */
+.cert-outer{
+  width:210mm;min-height:297mm;
+  padding:12px;
+  background-image:${DIAMOND_SVG};
+  background-size:20px 20px;
+  border:3px solid #0d47a1;
   position:relative;
-  border:3px solid #1a237e;
-  padding:6mm;
+}
+/* Outer solid line on top of pattern */
+.cert-outer::before{
+  content:'';position:absolute;inset:3px;
+  border:2px solid #0d47a1;
+  pointer-events:none;z-index:0;
+}
+
+/* ── Inner white content area ── */
+.cert-inner{
+  position:relative;
   background:#fff;
+  border:2px solid #0d47a1;
+  min-height:calc(297mm - 48px);
+  padding:8mm 10mm 8mm;
+  overflow:hidden;
 }
-.page::before{
-  content:'';position:absolute;inset:4px;
-  border:1.5px solid #1a237e;
-  pointer-events:none;
+
+/* ── Watermark ── */
+.wm-circle{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:220px;height:220px;
+  border-radius:50%;
+  border:3px solid rgba(13,71,161,0.07);
+  display:flex;align-items:center;justify-content:center;
+  pointer-events:none;z-index:0;
+  text-align:center;
+  font-size:11pt;font-weight:700;
+  color:rgba(13,71,161,0.06);
+  line-height:1.5;padding:20px;
 }
-/* Decorative corner-like top/bottom bands */
-.band{
-  background:repeating-linear-gradient(90deg,#1a237e 0,#1a237e 6px,transparent 6px,transparent 12px,#1a237e 12px,#1a237e 14px,#e8eaf6 14px,#e8eaf6 20px);
-  height:10px;margin:0 -3mm;
+.wm-text{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%) rotate(-35deg);
+  font-size:54pt;font-weight:900;
+  color:rgba(13,71,161,0.04);
+  white-space:nowrap;
+  pointer-events:none;z-index:0;
+  letter-spacing:2px;
 }
-.band.top{margin-bottom:5mm}
-.band.bottom{margin-top:5mm}
 
-.header{text-align:center;margin-bottom:4mm}
-.inst-name{font-size:16pt;font-weight:700;color:#0d47a1;line-height:1.3}
-.inst-addr{font-size:9pt;color:#444;margin-top:1mm}
-.inst-eiin{font-size:8pt;color:#666;margin-top:0.5mm}
+/* ── All content above watermark ── */
+.content{position:relative;z-index:1}
 
-.title-box{
-  display:inline-block;
-  background:#1a237e;color:#fff;
-  font-size:18pt;font-weight:700;
-  padding:3mm 14mm;border-radius:8px;
-  margin:4mm 0;letter-spacing:1px;
+/* ── Header ── */
+.header{text-align:center;padding-bottom:5mm;border-bottom:2.5px solid #0d47a1}
+.inst-bn{font-size:17pt;font-weight:900;color:#0d47a1;line-height:1.3}
+.inst-en{font-size:8.5pt;color:#555;margin-top:1mm;letter-spacing:.3px}
+.inst-addr{font-size:9pt;color:#333;margin-top:1.5mm}
+.inst-meta{font-size:8pt;color:#777;margin-top:1mm}
+.cert-no-right{text-align:right;font-size:8pt;color:#888;margin-top:1.5mm}
+
+/* ── Title ── */
+.title-row{display:flex;align-items:center;justify-content:center;margin:5mm 0 3mm}
+.title-pill{
+  background:#0d47a1;color:#fff;
+  font-size:20pt;font-weight:700;
+  padding:3mm 18mm;border-radius:40px;
+  letter-spacing:2px;
+  border:2px solid #e8eaf6;
+  box-shadow:0 2px 8px rgba(13,71,161,.25);
 }
-.title-wrap{text-align:center}
 
-.divider{border:none;border-top:2px solid #1a237e;margin:3mm 0}
-.divider-thin{border:none;border-top:1px solid #90caf9;margin:2mm 0}
+/* ── Dividers ── */
+.divider{border:none;border-top:1.5px solid #90caf9;margin:3mm 0}
 
-.body-text{
-  font-size:11pt;line-height:2;
+/* ── Body ── */
+.body-para{
+  font-size:11pt;line-height:2.1;
   text-align:justify;
-  margin:3mm 2mm;
+  margin:3mm 0;
 }
-.body-text .highlight{font-weight:700;text-decoration:underline;text-decoration-color:#1a237e}
-.body-text .val{font-weight:700;color:#0d47a1}
+.hl{font-weight:700;text-decoration:underline;text-underline-offset:3px;text-decoration-color:#0d47a1}
+.val{font-weight:700;color:#0d47a1}
 
-.attrib-table{width:100%;margin:3mm 0 2mm;border-collapse:collapse}
-.attrib-table td{padding:1.5mm 2mm;font-size:10.5pt;vertical-align:top}
-.attrib-table td:first-child{width:38%;color:#333}
-.attrib-table td:nth-child(2){width:4%;color:#555}
-.attrib-table td:last-child{font-weight:600;color:#0d47a1}
+/* ── Footer ── */
+.footer{
+  margin-top:10mm;
+  display:flex;justify-content:space-between;align-items:flex-end;
+}
+.footer-date{font-size:10pt;line-height:2;color:#222}
 
-.footer{margin-top:8mm;display:flex;justify-content:space-between;align-items:flex-end}
-.footer-left{font-size:9.5pt;line-height:1.8;color:#333}
-.sig-block{text-align:center}
-.sig-line{border-top:1.5px solid #0d47a1;padding-top:2mm;font-size:10pt;font-weight:700;min-width:44mm}
-.sig-sub{font-size:8.5pt;color:#555;margin-top:0.5mm}
+/* ── Seal ── */
+.seal-wrap{display:flex;flex-direction:column;align-items:center;gap:2mm}
+.seal-circle{
+  width:72px;height:72px;border-radius:50%;
+  border:2px dashed rgba(13,71,161,.35);
+  display:flex;align-items:center;justify-content:center;
+  font-size:7.5pt;color:rgba(13,71,161,.3);
+  text-align:center;line-height:1.4;
+}
 
-.cert-no{text-align:right;font-size:8.5pt;color:#888;margin-bottom:2mm}
-.seal-note{font-size:8pt;color:#888;margin-top:1mm;text-align:center;font-style:italic}
+/* ── Signature ── */
+.sig-wrap{text-align:center}
+.sig-space{height:15mm}
+.sig-line{border-top:1.5px solid #0d47a1;padding-top:2mm;font-size:10pt;font-weight:700;min-width:50mm}
+.sig-sub{font-size:8pt;color:#555;margin-top:1mm}
 
 @media print{
   @page{size:A4 portrait;margin:0}
-  body{padding:0}
-  .page{border:3px solid #1a237e;box-shadow:none}
+  html,body{width:210mm}
+  .cert-outer{border:3px solid #0d47a1}
 }
 </style>
 </head>
 <body>
-<div class="page">
-  <div class="band top"></div>
+<div class="cert-outer">
+  <div class="cert-inner">
 
-  ${certNoLine}
+    <!-- Watermarks -->
+    <div class="wm-text">${COLLEGE_INFO.nameBn}</div>
+    <div class="wm-circle">${COLLEGE_INFO.nameBn}<br>ইআইআইএন: ${COLLEGE_INFO.eiin}<br>প্রতিষ্ঠিত: ${COLLEGE_INFO.established}</div>
 
-  <div class="header">
-    <div class="inst-name">${COLLEGE_INFO.nameBn}</div>
-    <div class="inst-addr">${COLLEGE_INFO.address}</div>
-    <div class="inst-eiin">ইআইআইএন: ${COLLEGE_INFO.eiin} | ফোন: ${COLLEGE_INFO.phone}</div>
-  </div>
+    <div class="content">
 
-  <hr class="divider">
+      <!-- Header -->
+      <div class="header">
+        <div class="inst-bn">${COLLEGE_INFO.nameBn}</div>
+        <div class="inst-en">${COLLEGE_INFO.name}</div>
+        <div class="inst-addr">${COLLEGE_INFO.address}</div>
+        <div class="inst-meta">ইআইআইএন: ${COLLEGE_INFO.eiin} &nbsp;|&nbsp; ফোন: ${COLLEGE_INFO.phone}</div>
+        ${f.certNo ? `<div class="cert-no-right">সনদ নং: ${toBnNum(f.certNo)}</div>` : ''}
+      </div>
 
-  <div class="title-wrap">
-    <span class="title-box">প্রশংসাপত্র</span>
-  </div>
+      <!-- Title -->
+      <div class="title-row">
+        <div class="title-pill">প্রশংসাপত্র</div>
+      </div>
 
-  <hr class="divider-thin">
+      <hr class="divider">
 
-  <div class="body-text">
-    &nbsp;&nbsp;&nbsp;&nbsp;এতদ্বারা প্রত্যয়ন করা যাইতেছে যে,
-    <span class="highlight"> ${f.studentName} </span>,
-    পিতা: <span class="val">${f.fatherName}</span>${f.motherName ? `, মাতা: <span class="val">${f.motherName}</span>` : ''},
-    ${roll ? `রোল নং: <span class="val">${roll}</span>,` : ''}
-    এই মাদ্রাসার <span class="val">${cls}</span> শ্রেণিতে অধ্যয়নরত আছে।
-    উপরোক্ত শিক্ষার্থী <span class="val">${f.examName}</span> পরীক্ষায়
-    অংশগ্রহণ করে <span class="val">${f.grade}</span> গ্রেড এবং
-    <span class="val">${gpa}</span> জি.পি.এ. প্রাপ্ত হইয়া কৃতিত্বের সহিত উত্তীর্ণ হইয়াছে।
-    ${f.position && f.position !== '—' ? `শ্রেণিতে তাহার অবস্থান <span class="val">${f.position}</span>।` : ''}
-  </div>
+      <!-- Body -->
+      <div class="body-para">
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;এতদ্বারা প্রত্যয়ন করা যাইতেছে যে,
+        <span class="hl"> ${f.studentName} </span>,
+        পিতা: <span class="val">${f.fatherName}</span>${f.motherName ? `, মাতা: <span class="val">${f.motherName}</span>` : ''},
+        ${roll ? `রোল নং: <span class="val">${roll}</span>,` : ''}
+        এই মাদ্রাসার <span class="val">${cls}</span> শ্রেণিতে অধ্যয়নরত আছে।
+        উপরোক্ত শিক্ষার্থী <span class="val">${f.examName}</span> পরীক্ষায়
+        অংশগ্রহণ করিয়া <span class="val">${f.grade}</span> গ্রেড এবং
+        <span class="val">${f.gpa}</span> জি.পি.এ. প্রাপ্ত হইয়া কৃতিত্বের সহিত উত্তীর্ণ হইয়াছে।
+        ${f.position && f.position !== '—' ? `শ্রেণিতে তাহার অবস্থান <span class="val">${f.position}</span>।` : ''}
+      </div>
 
-  <div class="body-text">
-    &nbsp;&nbsp;&nbsp;&nbsp;তাহার আচরণ ও চরিত্র <span class="val">${f.behaviour}</span>।
-    তাহাকে সকল প্রকার সহযোগিতা করিবার জন্য সকলের প্রতি বিনীত অনুরোধ জানানো হইল।
-  </div>
+      <div class="body-para">
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;তাহার আচরণ ও চরিত্র <span class="val">${f.behaviour}</span>।
+        আমি তাহার সার্বিক উন্নতি ও মঙ্গল কামনা করি এবং সকলকে তাহার প্রতি
+        সকল প্রকার সহযোগিতা করিবার জন্য বিনীত অনুরোধ জানাইতেছি।
+      </div>
 
-  <hr class="divider-thin">
+      <hr class="divider">
 
-  <div class="footer">
-    <div class="footer-left">
-      তারিখ: ${f.issueDate}<br>
-      সাল: ${year}
-    </div>
-    <div class="sig-block">
-      <div style="height:18mm"></div>
-      <div class="sig-line">অধ্যক্ষ / প্রধান শিক্ষক</div>
-      <div class="sig-sub">${COLLEGE_INFO.nameBn}</div>
-    </div>
-  </div>
+      <!-- Footer -->
+      <div class="footer">
+        <div class="footer-date">
+          তারিখ: ${f.issueDate}<br>
+          সাল: ${year} খ্রিস্টাব্দ
+        </div>
 
-  <div class="seal-note">[ সরকারি সীলমোহর ]</div>
+        <div class="seal-wrap">
+          <div class="seal-circle">সরকারি<br>সীলমোহর</div>
+        </div>
 
-  <div class="band bottom"></div>
-</div>
-<script>window.addEventListener('load',()=>setTimeout(()=>window.print(),300));<\/script>
+        <div class="sig-wrap">
+          <div class="sig-space"></div>
+          <div class="sig-line">অধ্যক্ষ / প্রধান শিক্ষক</div>
+          <div class="sig-sub">${COLLEGE_INFO.nameBn}</div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /cert-inner -->
+</div><!-- /cert-outer -->
+<script>window.addEventListener('load',()=>setTimeout(()=>window.print(),350));<\/script>
 </body>
 </html>`;
 }
 
+/* ── React Preview Component ───────────────────────────────────── */
+const DIAMOND_BG = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Crect width='20' height='20' fill='%23e8eaf6'/%3E%3Cpath d='M10,1 L19,10 L10,19 L1,10 Z' fill='none' stroke='%231a237e' stroke-width='1.3'/%3E%3Ccircle cx='10' cy='10' r='2' fill='%231a237e' opacity='0.5'/%3E%3C/svg%3E")`;
+
+function CertPreview({ f }: { f: CertForm }) {
+  const cls = MADRASHA_CLASSES.find(c => c.id === f.classId)?.nameBn ?? '';
+  const roll = f.roll ? toBnNum(f.roll) : '';
+
+  return (
+    <div style={{ backgroundImage: DIAMOND_BG, backgroundSize: '20px 20px', border: '3px solid #0d47a1', padding: '10px', fontFamily: "'Noto Serif Bengali', serif" }}>
+      <div style={{ background: '#fff', border: '2px solid #0d47a1', padding: '24px 32px', position: 'relative', overflow: 'hidden', minHeight: '500px' }}>
+
+        {/* Watermarks */}
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '200px', height: '200px', borderRadius: '50%', border: '3px solid rgba(13,71,161,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 0, fontSize: '10px', fontWeight: 700, color: 'rgba(13,71,161,0.06)', textAlign: 'center', lineHeight: 1.5, padding: '20px' }}>
+          {COLLEGE_INFO.nameBn}<br />ইআইআইএন: {COLLEGE_INFO.eiin}
+        </div>
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%) rotate(-35deg)', fontSize: '42px', fontWeight: 900, color: 'rgba(13,71,161,0.04)', whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 0 }}>
+          {COLLEGE_INFO.nameBn}
+        </div>
+
+        {/* Content */}
+        <div style={{ position: 'relative', zIndex: 1 }}>
+
+          {/* Header */}
+          <div style={{ textAlign: 'center', paddingBottom: '12px', borderBottom: '2.5px solid #0d47a1' }}>
+            <div style={{ fontSize: '18px', fontWeight: 900, color: '#0d47a1', lineHeight: 1.3 }}>{COLLEGE_INFO.nameBn}</div>
+            <div style={{ fontSize: '10px', color: '#555', marginTop: '2px' }}>{COLLEGE_INFO.name}</div>
+            <div style={{ fontSize: '11px', color: '#333', marginTop: '3px' }}>{COLLEGE_INFO.address}</div>
+            <div style={{ fontSize: '10px', color: '#777', marginTop: '2px' }}>ইআইআইএন: {COLLEGE_INFO.eiin} | ফোন: {COLLEGE_INFO.phone}</div>
+            {f.certNo && <div style={{ textAlign: 'right', fontSize: '10px', color: '#888', marginTop: '4px' }}>সনদ নং: {toBnNum(f.certNo)}</div>}
+          </div>
+
+          {/* Title */}
+          <div style={{ textAlign: 'center', margin: '16px 0 10px' }}>
+            <span style={{ background: '#0d47a1', color: '#fff', fontSize: '20px', fontWeight: 700, padding: '8px 48px', borderRadius: '40px', letterSpacing: '2px', display: 'inline-block', boxShadow: '0 2px 8px rgba(13,71,161,.25)' }}>প্রশংসাপত্র</span>
+          </div>
+
+          <div style={{ borderTop: '1.5px solid #90caf9', margin: '8px 0' }} />
+
+          {/* Body */}
+          <div style={{ fontSize: '13px', lineHeight: 2, textAlign: 'justify', margin: '8px 0' }}>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;এতদ্বারা প্রত্যয়ন করা যাইতেছে যে,
+            <strong style={{ textDecoration: 'underline', textDecorationColor: '#0d47a1' }}> {f.studentName} </strong>,
+            পিতা: <strong style={{ color: '#0d47a1' }}>{f.fatherName}</strong>
+            {f.motherName && <>, মাতা: <strong style={{ color: '#0d47a1' }}>{f.motherName}</strong></>},
+            {roll && <> রোল নং: <strong style={{ color: '#0d47a1' }}>{roll}</strong>,</>}{' '}
+            এই মাদ্রাসার <strong style={{ color: '#0d47a1' }}>{cls}</strong> শ্রেণিতে অধ্যয়নরত আছে।
+            উপরোক্ত শিক্ষার্থী <strong style={{ color: '#0d47a1' }}>{f.examName}</strong> পরীক্ষায়
+            অংশগ্রহণ করিয়া <strong style={{ color: '#0d47a1' }}>{f.grade}</strong> গ্রেড এবং{' '}
+            <strong style={{ color: '#0d47a1' }}>{f.gpa}</strong> জি.পি.এ. প্রাপ্ত হইয়া কৃতিত্বের সহিত উত্তীর্ণ হইয়াছে।
+            {f.position && f.position !== '—' && (
+              <> শ্রেণিতে তাহার অবস্থান <strong style={{ color: '#0d47a1' }}>{f.position}</strong>।</>
+            )}
+          </div>
+
+          <div style={{ fontSize: '13px', lineHeight: 2, textAlign: 'justify', margin: '8px 0' }}>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;তাহার আচরণ ও চরিত্র <strong style={{ color: '#0d47a1' }}>{f.behaviour}</strong>।
+            আমি তাহার সার্বিক উন্নতি ও মঙ্গল কামনা করি এবং সকলকে তাহার প্রতি সকল প্রকার সহযোগিতা করিবার জন্য বিনীত অনুরোধ জানাইতেছি।
+          </div>
+
+          <div style={{ borderTop: '1.5px solid #90caf9', margin: '8px 0' }} />
+
+          {/* Footer */}
+          <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+            <div style={{ fontSize: '12px', lineHeight: 2 }}>
+              তারিখ: {f.issueDate}<br />
+              সাল: {toBnNum(f.year)} খ্রিস্টাব্দ
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+              <div style={{ width: '64px', height: '64px', borderRadius: '50%', border: '2px dashed rgba(13,71,161,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', color: 'rgba(13,71,161,0.35)', textAlign: 'center', lineHeight: 1.4 }}>সরকারি<br />সীলমোহর</div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ height: '48px' }} />
+              <div style={{ borderTop: '1.5px solid #0d47a1', paddingTop: '6px', fontWeight: 700, fontSize: '12px', minWidth: '160px' }}>অধ্যক্ষ / প্রধান শিক্ষক</div>
+              <div style={{ fontSize: '10px', color: '#555', marginTop: '3px' }}>{COLLEGE_INFO.nameBn}</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Form field wrapper ─────────────────────────────────────────── */
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
@@ -200,6 +347,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 const inp = 'px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#006633] w-full';
 const sel = inp + ' appearance-none';
 
+/* ── Page ───────────────────────────────────────────────────────── */
 export default function CertificatesPage() {
   const [form, setForm] = useState<CertForm>(BLANK);
   const [preview, setPreview] = useState(false);
@@ -215,8 +363,7 @@ export default function CertificatesPage() {
     setTimeout(() => URL.revokeObjectURL(url), 60000);
   }
 
-  const cls = MADRASHA_CLASSES.find(c => c.id === form.classId)?.nameBn ?? '';
-  const ready = form.studentName && form.fatherName && form.classId && form.examName;
+  const ready = !!(form.studentName && form.fatherName && form.classId && form.examName);
 
   return (
     <div>
@@ -275,11 +422,11 @@ export default function CertificatesPage() {
                 {BEHAVIOURS.map(b => <option key={b} value={b}>{b}</option>)}
               </select>
             </Field>
-            <Field label="সাল">
-              <input value={form.year} onChange={set('year')} placeholder="২০২৬" className={inp} />
-            </Field>
             <Field label="তারিখ">
               <input value={form.issueDate} onChange={set('issueDate')} placeholder="তারিখ লিখুন" className={inp} />
+            </Field>
+            <Field label="সাল">
+              <input value={form.year} onChange={set('year')} placeholder="২০২৬" className={inp} />
             </Field>
             <Field label="সনদ নম্বর (ঐচ্ছিক)">
               <input value={form.certNo} onChange={set('certNo')} placeholder="001" className={inp} />
@@ -317,72 +464,7 @@ export default function CertificatesPage() {
             <h3 className="font-semibold text-gray-900 mb-4 text-sm flex items-center gap-2">
               <Eye size={14} className="text-[#006633]" /> প্রিভিউ
             </h3>
-            <div
-              className="rounded-xl overflow-hidden border-2 border-[#1a237e] relative"
-              style={{ fontFamily: "'Noto Serif Bengali', serif" }}
-            >
-              {/* Top decorative band */}
-              <div className="h-3" style={{ background: 'repeating-linear-gradient(90deg,#1a237e 0,#1a237e 6px,transparent 6px,transparent 12px,#1a237e 12px,#1a237e 14px,#e8eaf6 14px,#e8eaf6 20px)' }} />
-
-              <div className="px-8 py-5">
-                {form.certNo && (
-                  <div className="text-right text-xs text-gray-400 mb-1">সনদ নং: {toBnNum(form.certNo)}</div>
-                )}
-                {/* Header */}
-                <div className="text-center mb-4">
-                  <div className="text-xl font-bold text-blue-900">{COLLEGE_INFO.nameBn}</div>
-                  <div className="text-sm text-gray-500 mt-0.5">{COLLEGE_INFO.address}</div>
-                  <div className="text-xs text-gray-400 mt-0.5">ইআইআইএন: {COLLEGE_INFO.eiin}</div>
-                </div>
-
-                <div className="border-t-2 border-blue-900 my-3" />
-
-                <div className="text-center my-4">
-                  <span className="bg-[#1a237e] text-white text-xl font-bold px-10 py-2 rounded-lg inline-block">প্রশংসাপত্র</span>
-                </div>
-
-                <div className="border-t border-blue-200 my-3" />
-
-                <div className="text-sm leading-8 text-justify text-gray-800 my-3">
-                  &nbsp;&nbsp;&nbsp;এতদ্বারা প্রত্যয়ন করা যাইতেছে যে,{' '}
-                  <strong className="underline decoration-blue-800">{form.studentName}</strong>,
-                  পিতা: <strong className="text-blue-900">{form.fatherName}</strong>
-                  {form.motherName && <>, মাতা: <strong className="text-blue-900">{form.motherName}</strong></>},
-                  {form.roll && <> রোল নং: <strong className="text-blue-900">{toBnNum(form.roll)}</strong>,</>}{' '}
-                  এই মাদ্রাসার <strong className="text-blue-900">{cls}</strong> শ্রেণিতে অধ্যয়নরত আছে।
-                  উপরোক্ত শিক্ষার্থী <strong className="text-blue-900">{form.examName}</strong> পরীক্ষায়
-                  অংশগ্রহণ করে <strong className="text-blue-900">{form.grade}</strong> গ্রেড এবং{' '}
-                  <strong className="text-blue-900">{form.gpa}</strong> জি.পি.এ. প্রাপ্ত হইয়া কৃতিত্বের সহিত উত্তীর্ণ হইয়াছে।
-                  {form.position && form.position !== '—' && (
-                    <> শ্রেণিতে তাহার অবস্থান <strong className="text-blue-900">{form.position}</strong>।</>
-                  )}
-                </div>
-
-                <div className="text-sm leading-8 text-justify text-gray-800 mb-4">
-                  &nbsp;&nbsp;&nbsp;তাহার আচরণ ও চরিত্র <strong className="text-blue-900">{form.behaviour}</strong>।
-                  তাহাকে সকল প্রকার সহযোগিতা করিবার জন্য সকলের প্রতি বিনীত অনুরোধ জানানো হইল।
-                </div>
-
-                <div className="border-t border-blue-200 my-3" />
-
-                <div className="flex justify-between items-end mt-6">
-                  <div className="text-sm text-gray-600 leading-7">
-                    তারিখ: {form.issueDate}<br />
-                    সাল: {toBnNum(form.year)}
-                  </div>
-                  <div className="text-center">
-                    <div className="h-12" />
-                    <div className="border-t-2 border-blue-900 pt-1 font-bold text-sm min-w-44 text-center">অধ্যক্ষ / প্রধান শিক্ষক</div>
-                    <div className="text-xs text-gray-500 mt-0.5">{COLLEGE_INFO.nameBn}</div>
-                  </div>
-                </div>
-
-                <div className="text-center text-xs text-gray-300 mt-2 italic">[ সরকারি সীলমোহর ]</div>
-              </div>
-
-              {/* Bottom decorative band */}
-              <div className="h-3" style={{ background: 'repeating-linear-gradient(90deg,#1a237e 0,#1a237e 6px,transparent 6px,transparent 12px,#1a237e 12px,#1a237e 14px,#e8eaf6 14px,#e8eaf6 20px)' }} />
-            </div>
+            <CertPreview f={form} />
           </div>
         )}
 
