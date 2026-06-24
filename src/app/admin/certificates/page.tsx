@@ -57,10 +57,12 @@ function certHTML(f: CertForm, logoSrc = ''): string {
 <head>
 <meta charset="utf-8">
 <title>প্রশংসাপত্র — ${f.studentName}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@400;600;700;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{width:210mm;background:#fff;font-family:'Noto Serif Bengali',serif;color:#0a0820}
+html,body{width:210mm;background:#fff;font-family:'Noto Serif Bengali','Vrinda','Nirmala UI',serif;color:#0a0820}
 
 /* ── Outer wrapper: the diamond-pattern border strip ── */
 .cert-outer{
@@ -244,7 +246,15 @@ html,body{width:210mm;background:#fff;font-family:'Noto Serif Bengali',serif;col
     </div><!-- /content -->
   </div><!-- /cert-inner -->
 </div><!-- /cert-outer -->
-<script>window.addEventListener('load',()=>setTimeout(()=>window.print(),350));<\/script>
+<script>
+window.addEventListener('load', function() {
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function() { setTimeout(window.print, 300); });
+  } else {
+    setTimeout(window.print, 1200);
+  }
+});
+<\/script>
 </body>
 </html>`;
 }
