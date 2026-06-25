@@ -170,7 +170,8 @@ function openPdf(html: string) {
 function buildStickerPdf(
   halls: Hall[],
   examName: string,
-  hallStudents: Record<string, HallStudent[]>
+  hallStudents: Record<string, HallStudent[]>,
+  logoSrc = ''
 ): string {
   const STICKER_CSS = `
     @page{size:A4 portrait;margin:8mm}
@@ -179,20 +180,25 @@ function buildStickerPdf(
     .pg{display:grid;grid-template-columns:1fr 1fr;gap:6mm}
     .stk{border:3px double #000;padding:5mm 6mm;display:flex;flex-direction:column;min-height:118mm;break-inside:avoid}
     .stk-empty{border:none;min-height:118mm}
-    .stk-exam{font-size:7pt;text-align:center;margin-bottom:2mm;color:#333;line-height:1.4}
-    .stk-bn-name{font-size:14pt;font-weight:900;text-align:center;line-height:1.35;margin-bottom:1mm}
-    .stk-addr{font-size:7.5pt;text-align:center;color:#444;margin-bottom:3.5mm}
-    .stk-heading{font-size:13pt;font-weight:700;text-align:center;text-decoration:underline;margin-bottom:6mm}
-    .field{display:flex;align-items:flex-end;margin-bottom:5mm;font-size:10.5pt;gap:4px}
-    .field-lbl{white-space:nowrap;font-weight:700;min-width:54px}
-    .field-colon{margin-right:4px}
+    .stk-logo{text-align:center;margin-bottom:2mm}
+    .stk-logo img{width:52px;height:52px;object-fit:contain}
+    .stk-exam{font-size:7pt;text-align:center;margin-bottom:1.5mm;color:#333;line-height:1.4}
+    .stk-bn-name{font-size:13.5pt;font-weight:900;text-align:center;line-height:1.35;margin-bottom:1mm}
+    .stk-addr{font-size:7.5pt;text-align:center;color:#444;margin-bottom:3mm}
+    .stk-heading{font-size:12.5pt;font-weight:700;text-align:center;text-decoration:underline;margin-bottom:5mm}
+    .field{display:flex;align-items:flex-end;margin-bottom:4.5mm;font-size:10.5pt;gap:4px}
+    .field-lbl{white-space:nowrap;font-weight:700;min-width:58px}
     .field-line{flex:1;border-bottom:1.5px solid #222;padding-bottom:2px;min-height:17px;font-size:9.5pt;padding-left:3px}
-    .sig-area{margin-top:auto;padding-top:8mm;display:flex;justify-content:flex-end}
+    .sig-area{margin-top:auto;padding-top:6mm;display:flex;justify-content:flex-end}
     .sig-col{text-align:center;min-width:90px}
     .sig-line{border-top:1.5px solid #222;padding-top:3px;font-size:9pt;font-weight:700}
     .new-pg{page-break-before:always}
     @media print{@page{margin:8mm}}
   `;
+
+  const logoHtml = logoSrc
+    ? `<div class="stk-logo"><img src="${logoSrc}" alt=""></div>`
+    : '';
 
   const allStickers: string[] = [];
   halls.forEach(hall => {
@@ -200,20 +206,21 @@ function buildStickerPdf(
     assigned.forEach(a => {
       const cls = MADRASHA_CLASSES.find(c => c.id === a.student?.class);
       allStickers.push(`<div class="stk">
+        ${logoHtml}
         <div class="stk-exam">${examName}</div>
         <div class="stk-bn-name">${COLLEGE_INFO.nameBn}</div>
         <div class="stk-addr">মঠেখোলা, পাকুন্দিয়া, কিশোরগঞ্জ।</div>
         <div class="stk-heading">আসন বিন্যাস</div>
         <div class="field">
-          <span class="field-lbl">নাম</span><span class="field-colon">ঃ</span>
+          <span class="field-lbl">নাম</span>
           <span class="field-line"></span>
         </div>
         <div class="field">
-          <span class="field-lbl">শ্রেণী</span><span class="field-colon">ঃ</span>
+          <span class="field-lbl">শ্রেণী</span>
           <span class="field-line">${cls?.nameBn ?? ''}</span>
         </div>
         <div class="field">
-          <span class="field-lbl">রোল নং</span><span class="field-colon">ঃ</span>
+          <span class="field-lbl">রোল নং</span>
           <span class="field-line">${a.student?.roll ?? ''}</span>
         </div>
         <div class="sig-area">
@@ -523,9 +530,15 @@ export default function SeatPlanPage() {
     openPdf(buildCombinedPdf([hall], selectedExam.name, selectedExam.year, { [hall.id]: getHallStudents(hall.id) }));
   };
 
-  const downloadHallStickers = (hall: Hall) => {
+  const downloadHallStickers = async (hall: Hall) => {
     if (!selectedExam) return;
-    openPdf(buildStickerPdf([hall], selectedExam.name, { [hall.id]: getHallStudents(hall.id) }));
+    let logoSrc = '';
+    try {
+      const resp = await fetch('/logo.png');
+      const blob = await resp.blob();
+      logoSrc = await new Promise<string>(res => { const r = new FileReader(); r.onload = () => res(r.result as string); r.readAsDataURL(blob); });
+    } catch {}
+    openPdf(buildStickerPdf([hall], selectedExam.name, { [hall.id]: getHallStudents(hall.id) }, logoSrc));
   };
 
   const downloadAll = () => {
@@ -535,11 +548,17 @@ export default function SeatPlanPage() {
     openPdf(buildCombinedPdf(examHalls, selectedExam.name, selectedExam.year, hallStudents));
   };
 
-  const downloadStickers = () => {
+  const downloadStickers = async () => {
     if (!selectedExam || examHalls.length === 0) return;
     const hallStudents: Record<string, HallStudent[]> = {};
     examHalls.forEach(h => { hallStudents[h.id] = getHallStudents(h.id); });
-    openPdf(buildStickerPdf(examHalls, selectedExam.name, hallStudents));
+    let logoSrc = '';
+    try {
+      const resp = await fetch('/logo.png');
+      const blob = await resp.blob();
+      logoSrc = await new Promise<string>(res => { const r = new FileReader(); r.onload = () => res(r.result as string); r.readAsDataURL(blob); });
+    } catch {}
+    openPdf(buildStickerPdf(examHalls, selectedExam.name, hallStudents, logoSrc));
   };
 
   const downloadHallMap = () => {
