@@ -1,9 +1,9 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import { STUDENTS, MADRASHA_CLASSES } from '@/lib/data';
+import { STUDENTS, MADRASHA_CLASSES, COLLEGE_INFO } from '@/lib/data';
 import type { Student } from '@/lib/types';
-import { Plus, Trash2, Download, MapPin, Users, Edit2, Shuffle, ChevronDown, Calendar, Layers, CheckCircle2, UserCheck } from 'lucide-react';
+import { Plus, Trash2, Download, MapPin, Users, Edit2, Shuffle, ChevronDown, Calendar, Layers, CheckCircle2, UserCheck, LayoutGrid } from 'lucide-react';
 import { useTeachers } from '@/context/TeachersContext';
 
 const EXAMS_KEY = 'nim_exams_v1';
@@ -173,68 +173,153 @@ function buildStickerPdf(
   hallStudents: Record<string, HallStudent[]>
 ): string {
   const STICKER_CSS = `
-    @page{size:A4 portrait;margin:5mm}
+    @page{size:A4 portrait;margin:8mm}
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:Arial,sans-serif;background:#fff}
-    .hall-section{margin-bottom:0}
-    .hall-banner{background:#1e1b4b;color:#fff;text-align:center;padding:10px 16px;margin-bottom:4mm;border-radius:4px}
-    .hall-banner-title{font-size:15pt;font-weight:900;letter-spacing:.5px}
-    .hall-banner-sub{font-size:9pt;color:#c7c3ff;margin-top:3px}
-    .pg{display:grid;grid-template-columns:1fr 1fr}
-    .stk{border:1.5px dashed #bbb;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6mm;text-align:center;min-height:85mm}
-    .stk-empty{border:none;min-height:85mm}
-    .stk-hall{font-size:7.5pt;color:#888;letter-spacing:.5px;text-transform:uppercase;margin-bottom:2mm;border-bottom:.5px solid #eee;padding-bottom:2mm;width:100%}
-    .stk-bench{font-size:9pt;color:#4c1d95;font-weight:700;margin-bottom:1mm}
-    .stk-num{font-size:52pt;font-weight:900;color:#1e1b4b;line-height:1}
-    .stk-lbl{font-size:7.5pt;color:#999;margin:1mm 0 3mm;letter-spacing:1px;text-transform:uppercase}
-    .stk-name{font-size:9pt;font-weight:bold;color:#111;max-width:90%}
-    .stk-info{font-size:8pt;color:#555;margin-top:1.5mm}
-    .stk-inst{font-size:6.5pt;color:#bbb;margin-top:2.5mm;border-top:.5px solid #eee;padding-top:2mm;width:100%}
+    body{font-family:'Noto Serif Bengali','Vrinda','Nirmala UI',Arial,sans-serif;background:#fff}
+    .pg{display:grid;grid-template-columns:1fr 1fr;gap:6mm}
+    .stk{border:3px double #000;padding:5mm 6mm;display:flex;flex-direction:column;min-height:118mm;break-inside:avoid}
+    .stk-empty{border:none;min-height:118mm}
+    .stk-exam{font-size:7pt;text-align:center;margin-bottom:2mm;color:#333;line-height:1.4}
+    .stk-bn-name{font-size:14pt;font-weight:900;text-align:center;line-height:1.35;margin-bottom:1mm}
+    .stk-addr{font-size:7.5pt;text-align:center;color:#444;margin-bottom:3.5mm}
+    .stk-heading{font-size:13pt;font-weight:700;text-align:center;text-decoration:underline;margin-bottom:6mm}
+    .field{display:flex;align-items:flex-end;margin-bottom:5mm;font-size:10.5pt;gap:4px}
+    .field-lbl{white-space:nowrap;font-weight:700;min-width:54px}
+    .field-colon{margin-right:4px}
+    .field-line{flex:1;border-bottom:1.5px solid #222;padding-bottom:2px;min-height:17px;font-size:9.5pt;padding-left:3px}
+    .sig-area{margin-top:auto;padding-top:8mm;display:flex;justify-content:flex-end}
+    .sig-col{text-align:center;min-width:90px}
+    .sig-line{border-top:1.5px solid #222;padding-top:3px;font-size:9pt;font-weight:700}
     .new-pg{page-break-before:always}
-    @media print{@page{margin:5mm}}
+    @media print{@page{margin:8mm}}
   `;
 
-  const sections = halls.map((hall, hallIdx) => {
+  const allStickers: string[] = [];
+  halls.forEach(hall => {
     const assigned = hallStudents[hall.id] ?? [];
-    if (assigned.length === 0) return '';
+    assigned.forEach(a => {
+      const cls = MADRASHA_CLASSES.find(c => c.id === a.student?.class);
+      allStickers.push(`<div class="stk">
+        <div class="stk-exam">${examName}</div>
+        <div class="stk-bn-name">${COLLEGE_INFO.nameBn}</div>
+        <div class="stk-addr">মঠেখোলা, পাকুন্দিয়া, কিশোরগঞ্জ।</div>
+        <div class="stk-heading">আসন বিন্যাস</div>
+        <div class="field">
+          <span class="field-lbl">নাম</span><span class="field-colon">ঃ</span>
+          <span class="field-line"></span>
+        </div>
+        <div class="field">
+          <span class="field-lbl">শ্রেণী</span><span class="field-colon">ঃ</span>
+          <span class="field-line">${cls?.nameBn ?? ''}</span>
+        </div>
+        <div class="field">
+          <span class="field-lbl">রোল নং</span><span class="field-colon">ঃ</span>
+          <span class="field-line">${a.student?.roll ?? ''}</span>
+        </div>
+        <div class="sig-area">
+          <div class="sig-col">
+            <div class="sig-line">অধ্যক্ষ</div>
+          </div>
+        </div>
+      </div>`);
+    });
+  });
 
-    const pages: HallStudent[][] = [];
-    for (let i = 0; i < assigned.length; i += 6) pages.push(assigned.slice(i, i + 6));
-
-    const pagesHtml = pages.map((page, pi) => {
-      const stickers = page.map(a => {
-        const cls = MADRASHA_CLASSES.find(c => c.id === a.student?.class);
-        const bench = a.branchNumber ?? 1;
-        const seatPos = a.seatInBranch ?? a.seatNumber;
-        return `<div class="stk">
-          <div class="stk-hall">${hall.hallName}</div>
-          <div class="stk-bench">বেঞ্চ — ${bench}</div>
-          <div class="stk-num">${seatPos}</div>
-          <div class="stk-lbl">আসন নম্বর</div>
-          <div class="stk-name">${a.student?.name ?? ''}</div>
-          <div class="stk-info">${cls?.nameBn ?? ''} &nbsp;|&nbsp; রোল: ${a.student?.roll ?? ''}</div>
-          <div class="stk-inst">এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা — ${examName}</div>
-        </div>`;
-      });
-      while (stickers.length < 6) stickers.push('<div class="stk stk-empty"></div>');
-      return `<div class="pg${pi > 0 ? ' new-pg' : ''}">${stickers.join('')}</div>`;
-    }).join('');
-
-    return `<div class="hall-section${hallIdx > 0 ? ' new-pg' : ''}">
-      <div class="hall-banner">
-        <div class="hall-banner-title">হল: ${hall.hallName}</div>
-        <div class="hall-banner-sub">মোট পরীক্ষার্থী: ${assigned.length} জন &nbsp;|&nbsp; ${hall.branches ?? 1} বেঞ্চ × ${hall.seatsPerBranch ?? hall.capacity} আসন</div>
-      </div>
-      ${pagesHtml}
-    </div>`;
-  }).filter(Boolean).join('');
+  const pages: string[] = [];
+  for (let i = 0; i < allStickers.length; i += 4) {
+    const group = allStickers.slice(i, i + 4);
+    while (group.length < 4) group.push('<div class="stk stk-empty"></div>');
+    pages.push(`<div class="pg${i > 0 ? ' new-pg' : ''}">${group.join('')}</div>`);
+  }
 
   return `<!DOCTYPE html><html lang="bn"><head>
 <meta charset="utf-8"><title>আসন স্টিকার — ${examName}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>${STICKER_CSS}</style>
 </head><body>
-${sections || '<div style="text-align:center;padding:40px;color:#999;font-family:Arial">কোনো আসন বরাদ্দ হয়নি</div>'}
-<script>window.addEventListener('load',function(){setTimeout(function(){window.print();},400);});<\/script>
+${pages.join('') || '<div style="text-align:center;padding:40px;color:#999">কোনো আসন বরাদ্দ হয়নি</div>'}
+<script>window.addEventListener('load',function(){setTimeout(function(){window.print();},800);});<\/script>
+</body></html>`;
+}
+
+function buildHallMapPdf(
+  halls: Hall[],
+  examName: string,
+  examYear: string,
+  hallStudents: Record<string, HallStudent[]>
+): string {
+  const MAP_CSS = `
+    @page{size:A4 landscape;margin:10mm}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Noto Serif Bengali','Vrinda',Arial,sans-serif;background:#fff;font-size:10px;color:#111}
+    .hdr{text-align:center;border-bottom:3px double #1e1b4b;padding-bottom:6px;margin-bottom:10px}
+    .hdr-name{font-size:17px;font-weight:900;color:#1e1b4b}
+    .hdr-sub{font-size:9px;color:#555;margin-top:3px}
+    .hall-section{margin-bottom:16px}
+    .new-hall{page-break-before:always;margin-top:0;padding-top:0}
+    .hall-title{background:#1e1b4b;color:#fff;text-align:center;padding:5px 12px;font-size:12px;font-weight:700;border-radius:4px;margin-bottom:7px}
+    .board{text-align:center;margin-bottom:7px}
+    .board-lbl{display:inline-block;background:#2d6a4f;color:#fff;padding:3px 28px;font-size:7.5px;letter-spacing:2px;border-radius:3px}
+    .bench-row{display:flex;align-items:center;gap:5px;margin-bottom:3px}
+    .bench-lbl{width:48px;text-align:right;font-size:8px;font-weight:700;color:#4c1d95;flex-shrink:0}
+    .seats{display:flex;gap:3px;flex-wrap:nowrap}
+    .seat{border:1px solid #c8c6e0;border-radius:4px;padding:2px 4px;text-align:center;min-width:82px;background:#f8f7ff}
+    .seat-num{font-size:12px;font-weight:900;color:#1e1b4b;line-height:1.2}
+    .seat-name{font-size:7px;font-weight:600;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:78px}
+    .seat-cls{font-size:6px;color:#666}
+    .seat-roll{font-size:6px;color:#888}
+    .empty-seat{background:#fafafa;border-color:#e8e8e8}
+  `;
+
+  const sections = halls.map((hall, idx) => {
+    const assigned = hallStudents[hall.id] ?? [];
+    const branches = hall.branches ?? 1;
+    const seatsPerBranch = hall.seatsPerBranch ?? hall.capacity;
+
+    let benchRows = '';
+    for (let b = 1; b <= branches; b++) {
+      const branchStudents = assigned.filter(a => a.branchNumber === b);
+      let seatsHtml = '';
+      for (let s = 1; s <= seatsPerBranch; s++) {
+        const a = branchStudents.find(x => x.seatInBranch === s);
+        const cls = a ? MADRASHA_CLASSES.find(c => c.id === a.student?.class) : null;
+        if (a) {
+          seatsHtml += `<div class="seat">
+            <div class="seat-num">${s}</div>
+            <div class="seat-name">${a.student?.name ?? ''}</div>
+            <div class="seat-cls">${cls?.nameBn ?? ''}</div>
+            <div class="seat-roll">রোল: ${a.student?.roll ?? ''}</div>
+          </div>`;
+        } else {
+          seatsHtml += `<div class="seat empty-seat"><div class="seat-num" style="color:#ccc">${s}</div><div class="seat-cls" style="color:#ccc">খালি</div></div>`;
+        }
+      }
+      benchRows += `<div class="bench-row">
+        <div class="bench-lbl">বেঞ্চ ${b}</div>
+        <div class="seats">${seatsHtml}</div>
+      </div>`;
+    }
+
+    return `<div class="hall-section${idx > 0 ? ' new-hall' : ''}">
+      <div class="hall-title">হল: ${hall.hallName} &nbsp;|&nbsp; ${branches} বেঞ্চ × ${seatsPerBranch} আসন &nbsp;|&nbsp; বরাদ্দ: ${assigned.length} জন</div>
+      <div class="board"><span class="board-lbl">▲ সামনে / ব্ল্যাকবোর্ড</span></div>
+      ${benchRows}
+    </div>`;
+  }).join('');
+
+  return `<!DOCTYPE html><html lang="bn"><head>
+<meta charset="utf-8"><title>হল মানচিত্র — ${examName}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>${MAP_CSS}</style>
+</head><body>
+<div class="hdr">
+  <div class="hdr-name">${COLLEGE_INFO.nameBn}</div>
+  <div class="hdr-sub">${examName} — ${examYear} &nbsp;|&nbsp; হলভিত্তিক বেঞ্চ-আসন মানচিত্র</div>
+</div>
+${sections || '<div style="text-align:center;padding:40px;color:#999">কোনো আসন বরাদ্দ হয়নি</div>'}
+<script>window.addEventListener('load',function(){setTimeout(function(){window.print();},800);});<\/script>
 </body></html>`;
 }
 
@@ -457,6 +542,13 @@ export default function SeatPlanPage() {
     openPdf(buildStickerPdf(examHalls, selectedExam.name, hallStudents));
   };
 
+  const downloadHallMap = () => {
+    if (!selectedExam || examHalls.length === 0) return;
+    const hallStudents: Record<string, HallStudent[]> = {};
+    examHalls.forEach(h => { hallStudents[h.id] = getHallStudents(h.id); });
+    openPdf(buildHallMapPdf(examHalls, selectedExam.name, selectedExam.year, hallStudents));
+  };
+
   const allAssignedClassIds = new Set(examHalls.flatMap(h => h.classIds ?? []));
   const unassignedClasses = availableClasses.filter(c => !allAssignedClassIds.has(c.id));
 
@@ -556,6 +648,10 @@ export default function SeatPlanPage() {
                       <button onClick={downloadStickers}
                         className="flex items-center gap-1.5 bg-amber-400 hover:bg-amber-500 text-amber-900 text-xs px-3 py-2 rounded-lg font-semibold transition-colors">
                         <Layers size={13} /> স্টিকার PDF
+                      </button>
+                      <button onClick={downloadHallMap}
+                        className="flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs px-3 py-2 rounded-lg font-semibold transition-colors">
+                        <LayoutGrid size={13} /> হল মানচিত্র
                       </button>
                     </>
                   )}
