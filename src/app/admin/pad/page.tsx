@@ -41,9 +41,9 @@ body{font-family:'Noto Serif Bengali','Vrinda','Nirmala UI',serif;color:#000;bac
 @page{size:A4 portrait;margin:13mm 15mm 15mm 15mm}
 .hdr{width:100%;border-collapse:collapse}
 .hdr td{vertical-align:top;padding:0}
-.col-bn{width:43%}
+.col-bn{width:43%;vertical-align:top}
 .col-logo{width:14%;text-align:center;vertical-align:middle}
-.col-en{width:43%;text-align:right;font-family:Arial,Helvetica,sans-serif}
+.col-en{width:43%;text-align:right;font-family:Arial,Helvetica,sans-serif;vertical-align:top}
 .nm-bn{font-size:14pt;font-weight:900;color:#8B0000;line-height:1.3}
 .nm-en{font-size:10.5pt;font-weight:900;color:#8B0000;line-height:1.3}
 .addr{font-size:7.5pt;color:#333;margin-top:3px;line-height:1.65}
@@ -60,7 +60,7 @@ body{font-family:'Noto Serif Bengali','Vrinda','Nirmala UI',serif;color:#000;bac
     <div class="nm-bn">${COLLEGE_INFO.nameBn}</div>
     <div class="addr">ডাকঘর- মঠেখোলা, উপজেলা-পাকুন্দিয়া, জেলা- কিশোরগঞ্জ।<br>স্থাপিত ঃ ${COLLEGE_INFO.established}ইং, ইআইআইএন- ${COLLEGE_INFO.eiin}<br>মোবাইল ঃ ${COLLEGE_INFO.phone}<br>E-mail: ${COLLEGE_INFO.email}<br>Web: ${COLLEGE_INFO.website}</div>
   </td>
-  <td class="col-logo">${logoSrc ? `<img src="${logoSrc}" style="width:60px;height:auto;display:block;margin:0 auto">` : ''}</td>
+  <td class="col-logo">${logoSrc ? `<img src="${logoSrc}" style="width:82px;height:82px;object-fit:contain;display:block;margin:0 auto">` : ''}</td>
   <td class="col-en">
     <div class="nm-en">${COLLEGE_INFO.name.toUpperCase()}</div>
     <div class="addr">Post : Mathkhola, Upazila : Pakundia<br>Dist-Kishoregonj<br>ESTD : ${COLLEGE_INFO.establishedEn}, EIIN-${COLLEGE_INFO.eiin}<br>Mobile : ${COLLEGE_INFO.phone}<br>E-mail : ${COLLEGE_INFO.email}<br>Web: ${COLLEGE_INFO.website}</div>
@@ -149,6 +149,9 @@ export default function AdminPadPage() {
         #pad-ed:focus { outline:none; }
         #pad-ed p { margin:0; }
         .lh-cell { overflow:hidden; }
+        #pad-ed { border:none !important; outline:none !important; box-shadow:none !important; }
+        #pad-ed:focus { border:none !important; outline:none !important; box-shadow:none !important; }
+        input[type="date"]::-webkit-calendar-picker-indicator { display:none; }
       `}</style>
 
       <div className="p-6 space-y-4" style={{ maxWidth: '860px', margin: '0 auto' }}>
@@ -210,10 +213,10 @@ export default function AdminPadPage() {
           <div style={{ padding: '28px 36px 0' }}>
 
             {/* 3-column header — CSS grid, overflow hidden per cell */}
-            <div style={{ display: 'grid', gridTemplateColumns: '43% 14% 43%', columnGap: 0, paddingBottom: '10px', borderBottom: '3px solid #8B0000' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '43% 14% 43%', columnGap: 0, paddingBottom: '10px', borderBottom: '3px solid #8B0000', alignItems: 'center' }}>
 
               {/* Bengali */}
-              <div className="lh-cell" style={{ paddingRight: '8px' }}>
+              <div className="lh-cell" style={{ paddingRight: '8px', alignSelf: 'start' }}>
                 <div style={{ fontWeight: 900, color: '#8B0000', fontSize: '12pt', lineHeight: 1.35, fontFamily: "'Noto Serif Bengali','Vrinda','Nirmala UI',serif" }}>
                   {COLLEGE_INFO.nameBn}
                 </div>
@@ -229,11 +232,11 @@ export default function AdminPadPage() {
               {/* Logo */}
               <div className="lh-cell" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/logo.png" alt="" style={{ width: '58px', height: '58px', objectFit: 'contain', display: 'block' }} />
+                <img src="/logo.png" alt="" style={{ width: '82px', height: '82px', objectFit: 'contain', display: 'block' }} />
               </div>
 
               {/* English */}
-              <div className="lh-cell" style={{ textAlign: 'right', paddingLeft: '8px', fontFamily: 'Arial,Helvetica,sans-serif' }}>
+              <div className="lh-cell" style={{ textAlign: 'right', paddingLeft: '8px', fontFamily: 'Arial,Helvetica,sans-serif', alignSelf: 'start' }}>
                 <div style={{ fontWeight: 900, color: '#8B0000', fontSize: '10pt', lineHeight: 1.35 }}>
                   {COLLEGE_INFO.name.toUpperCase()}
                 </div>
@@ -253,13 +256,13 @@ export default function AdminPadPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ fontWeight: 700 }}>সূত্র ঃ</span>
                 <input value={sutro} onChange={e => setSutro(e.target.value)} placeholder="........................"
-                  style={{ outline: 'none', background: 'transparent', borderBottom: '1px dotted #999', minWidth: '150px', padding: '0 4px', fontSize: '9.5pt', fontFamily: "'Noto Serif Bengali','Vrinda',serif" }} />
+                  style={{ outline: 'none', background: 'transparent', border: 'none', borderBottom: '1px dotted #999', minWidth: '150px', padding: '0 4px', fontSize: '9.5pt', fontFamily: "'Noto Serif Bengali','Vrinda',serif" }} />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ fontWeight: 700 }}>তারিখ ঃ</span>
                 <div style={{ position: 'relative' }}>
                   <input type="date" value={tarikh} onChange={e => setTarikh(e.target.value)}
-                    style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%' }} />
+                    style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', border: 'none', outline: 'none' }} />
                   <span style={{ borderBottom: '1px dotted #999', minWidth: '130px', display: 'inline-block', padding: '0 4px', fontSize: '9.5pt' }}>
                     {tarikh ? fmtDate(tarikh) : '............................'}
                   </span>
@@ -277,7 +280,7 @@ export default function AdminPadPage() {
               suppressContentEditableWarning
               spellCheck={false}
               data-placeholder="এখানে পত্রের বিষয়বস্তু লিখুন... অথবা উপরের 'বাংলা টেমপ্লেট' বোতামটি ব্যবহার করুন"
-              style={{ fontSize: '11pt', lineHeight: '2', minHeight: '460px', color: '#111' }}
+              style={{ fontSize: '11pt', lineHeight: '2', minHeight: '460px', color: '#111', border: 'none', outline: 'none', boxShadow: 'none' }}
             />
           </div>
         </div>
