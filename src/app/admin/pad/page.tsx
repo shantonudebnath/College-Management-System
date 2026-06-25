@@ -60,7 +60,7 @@ body{font-family:'Noto Serif Bengali','Vrinda','Nirmala UI',serif;color:#000;bac
     <div class="nm-bn">${COLLEGE_INFO.nameBn}</div>
     <div class="addr">ডাকঘর- মঠেখোলা, উপজেলা-পাকুন্দিয়া, জেলা- কিশোরগঞ্জ।<br>স্থাপিত ঃ ${COLLEGE_INFO.established}ইং, ইআইআইএন- ${COLLEGE_INFO.eiin}<br>মোবাইল ঃ ${COLLEGE_INFO.phone}<br>E-mail: ${COLLEGE_INFO.email}<br>Web: ${COLLEGE_INFO.website}</div>
   </td>
-  <td class="col-logo">${logoSrc ? `<img src="${logoSrc}" style="width:100px;height:100px;object-fit:contain;display:block;margin:0 auto">` : ''}</td>
+  <td class="col-logo">${logoSrc ? `<img src="${logoSrc}" style="width:120px;height:120px;object-fit:contain;display:block;margin:0 auto">` : ''}</td>
   <td class="col-en">
     <div class="nm-en">${COLLEGE_INFO.name.toUpperCase()}</div>
     <div class="addr">Post : Mathkhola, Upazila : Pakundia, Dist-Kishoregonj<br>ESTD : ${COLLEGE_INFO.establishedEn}, EIIN-${COLLEGE_INFO.eiin}<br>Mobile : ${COLLEGE_INFO.phone}<br>E-mail : ${COLLEGE_INFO.email}<br>Web: ${COLLEGE_INFO.website}</div>
@@ -68,7 +68,7 @@ body{font-family:'Noto Serif Bengali','Vrinda','Nirmala UI',serif;color:#000;bac
 </tr>
 </table>
 <hr class="divline">
-<table class="sr"><tr><td>সূত্র ঃ ${sutro || '................................'}</td><td style="text-align:right">তারিখ ঃ ${fmtDate(tarikh)}</td></tr></table>
+<table class="sr"><tr><td>সূত্র ${sutro || '................................'}</td><td style="text-align:right">তারিখ ${fmtDate(tarikh)}</td></tr></table>
 <div class="body">${body}</div>
 <script>
 window.addEventListener('load',function(){
@@ -234,7 +234,7 @@ export default function AdminPadPage() {
               {/* Logo */}
               <div className="lh-cell" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/logo.png" alt="" style={{ width: '100px', height: '100px', objectFit: 'contain', display: 'block' }} />
+                <img src="/logo.png" alt="" style={{ width: '120px', height: '120px', objectFit: 'contain', display: 'block' }} />
               </div>
 
               {/* English */}
@@ -257,12 +257,12 @@ export default function AdminPadPage() {
             {/* সূত্র / তারিখ */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0 4px', borderBottom: '1px solid #666', marginTop: '3px', fontSize: '9.5pt', fontFamily: "'Noto Serif Bengali','Vrinda',serif" }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontWeight: 700 }}>সূত্র ঃ</span>
+                <span style={{ fontWeight: 700 }}>সূত্র</span>
                 <input value={sutro} onChange={e => setSutro(e.target.value)} placeholder="........................"
                   style={{ outline: 'none', background: 'transparent', border: 'none', borderBottom: '1px dotted #999', minWidth: '150px', padding: '0 4px', fontSize: '9.5pt', fontFamily: "'Noto Serif Bengali','Vrinda',serif" }} />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontWeight: 700 }}>তারিখ ঃ</span>
+                <span style={{ fontWeight: 700 }}>তারিখ</span>
                 <div style={{ position: 'relative' }}>
                   <input type="date" value={tarikh} onChange={e => setTarikh(e.target.value)}
                     style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', border: 'none', outline: 'none' }} />
