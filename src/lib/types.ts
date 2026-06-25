@@ -116,6 +116,7 @@ export interface Fee {
   class: string;
   feeType: string;
   amount: number;
+  discount?: number;
   dueDate: string;
   paidDate?: string;
   status: 'paid' | 'due' | 'partial';

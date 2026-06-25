@@ -17,7 +17,7 @@ function getWaiverDiscount(fee: Fee, waivers: Waiver[]): number {
     w => w.isActive && w.studentId === fee.studentId &&
     (w.feeTypes.length === 0 || w.feeTypes.includes(fee.feeType))
   );
-  let discount = 0;
+  let discount = fee.discount ?? 0;
   for (const w of active) {
     if (w.waiverType === 'fixed') discount += w.waiverValue;
     else discount += Math.round((fee.amount * w.waiverValue) / 100);
@@ -58,6 +58,10 @@ export default function AdminFeesPage() {
   const [payConfirm, setPayConfirm] = useState<{ id: string; name: string } | null>(null);
   const [unpayConfirm, setUnpayConfirm] = useState<{ id: string; name: string } | null>(null);
   const [waiverDeleteId, setWaiverDeleteId] = useState<string | null>(null);
+
+  // Inline discount editing
+  const [editingDiscountId, setEditingDiscountId] = useState<string | null>(null);
+  const [discountInput, setDiscountInput] = useState('');
 
   useEffect(() => { localStorage.setItem(LS_FEES, JSON.stringify(fees)); }, [fees]);
   useEffect(() => { localStorage.setItem(LS_WAIVERS, JSON.stringify(waivers)); }, [waivers]);
@@ -122,6 +126,13 @@ export default function AdminFeesPage() {
 
   const markPaid = (id: string) => setFees(p => p.map(f => f.id === id ? { ...f, status: 'paid' as const, paidDate: new Date().toISOString().split('T')[0], receiptNo: `RCP-2024-${Math.random().toFixed(3).slice(2)}` } : f));
   const markDue = (id: string) => setFees(p => p.map(f => f.id === id ? { ...f, status: 'due' as const, paidDate: undefined, receiptNo: undefined } : f));
+
+  const saveDiscount = (id: string) => {
+    const val = Number(discountInput);
+    setFees(p => p.map(f => f.id === id ? { ...f, discount: isNaN(val) || discountInput === '' ? undefined : Math.max(0, val) } : f));
+    setEditingDiscountId(null);
+    setDiscountInput('');
+  };
 
   /* ---------- Waiver actions ---------- */
   const addWaiver = () => {
@@ -264,6 +275,7 @@ export default function AdminFeesPage() {
                     {fees.map(fee => {
                       const disc = getWaiverDiscount(fee, waivers);
                       const net = Math.max(0, fee.amount - disc);
+                      const isEditingDiscount = editingDiscountId === fee.id;
                       return (
                         <tr key={fee.id} className="hover:bg-gray-50 transition-colors">
                           <td className="px-5 py-3 font-medium text-gray-900">{fee.studentName}</td>
@@ -271,9 +283,28 @@ export default function AdminFeesPage() {
                           <td className="px-5 py-3 text-gray-600">{fee.feeType}</td>
                           <td className="px-5 py-3 text-right font-semibold text-gray-700">৳ {fee.amount}</td>
                           <td className="px-5 py-3 text-right">
-                            {disc > 0
-                              ? <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">- ৳ {disc}</span>
-                              : <span className="text-gray-300 text-xs">—</span>}
+                            {isEditingDiscount ? (
+                              <input
+                                autoFocus
+                                type="number"
+                                value={discountInput}
+                                onChange={e => setDiscountInput(e.target.value)}
+                                onBlur={() => saveDiscount(fee.id)}
+                                onKeyDown={e => { if (e.key === 'Enter') saveDiscount(fee.id); if (e.key === 'Escape') { setEditingDiscountId(null); setDiscountInput(''); } }}
+                                placeholder="০"
+                                className="w-20 text-right px-2 py-1 text-xs border border-amber-400 rounded-lg outline-none bg-amber-50"
+                              />
+                            ) : (
+                              <button
+                                onClick={() => { setEditingDiscountId(fee.id); setDiscountInput(fee.discount != null ? String(fee.discount) : ''); }}
+                                className="group text-right w-full"
+                                title="ক্লিক করে ছাড় দিন"
+                              >
+                                {disc > 0
+                                  ? <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full group-hover:bg-amber-100">- ৳ {disc}</span>
+                                  : <span className="text-gray-300 text-xs group-hover:text-amber-400 group-hover:underline">— দিন</span>}
+                              </button>
+                            )}
                           </td>
                           <td className="px-5 py-3 text-right font-bold text-gray-900">৳ {net}</td>
                           <td className="px-5 py-3 text-center">
