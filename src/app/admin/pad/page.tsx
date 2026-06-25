@@ -5,7 +5,7 @@ import { COLLEGE_INFO } from '@/lib/data';
 import {
   Printer, Bold, Italic, Underline,
   AlignLeft, AlignCenter, AlignRight, AlignJustify,
-  List, ListOrdered, Undo, Redo, Minus, FileText,
+  List, ListOrdered, Undo, Redo, Minus, FileText, X,
 } from 'lucide-react';
 
 const BN_TEMPLATE = `<p style="text-align:center"><strong><u>বিষয়ঃ</u></strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
@@ -31,42 +31,15 @@ function letterHTML(sutro: string, tarikh: string, body: string, logoSrc: string
 <html lang="bn">
 <head>
 <meta charset="utf-8">
-<title>${COLLEGE_INFO.nameBn} — প্রিন্ট প্রিভিউ</title>
+<title>${COLLEGE_INFO.nameBn}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-body{font-family:'Noto Serif Bengali','Vrinda','Nirmala UI',serif;color:#000;background:#e8e8e8}
+body{font-family:'Noto Serif Bengali','Vrinda','Nirmala UI',serif;color:#000;background:#fff;padding:14mm 16mm 20mm}
 @page{size:A4 portrait;margin:14mm 16mm 16mm 16mm}
-@media print{
-  body{background:#fff}
-  .page{box-shadow:none!important;margin:0!important;padding:0!important;width:100%!important}
-  .pbar{display:none!important}
-}
-/* ── Print bar (screen only) ── */
-.pbar{
-  position:fixed;top:0;left:0;right:0;z-index:99;
-  background:#1e1b4b;color:#fff;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:10px 28px;gap:12px;
-}
-.pbar-title{font-size:12pt;font-weight:600;font-family:'Noto Serif Bengali','Vrinda',serif}
-.pbar-btn{
-  background:#7c3aed;color:#fff;border:none;
-  padding:8px 28px;border-radius:8px;font-size:11pt;font-weight:700;
-  cursor:pointer;font-family:'Noto Serif Bengali','Vrinda',serif;letter-spacing:.3px;
-}
-.pbar-btn:hover{background:#6d28d9}
-/* ── A4 paper ── */
-.page{
-  width:210mm;min-height:297mm;
-  margin:68px auto 40px;
-  padding:14mm 16mm 20mm;
-  background:#fff;
-  box-shadow:0 6px 32px rgba(0,0,0,.25);
-}
-/* ── Letterhead table ── */
+@media print{body{padding:0}}
 .hdr{width:100%;border-collapse:collapse}
 .hdr tr{height:115px}
 .col-bn{width:42%;padding-right:8px;vertical-align:top}
@@ -78,56 +51,45 @@ body{font-family:'Noto Serif Bengali','Vrinda','Nirmala UI',serif;color:#000;bac
 .addr{font-size:7.5pt;color:#333;line-height:1.72}
 .addr-bn{font-family:'Noto Serif Bengali','Vrinda',serif}
 .addr-en{font-family:Arial,Helvetica,sans-serif;text-align:right}
-/* ── Divider + Sūtra row ── */
 .divline{border:none;border-top:3px solid #8B0000;margin:5px 0 0}
 .sr-row{display:flex;justify-content:space-between;padding:4px 0 3px;border-bottom:1px solid #555;font-size:9.5pt;font-family:'Noto Serif Bengali','Vrinda',serif;margin-top:2px}
-/* ── Body ── */
 .body{margin-top:14pt;font-size:10.5pt;line-height:2.1;font-family:'Noto Serif Bengali','Vrinda',serif}
 .body p{margin:0}
 </style>
 </head>
 <body>
-
-<div class="pbar">
-  <span class="pbar-title">${COLLEGE_INFO.nameBn} — প্রিন্ট প্রিভিউ</span>
-  <button class="pbar-btn" onclick="window.print()">🖨️ প্রিন্ট করুন</button>
+<table class="hdr">
+<tr>
+  <td class="col-bn">
+    <div class="td-inner">
+      <div class="nm-bn">${COLLEGE_INFO.nameBn}</div>
+      <div class="addr addr-bn">ডাকঘর- মঠেখোলা, উপজেলা-পাকুন্দিয়া, জেলা- কিশোরগঞ্জ।<br>স্থাপিত ঃ ${COLLEGE_INFO.established}ইং, ইআইআইএন- ${COLLEGE_INFO.eiin}<br>মোবাইল ঃ ${COLLEGE_INFO.phone}<br>E-mail: ${COLLEGE_INFO.email}<br>Web: ${COLLEGE_INFO.website}</div>
+    </div>
+  </td>
+  <td class="col-logo">${logoSrc ? `<img src="${logoSrc}" style="width:110px;height:110px;object-fit:contain;display:block;margin:0 auto">` : ''}</td>
+  <td class="col-en">
+    <div class="td-inner">
+      <div class="nm-en">${COLLEGE_INFO.name.toUpperCase()}</div>
+      <div class="addr addr-en">Post : Mathkhola, Upazila : Pakundia, Dist-Kishoregonj<br>ESTD : ${COLLEGE_INFO.establishedEn}, EIIN-${COLLEGE_INFO.eiin}<br>Mobile : ${COLLEGE_INFO.phone}<br>E-mail : ${COLLEGE_INFO.email}<br>Web: ${COLLEGE_INFO.website}</div>
+    </div>
+  </td>
+</tr>
+</table>
+<hr class="divline">
+<div class="sr-row">
+  <span>সূত্র&nbsp;&nbsp;${sutro || '................................'}</span>
+  <span>তারিখ&nbsp;&nbsp;${fmtDate(tarikh)}</span>
 </div>
-
-<div class="page">
-  <table class="hdr">
-    <tr>
-      <td class="col-bn">
-        <div class="td-inner">
-          <div class="nm-bn">${COLLEGE_INFO.nameBn}</div>
-          <div class="addr addr-bn">ডাকঘর- মঠেখোলা, উপজেলা-পাকুন্দিয়া, জেলা- কিশোরগঞ্জ।<br>স্থাপিত ঃ ${COLLEGE_INFO.established}ইং, ইআইআইএন- ${COLLEGE_INFO.eiin}<br>মোবাইল ঃ ${COLLEGE_INFO.phone}<br>E-mail: ${COLLEGE_INFO.email}<br>Web: ${COLLEGE_INFO.website}</div>
-        </div>
-      </td>
-      <td class="col-logo">${logoSrc ? `<img src="${logoSrc}" style="width:110px;height:110px;object-fit:contain;display:block;margin:0 auto">` : ''}</td>
-      <td class="col-en">
-        <div class="td-inner">
-          <div class="nm-en">${COLLEGE_INFO.name.toUpperCase()}</div>
-          <div class="addr addr-en">Post : Mathkhola, Upazila : Pakundia, Dist-Kishoregonj<br>ESTD : ${COLLEGE_INFO.establishedEn}, EIIN-${COLLEGE_INFO.eiin}<br>Mobile : ${COLLEGE_INFO.phone}<br>E-mail : ${COLLEGE_INFO.email}<br>Web: ${COLLEGE_INFO.website}</div>
-        </div>
-      </td>
-    </tr>
-  </table>
-  <hr class="divline">
-  <div class="sr-row">
-    <span>সূত্র&nbsp;&nbsp;${sutro || '................................'}</span>
-    <span>তারিখ&nbsp;&nbsp;${fmtDate(tarikh)}</span>
-  </div>
-  <div class="body">${body}</div>
-</div>
-
+<div class="body">${body}</div>
 </body></html>`;
 }
 
-function ToolBtn({ onClick, title, active, children }: { onClick: () => void; title: string; active?: boolean; children: React.ReactNode }) {
+function ToolBtn({ onClick, title, children }: { onClick: () => void; title: string; children: React.ReactNode }) {
   return (
     <button
       onMouseDown={e => { e.preventDefault(); onClick(); }}
       title={title}
-      className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${active ? 'bg-purple-600 text-white' : 'text-gray-600 hover:bg-purple-100 hover:text-purple-800'}`}
+      className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors text-gray-600 hover:bg-purple-100 hover:text-purple-800"
     >
       {children}
     </button>
@@ -142,7 +104,10 @@ export default function AdminPadPage() {
   const [sutro, setSutro] = useState('');
   const [tarikh, setTarikh] = useState('');
   const [fontSize, setFontSize] = useState('3');
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewHtml, setPreviewHtml] = useState('');
   const editorRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
     const link = document.createElement('link');
@@ -162,7 +127,7 @@ export default function AdminPadPage() {
     editorRef.current.focus();
   };
 
-  const printLetter = async () => {
+  const openPreview = async () => {
     let logoSrc = '';
     try {
       const resp = await fetch('/logo.png');
@@ -172,12 +137,14 @@ export default function AdminPadPage() {
         reader.onload = () => res(reader.result as string);
         reader.readAsDataURL(blob);
       });
-    } catch { /* optional */ }
+    } catch { /* logo optional */ }
     const content = editorRef.current?.innerHTML ?? '';
-    const html = letterHTML(sutro, tarikh, content, logoSrc);
-    const url = URL.createObjectURL(new Blob([html], { type: 'text/html; charset=utf-8' }));
-    window.open(url, '_blank');
-    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    setPreviewHtml(letterHTML(sutro, tarikh, content, logoSrc));
+    setPreviewOpen(true);
+  };
+
+  const printNow = () => {
+    iframeRef.current?.contentWindow?.print();
   };
 
   return (
@@ -196,6 +163,39 @@ export default function AdminPadPage() {
         #pad-ed:focus { border:none !important; outline:none !important; box-shadow:none !important; }
         input[type="date"]::-webkit-calendar-picker-indicator { display:none; }
       `}</style>
+
+      {/* ── Full-screen Preview Modal ── */}
+      {previewOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.8)', display: 'flex', flexDirection: 'column' }}>
+          {/* Modal top bar */}
+          <div style={{ background: '#1e1b4b', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 24px', flexShrink: 0, gap: 12 }}>
+            <span style={{ fontSize: '13pt', fontWeight: 600, fontFamily: "'Noto Serif Bengali','Vrinda',serif" }}>
+              {COLLEGE_INFO.nameBn} — প্রিন্ট প্রিভিউ
+            </span>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <button
+                onClick={printNow}
+                style={{ background: '#7c3aed', color: '#fff', border: 'none', padding: '8px 24px', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontFamily: "'Noto Serif Bengali','Vrinda',serif" }}
+              >
+                <Printer size={16} /> প্রিন্ট করুন
+              </button>
+              <button
+                onClick={() => setPreviewOpen(false)}
+                style={{ background: 'rgba(255,255,255,.15)', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: 8, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+              >
+                <X size={15} /> বন্ধ করুন
+              </button>
+            </div>
+          </div>
+          {/* iframe preview */}
+          <iframe
+            ref={iframeRef}
+            srcDoc={previewHtml}
+            style={{ flex: 1, border: 'none', background: '#d0d0d0', width: '100%' }}
+            title="প্রিন্ট প্রিভিউ"
+          />
+        </div>
+      )}
 
       <div className="p-6 space-y-4" style={{ maxWidth: '860px', margin: '0 auto' }}>
 
@@ -243,7 +243,7 @@ export default function AdminPadPage() {
           </button>
 
           <div className="flex-1" />
-          <button onClick={printLetter}
+          <button onClick={openPreview}
             className="flex items-center gap-2 bg-[#1e1b4b] hover:bg-purple-900 text-white px-5 py-2 rounded-xl text-sm font-semibold transition-colors">
             <Printer size={15} /> প্রিভিউ ও প্রিন্ট
           </button>
@@ -255,7 +255,7 @@ export default function AdminPadPage() {
           {/* Letterhead */}
           <div style={{ padding: '28px 36px 0' }}>
 
-            {/* 3-column header — CSS grid, overflow hidden per cell */}
+            {/* 3-column header */}
             <div style={{ display: 'grid', gridTemplateColumns: '43% 14% 43%', columnGap: 0, paddingBottom: '10px', borderBottom: '3px solid #8B0000' }}>
 
               {/* Bengali */}
