@@ -31,51 +31,94 @@ function letterHTML(sutro: string, tarikh: string, body: string, logoSrc: string
 <html lang="bn">
 <head>
 <meta charset="utf-8">
-<title>${COLLEGE_INFO.nameBn}</title>
+<title>${COLLEGE_INFO.nameBn} — প্রিন্ট প্রিভিউ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Noto Serif Bengali','Vrinda','Nirmala UI',serif;color:#000;background:#fff;font-size:10pt}
-@page{size:A4 portrait;margin:13mm 15mm 15mm 15mm}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{font-family:'Noto Serif Bengali','Vrinda','Nirmala UI',serif;color:#000;background:#e8e8e8}
+@page{size:A4 portrait;margin:14mm 16mm 16mm 16mm}
+@media print{
+  body{background:#fff}
+  .page{box-shadow:none!important;margin:0!important;padding:0!important;width:100%!important}
+  .pbar{display:none!important}
+}
+/* ── Print bar (screen only) ── */
+.pbar{
+  position:fixed;top:0;left:0;right:0;z-index:99;
+  background:#1e1b4b;color:#fff;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 28px;gap:12px;
+}
+.pbar-title{font-size:12pt;font-weight:600;font-family:'Noto Serif Bengali','Vrinda',serif}
+.pbar-btn{
+  background:#7c3aed;color:#fff;border:none;
+  padding:8px 28px;border-radius:8px;font-size:11pt;font-weight:700;
+  cursor:pointer;font-family:'Noto Serif Bengali','Vrinda',serif;letter-spacing:.3px;
+}
+.pbar-btn:hover{background:#6d28d9}
+/* ── A4 paper ── */
+.page{
+  width:210mm;min-height:297mm;
+  margin:68px auto 40px;
+  padding:14mm 16mm 20mm;
+  background:#fff;
+  box-shadow:0 6px 32px rgba(0,0,0,.25);
+}
+/* ── Letterhead table ── */
 .hdr{width:100%;border-collapse:collapse}
-.hdr td{vertical-align:top;padding:0}
-.col-bn{width:43%;vertical-align:top}
-.col-logo{width:14%;text-align:center;vertical-align:middle}
-.col-en{width:43%;text-align:right;font-family:Arial,Helvetica,sans-serif;vertical-align:top}
-.nm-bn{font-size:14pt;font-weight:900;color:#8B0000;line-height:1.3}
-.nm-en{font-size:10.5pt;font-weight:900;color:#8B0000;line-height:1.3}
-.addr{font-size:7.5pt;color:#333;margin-top:3px;line-height:1.65}
-.divline{border:none;border-top:3px solid #8B0000;margin:5px 0 3px}
-.sr{width:100%;border-collapse:collapse;border-bottom:1px solid #555;padding:3px 0;margin-bottom:0}
-.sr td{padding:3px 0;font-size:9.5pt}
-.body{margin-top:14pt;font-size:10.5pt;line-height:2.1}
+.hdr tr{height:115px}
+.col-bn{width:42%;padding-right:8px;vertical-align:top}
+.col-logo{width:16%;text-align:center;vertical-align:middle}
+.col-en{width:42%;padding-left:8px;vertical-align:top;text-align:right}
+.td-inner{display:flex;flex-direction:column;justify-content:space-between;height:115px}
+.nm-bn{font-size:13pt;font-weight:900;color:#8B0000;line-height:1.3;font-family:'Noto Serif Bengali','Vrinda',serif}
+.nm-en{font-size:10pt;font-weight:900;color:#8B0000;line-height:1.3;font-family:Arial,Helvetica,sans-serif}
+.addr{font-size:7.5pt;color:#333;line-height:1.72}
+.addr-bn{font-family:'Noto Serif Bengali','Vrinda',serif}
+.addr-en{font-family:Arial,Helvetica,sans-serif;text-align:right}
+/* ── Divider + Sūtra row ── */
+.divline{border:none;border-top:3px solid #8B0000;margin:5px 0 0}
+.sr-row{display:flex;justify-content:space-between;padding:4px 0 3px;border-bottom:1px solid #555;font-size:9.5pt;font-family:'Noto Serif Bengali','Vrinda',serif;margin-top:2px}
+/* ── Body ── */
+.body{margin-top:14pt;font-size:10.5pt;line-height:2.1;font-family:'Noto Serif Bengali','Vrinda',serif}
+.body p{margin:0}
 </style>
 </head>
 <body>
-<table class="hdr">
-<tr>
-  <td class="col-bn">
-    <div class="nm-bn">${COLLEGE_INFO.nameBn}</div>
-    <div class="addr">ডাকঘর- মঠেখোলা, উপজেলা-পাকুন্দিয়া, জেলা- কিশোরগঞ্জ।<br>স্থাপিত ঃ ${COLLEGE_INFO.established}ইং, ইআইআইএন- ${COLLEGE_INFO.eiin}<br>মোবাইল ঃ ${COLLEGE_INFO.phone}<br>E-mail: ${COLLEGE_INFO.email}<br>Web: ${COLLEGE_INFO.website}</div>
-  </td>
-  <td class="col-logo">${logoSrc ? `<img src="${logoSrc}" style="width:120px;height:120px;object-fit:contain;display:block;margin:0 auto">` : ''}</td>
-  <td class="col-en">
-    <div class="nm-en">${COLLEGE_INFO.name.toUpperCase()}</div>
-    <div class="addr">Post : Mathkhola, Upazila : Pakundia, Dist-Kishoregonj<br>ESTD : ${COLLEGE_INFO.establishedEn}, EIIN-${COLLEGE_INFO.eiin}<br>Mobile : ${COLLEGE_INFO.phone}<br>E-mail : ${COLLEGE_INFO.email}<br>Web: ${COLLEGE_INFO.website}</div>
-  </td>
-</tr>
-</table>
-<hr class="divline">
-<table class="sr"><tr><td>সূত্র ${sutro || '................................'}</td><td style="text-align:right">তারিখ ${fmtDate(tarikh)}</td></tr></table>
-<div class="body">${body}</div>
-<script>
-window.addEventListener('load',function(){
-  if(document.fonts&&document.fonts.ready){document.fonts.ready.then(function(){setTimeout(window.print,400)})}
-  else{setTimeout(window.print,1500)}
-});
-</script>
+
+<div class="pbar">
+  <span class="pbar-title">${COLLEGE_INFO.nameBn} — প্রিন্ট প্রিভিউ</span>
+  <button class="pbar-btn" onclick="window.print()">🖨️ প্রিন্ট করুন</button>
+</div>
+
+<div class="page">
+  <table class="hdr">
+    <tr>
+      <td class="col-bn">
+        <div class="td-inner">
+          <div class="nm-bn">${COLLEGE_INFO.nameBn}</div>
+          <div class="addr addr-bn">ডাকঘর- মঠেখোলা, উপজেলা-পাকুন্দিয়া, জেলা- কিশোরগঞ্জ।<br>স্থাপিত ঃ ${COLLEGE_INFO.established}ইং, ইআইআইএন- ${COLLEGE_INFO.eiin}<br>মোবাইল ঃ ${COLLEGE_INFO.phone}<br>E-mail: ${COLLEGE_INFO.email}<br>Web: ${COLLEGE_INFO.website}</div>
+        </div>
+      </td>
+      <td class="col-logo">${logoSrc ? `<img src="${logoSrc}" style="width:110px;height:110px;object-fit:contain;display:block;margin:0 auto">` : ''}</td>
+      <td class="col-en">
+        <div class="td-inner">
+          <div class="nm-en">${COLLEGE_INFO.name.toUpperCase()}</div>
+          <div class="addr addr-en">Post : Mathkhola, Upazila : Pakundia, Dist-Kishoregonj<br>ESTD : ${COLLEGE_INFO.establishedEn}, EIIN-${COLLEGE_INFO.eiin}<br>Mobile : ${COLLEGE_INFO.phone}<br>E-mail : ${COLLEGE_INFO.email}<br>Web: ${COLLEGE_INFO.website}</div>
+        </div>
+      </td>
+    </tr>
+  </table>
+  <hr class="divline">
+  <div class="sr-row">
+    <span>সূত্র&nbsp;&nbsp;${sutro || '................................'}</span>
+    <span>তারিখ&nbsp;&nbsp;${fmtDate(tarikh)}</span>
+  </div>
+  <div class="body">${body}</div>
+</div>
+
 </body></html>`;
 }
 
@@ -202,7 +245,7 @@ export default function AdminPadPage() {
           <div className="flex-1" />
           <button onClick={printLetter}
             className="flex items-center gap-2 bg-[#1e1b4b] hover:bg-purple-900 text-white px-5 py-2 rounded-xl text-sm font-semibold transition-colors">
-            <Printer size={15} /> প্রিন্ট করুন
+            <Printer size={15} /> প্রিভিউ ও প্রিন্ট
           </button>
         </div>
 
