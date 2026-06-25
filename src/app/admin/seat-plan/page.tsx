@@ -213,7 +213,7 @@ function buildStickerPdf(
         <div class="stk-heading">আসন বিন্যাস</div>
         <div class="field">
           <span class="field-lbl">নাম</span>
-          <span class="field-line"></span>
+          <span class="field-line">${a.student?.name ?? ''}</span>
         </div>
         <div class="field">
           <span class="field-lbl">শ্রেণী</span>
@@ -221,7 +221,7 @@ function buildStickerPdf(
         </div>
         <div class="field">
           <span class="field-lbl">রোল নং</span>
-          <span class="field-line">${a.student?.roll ?? ''}</span>
+          <span class="field-line">${a.student?.roll != null ? String(a.student.roll) : ''}</span>
         </div>
         <div class="sig-area">
           <div class="sig-col">
