@@ -106,7 +106,7 @@ function buildCombinedPdf(
         return `<tr>
           <td style="font-weight:bold;color:#4c1d95;width:45px">${b}</td>
           <td style="font-weight:bold;color:#4c1d95;width:45px">${a.seatInBranch ?? a.seatNumber}</td>
-          <td class="left">${a.student?.name ?? ''}</td>
+          <td class="left">${a.student?.nameBn || a.student?.name || ''}</td>
           <td style="width:110px">${cls?.nameBn ?? a.student?.class ?? ''}</td>
           <td style="width:65px">${a.student?.roll ?? ''}</td>
           <td style="width:75px"></td>
@@ -213,11 +213,11 @@ function buildStickerPdf(
         <div class="stk-heading">আসন বিন্যাস</div>
         <div class="field">
           <span class="field-lbl">নাম</span>
-          <span class="field-line">${a.student?.name ?? ''}</span>
+          <span class="field-line">${a.student?.nameBn || a.student?.name || ''}</span>
         </div>
         <div class="field">
           <span class="field-lbl">শ্রেণী</span>
-          <span class="field-line">${cls?.nameBn ?? ''}</span>
+          <span class="field-line">${cls?.nameBn || ''}</span>
         </div>
         <div class="field">
           <span class="field-lbl">রোল নং</span>
@@ -294,7 +294,7 @@ function buildHallMapPdf(
         if (a) {
           seatsHtml += `<div class="seat">
             <div class="seat-num">${s}</div>
-            <div class="seat-name">${a.student?.name ?? ''}</div>
+            <div class="seat-name">${a.student?.nameBn || a.student?.name || ''}</div>
             <div class="seat-cls">${cls?.nameBn ?? ''}</div>
             <div class="seat-roll">রোল: ${a.student?.roll ?? ''}</div>
           </div>`;
