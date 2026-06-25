@@ -339,6 +339,8 @@ function interleaveByClass(students: Student[]): Student[] {
     byClass[s.class].push(s);
   }
   const groups = classOrder.map(cid => byClass[cid] ?? []).filter(g => g.length > 0);
+  // Largest class first so it spreads across all benches instead of piling on the last bench
+  groups.sort((a, b) => b.length - a.length);
   const interleaved: Student[] = [];
   const maxLen = Math.max(0, ...groups.map(g => g.length));
   for (let i = 0; i < maxLen; i++) {
