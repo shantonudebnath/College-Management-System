@@ -8,10 +8,14 @@ import {
   List, ListOrdered, Undo, Redo, Minus,
 } from 'lucide-react';
 
+function fmtDate(iso: string): string {
+  if (!iso) return '................................';
+  try {
+    return new Date(iso).toLocaleDateString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric' });
+  } catch { return iso; }
+}
+
 function letterHTML(sutro: string, tarikh: string, body: string, logoSrc: string): string {
-  const display = tarikh
-    ? new Date(tarikh).toLocaleDateString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric' })
-    : '................................';
   return `<!DOCTYPE html>
 <html lang="bn">
 <head>
@@ -22,22 +26,28 @@ function letterHTML(sutro: string, tarikh: string, body: string, logoSrc: string
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Noto Serif Bengali','Vrinda','Nirmala UI',serif;font-size:11pt;color:#000;background:#fff}
-@page{size:A4 portrait;margin:12mm 18mm}
-.hdr{display:flex;align-items:flex-start;gap:8px;padding-bottom:6px;border-bottom:2.5px solid #8B0000}
-.col-bn{flex:1}
-.col-logo{width:70px;text-align:center;flex-shrink:0}
-.col-en{flex:1;text-align:right;font-family:Arial,sans-serif}
-.nm-bn{font-size:17pt;font-weight:900;color:#8B0000;line-height:1.25}
-.nm-en{font-size:11pt;font-weight:900;color:#8B0000;line-height:1.25}
-.addr{font-size:7.5pt;color:#333;margin-top:4px;line-height:1.6}
-.sr-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #555;font-size:10pt;margin-top:2px}
-.body{margin-top:16pt;font-size:11pt;line-height:2;min-height:180mm}
+body{font-family:'Noto Serif Bengali','Vrinda','Nirmala UI',serif;color:#000;background:#fff;font-size:10pt}
+@page{size:A4 portrait;margin:13mm 15mm 15mm 15mm}
+table{border-collapse:collapse;width:100%}
+.hdr-table{width:100%;margin-bottom:0}
+.hdr-table td{vertical-align:top;padding:0}
+.col-bn{width:44%}
+.col-logo{width:12%;text-align:center;vertical-align:middle}
+.col-en{width:44%;text-align:right;font-family:Arial,Helvetica,sans-serif}
+.nm-bn{font-size:14.5pt;font-weight:900;color:#8B0000;line-height:1.3}
+.nm-en{font-size:10.5pt;font-weight:900;color:#8B0000;line-height:1.3}
+.addr{font-size:7.5pt;color:#333;margin-top:3px;line-height:1.65}
+.divider{border:none;border-top:2.5px solid #8B0000;margin:5px 0 0}
+.sr-row{display:table;width:100%;border-bottom:1px solid #444;padding:4px 0;margin-top:3px;font-size:9.5pt}
+.sr-left{display:table-cell;text-align:left}
+.sr-right{display:table-cell;text-align:right}
+.body-area{margin-top:14pt;font-size:10.5pt;line-height:2.1}
 </style>
 </head>
 <body>
-<div class="hdr">
-  <div class="col-bn">
+<table class="hdr-table">
+<tr>
+  <td class="col-bn">
     <div class="nm-bn">${COLLEGE_INFO.nameBn}</div>
     <div class="addr">
       ডাকঘর- মঠেখোলা, উপজেলা-পাকুন্দিয়া, জেলা- কিশোরগঞ্জ।<br>
@@ -46,11 +56,11 @@ body{font-family:'Noto Serif Bengali','Vrinda','Nirmala UI',serif;font-size:11pt
       E-mail: ${COLLEGE_INFO.email}<br>
       Web: ${COLLEGE_INFO.website}
     </div>
-  </div>
-  <div class="col-logo">
-    ${logoSrc ? `<img src="${logoSrc}" style="width:62px;height:auto;">` : ''}
-  </div>
-  <div class="col-en">
+  </td>
+  <td class="col-logo">
+    ${logoSrc ? `<img src="${logoSrc}" style="width:58px;height:auto;display:block;margin:0 auto;">` : ''}
+  </td>
+  <td class="col-en">
     <div class="nm-en">${COLLEGE_INFO.name.toUpperCase()}</div>
     <div class="addr">
       Post : Mathkhola, Upazila : Pakundia<br>
@@ -60,18 +70,22 @@ body{font-family:'Noto Serif Bengali','Vrinda','Nirmala UI',serif;font-size:11pt
       E-mail : ${COLLEGE_INFO.email}<br>
       Web: ${COLLEGE_INFO.website}
     </div>
-  </div>
-</div>
+  </td>
+</tr>
+</table>
+<hr class="divider">
 <div class="sr-row">
-  <span>সূত্র ঃ ${sutro || '................................'}</span>
-  <span>তারিখ ঃ ${display}</span>
+  <span class="sr-left">সূত্র ঃ ${sutro || '................................'}</span>
+  <span class="sr-right">তারিখ ঃ ${fmtDate(tarikh)}</span>
 </div>
-<div class="body">${body}</div>
+<div class="body-area">${body}</div>
 <script>
-window.addEventListener('load',function(){
-  if(document.fonts&&document.fonts.ready){
-    document.fonts.ready.then(function(){setTimeout(window.print,350)});
-  }else{setTimeout(window.print,1200)}
+window.addEventListener('load', function () {
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function () { setTimeout(window.print, 400); });
+  } else {
+    setTimeout(window.print, 1400);
+  }
 });
 </script>
 </body>
@@ -90,7 +104,7 @@ function ToolBtn({ onClick, title, children }: { onClick: () => void; title: str
   );
 }
 
-const FONT_SIZES = [
+const FONT_SIZES: [string, string][] = [
   ['1', '৮pt'], ['2', '১০pt'], ['3', '১২pt'],
   ['4', '১৪pt'], ['5', '১৮pt'], ['6', '২৪pt'], ['7', '৩৬pt'],
 ];
@@ -124,9 +138,7 @@ export default function AdminPadPage() {
     setTimeout(() => URL.revokeObjectURL(url), 60000);
   };
 
-  const tarikhDisplay = tarikh
-    ? new Date(tarikh).toLocaleDateString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric' })
-    : '';
+  const tarikhDisplay = fmtDate(tarikh);
 
   return (
     <div>
@@ -136,9 +148,9 @@ export default function AdminPadPage() {
         userName="Admin"
         role="Super Admin"
       />
-      <div className="p-6 max-w-5xl mx-auto space-y-4">
+      <div className="p-6 space-y-4" style={{ maxWidth: '860px', margin: '0 auto' }}>
 
-        {/* Toolbar */}
+        {/* ── Toolbar ── */}
         <div className="bg-white rounded-2xl border border-gray-200 px-4 py-2.5 flex flex-wrap gap-1 items-center shadow-sm sticky top-0 z-20">
           <ToolBtn onClick={() => exec('undo')} title="Undo"><Undo size={14} /></ToolBtn>
           <ToolBtn onClick={() => exec('redo')} title="Redo"><Redo size={14} /></ToolBtn>
@@ -158,50 +170,47 @@ export default function AdminPadPage() {
           </select>
           <div className="w-px h-5 bg-gray-200 mx-0.5" />
 
-          <ToolBtn onClick={() => exec('justifyLeft')} title="বাম-সারিবদ্ধ"><AlignLeft size={14} /></ToolBtn>
-          <ToolBtn onClick={() => exec('justifyCenter')} title="মধ্য-সারিবদ্ধ"><AlignCenter size={14} /></ToolBtn>
-          <ToolBtn onClick={() => exec('justifyRight')} title="ডান-সারিবদ্ধ"><AlignRight size={14} /></ToolBtn>
-          <ToolBtn onClick={() => exec('justifyFull')} title="সম্পূর্ণ-সারিবদ্ধ"><AlignJustify size={14} /></ToolBtn>
+          <ToolBtn onClick={() => exec('justifyLeft')} title="বাম"><AlignLeft size={14} /></ToolBtn>
+          <ToolBtn onClick={() => exec('justifyCenter')} title="মধ্য"><AlignCenter size={14} /></ToolBtn>
+          <ToolBtn onClick={() => exec('justifyRight')} title="ডান"><AlignRight size={14} /></ToolBtn>
+          <ToolBtn onClick={() => exec('justifyFull')} title="Justify"><AlignJustify size={14} /></ToolBtn>
           <div className="w-px h-5 bg-gray-200 mx-0.5" />
 
-          <ToolBtn onClick={() => exec('insertUnorderedList')} title="বুলেট তালিকা"><List size={14} /></ToolBtn>
-          <ToolBtn onClick={() => exec('insertOrderedList')} title="সংখ্যা তালিকা"><ListOrdered size={14} /></ToolBtn>
-          <ToolBtn onClick={() => exec('insertHorizontalRule')} title="অনুভূমিক রেখা"><Minus size={14} /></ToolBtn>
+          <ToolBtn onClick={() => exec('insertUnorderedList')} title="বুলেট"><List size={14} /></ToolBtn>
+          <ToolBtn onClick={() => exec('insertOrderedList')} title="নম্বর তালিকা"><ListOrdered size={14} /></ToolBtn>
+          <ToolBtn onClick={() => exec('insertHorizontalRule')} title="রেখা"><Minus size={14} /></ToolBtn>
           <div className="w-px h-5 bg-gray-200 mx-0.5" />
 
-          <label className="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer" title="লেখার রঙ">
-            <span className="font-semibold text-gray-700" style={{ fontFamily: 'serif' }}>A</span>
-            <input
-              type="color"
-              defaultValue="#000000"
+          <label className="flex items-center gap-1 text-xs text-gray-600 cursor-pointer" title="রঙ">
+            <span className="font-bold text-base" style={{ fontFamily: 'serif', lineHeight: 1 }}>A</span>
+            <input type="color" defaultValue="#000000"
               onChange={e => exec('foreColor', e.target.value)}
-              className="w-5 h-5 rounded cursor-pointer border-0 p-0 bg-transparent"
-            />
+              className="w-5 h-5 cursor-pointer border-0 p-0 bg-transparent" />
           </label>
 
           <div className="flex-1" />
-          <button
-            onClick={printLetter}
-            className="flex items-center gap-2 bg-[#1e1b4b] hover:bg-purple-900 text-white px-5 py-2 rounded-xl text-sm font-semibold transition-colors"
-          >
+          <button onClick={printLetter}
+            className="flex items-center gap-2 bg-[#1e1b4b] hover:bg-purple-900 text-white px-5 py-2 rounded-xl text-sm font-semibold transition-colors">
             <Printer size={15} /> প্রিন্ট করুন
           </button>
         </div>
 
-        {/* Paper */}
-        <div
-          className="bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden"
-          style={{ fontFamily: "'Noto Serif Bengali','Vrinda','Nirmala UI',serif" }}
-        >
+        {/* ── Paper ── */}
+        <div className="bg-white border border-gray-300 shadow-2xl"
+          style={{ fontFamily: "'Noto Serif Bengali','Vrinda','Nirmala UI',serif", borderRadius: '4px' }}>
+
           {/* Letterhead */}
-          <div className="px-10 pt-8 pb-0">
-            <div className="flex items-start gap-5 pb-4 border-b-[3px] border-red-800">
-              {/* Bengali info */}
-              <div className="flex-1">
-                <div className="font-black text-red-800 leading-snug" style={{ fontSize: '20pt' }}>
+          <div style={{ padding: '28px 36px 0' }}>
+
+            {/* 3-column header using CSS grid for reliable sizing */}
+            <div style={{ display: 'grid', gridTemplateColumns: '44% 12% 44%', alignItems: 'center', paddingBottom: '10px', borderBottom: '3px solid #8B0000' }}>
+
+              {/* Bengali */}
+              <div>
+                <div style={{ fontWeight: 900, color: '#8B0000', fontSize: '13.5pt', lineHeight: 1.3, whiteSpace: 'nowrap' }}>
                   {COLLEGE_INFO.nameBn}
                 </div>
-                <div className="text-gray-700 mt-2 leading-relaxed" style={{ fontSize: '8.5pt' }}>
+                <div style={{ fontSize: '7.5pt', color: '#444', marginTop: '4px', lineHeight: 1.7 }}>
                   ডাকঘর- মঠেখোলা, উপজেলা-পাকুন্দিয়া, জেলা- কিশোরগঞ্জ।<br />
                   স্থাপিত ঃ {COLLEGE_INFO.established}ইং, ইআইআইএন- {COLLEGE_INFO.eiin}<br />
                   মোবাইল ঃ {COLLEGE_INFO.phone}<br />
@@ -211,17 +220,17 @@ export default function AdminPadPage() {
               </div>
 
               {/* Logo */}
-              <div className="flex items-center justify-center w-20 shrink-0 pt-1">
+              <div style={{ textAlign: 'center' }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/logo.png" alt="লোগো" className="w-16 h-16 object-contain" />
+                <img src="/logo.png" alt="" style={{ width: '56px', height: '56px', objectFit: 'contain', display: 'block', margin: '0 auto' }} />
               </div>
 
-              {/* English info */}
-              <div className="flex-1 text-right" style={{ fontFamily: 'Arial,sans-serif' }}>
-                <div className="font-black text-red-800 leading-snug" style={{ fontSize: '11.5pt' }}>
+              {/* English */}
+              <div style={{ textAlign: 'right', fontFamily: 'Arial,Helvetica,sans-serif' }}>
+                <div style={{ fontWeight: 900, color: '#8B0000', fontSize: '10.5pt', lineHeight: 1.3 }}>
                   {COLLEGE_INFO.name.toUpperCase()}
                 </div>
-                <div className="text-gray-700 mt-2 leading-relaxed" style={{ fontSize: '8.5pt' }}>
+                <div style={{ fontSize: '7.5pt', color: '#444', marginTop: '4px', lineHeight: 1.7 }}>
                   Post : Mathkhola, Upazila : Pakundia<br />
                   Dist-Kishoregonj<br />
                   ESTD : {COLLEGE_INFO.establishedEn}, EIIN-{COLLEGE_INFO.eiin}<br />
@@ -233,57 +242,42 @@ export default function AdminPadPage() {
             </div>
 
             {/* সূত্র / তারিখ */}
-            <div className="flex items-center justify-between py-2 border-b border-gray-500 text-sm">
-              <div className="flex items-center gap-1.5">
-                <span className="font-bold">সূত্র ঃ</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderBottom: '1px solid #555', marginTop: '3px', fontSize: '9.5pt' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontWeight: 700 }}>সূত্র ঃ</span>
                 <input
                   value={sutro}
                   onChange={e => setSutro(e.target.value)}
                   placeholder="........................"
-                  className="outline-none bg-transparent border-b border-dotted border-gray-400 min-w-40 px-1 text-sm"
+                  style={{ outline: 'none', background: 'transparent', borderBottom: '1px dotted #888', minWidth: '160px', padding: '0 4px', fontSize: '9.5pt', fontFamily: 'inherit' }}
                 />
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-bold">তারিখ ঃ</span>
-                <div className="relative">
-                  <input
-                    type="date"
-                    value={tarikh}
-                    onChange={e => setTarikh(e.target.value)}
-                    className="opacity-0 absolute inset-0 w-full cursor-pointer"
-                  />
-                  <span className="border-b border-dotted border-gray-400 min-w-32 inline-block px-1 text-sm">
-                    {tarikhDisplay || '............................'}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontWeight: 700 }}>তারিখ ঃ</span>
+                <div style={{ position: 'relative' }}>
+                  <input type="date" value={tarikh} onChange={e => setTarikh(e.target.value)}
+                    style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%' }} />
+                  <span style={{ borderBottom: '1px dotted #888', minWidth: '130px', display: 'inline-block', padding: '0 4px', fontSize: '9.5pt' }}>
+                    {tarikh ? tarikhDisplay : '............................'}
                   </span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Editor area */}
-          <div className="px-10 py-6 min-h-[520px] relative">
+          {/* Editor */}
+          <div style={{ padding: '20px 36px 36px', minHeight: '500px' }}>
             <style>{`
-              #pad-editor:empty:before {
-                content: attr(data-placeholder);
-                color: #bbb;
-                pointer-events: none;
-              }
-              #pad-editor:focus { outline: none; }
-              #pad-editor p { margin: 0; }
+              #pad-ed:empty::before { content: attr(data-placeholder); color: #c0c0c0; pointer-events: none; }
+              #pad-ed:focus { outline: none; }
             `}</style>
             <div
-              id="pad-editor"
+              id="pad-ed"
               ref={editorRef}
               contentEditable
               suppressContentEditableWarning
               data-placeholder="এখানে পত্রের বিষয়বস্তু লিখুন..."
-              style={{
-                fontFamily: "'Noto Serif Bengali','Vrinda','Nirmala UI',serif",
-                fontSize: '12pt',
-                lineHeight: '2',
-                minHeight: '480px',
-                color: '#111',
-              }}
+              style={{ fontFamily: "'Noto Serif Bengali','Vrinda','Nirmala UI',serif", fontSize: '11pt', lineHeight: '2', minHeight: '460px', color: '#111' }}
             />
           </div>
         </div>
