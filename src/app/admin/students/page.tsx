@@ -68,6 +68,7 @@ export default function AdminStudentsPage() {
   const [showPass, setShowPass] = useState(false);
   const [copied, setCopied] = useState('');
   const [creating, setCreating] = useState(false);
+  const [viewStudentId, setViewStudentId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const selectAllRef = useRef<HTMLInputElement>(null);
 
@@ -518,7 +519,7 @@ export default function AdminStudentsPage() {
                             <Key size={13} />
                           </button>
                         )}
-                        <button className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100"><Eye size={13} /></button>
+                        <button onClick={() => setViewStudentId(s.id)} className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100" title="বিস্তারিত দেখুন"><Eye size={13} /></button>
                         <button onClick={() => openEdit(s)} className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center hover:bg-purple-100"><Edit size={13} /></button>
                         <button onClick={() => setDeleteTarget({ id: s.id, name: s.name })} className="w-7 h-7 rounded-lg bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-100"><Trash2 size={13} /></button>
                       </div>
@@ -753,6 +754,91 @@ export default function AdminStudentsPage() {
           onCancel={() => setDeleteTarget(null)}
         />
       )}
+
+      {/* ---- Student detail view modal ---- */}
+      {viewStudentId && (() => {
+        const vs = students.find(s => s.id === viewStudentId);
+        if (!vs) return null;
+        const className = MADRASHA_CLASSES.find(c => c.id === vs.class)?.nameBn ?? vs.class;
+        const feeColor = STATUS_COLOR[vs.feeStatus] ?? 'bg-gray-100 text-gray-600';
+        return (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md animate-fadeIn max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-5">
+                  <h3 className="font-bold text-gray-900">শিক্ষার্থীর বিস্তারিত</h3>
+                  <button onClick={() => setViewStudentId(null)} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400"><X size={16} /></button>
+                </div>
+
+                {/* Photo + identity */}
+                <div className="flex items-center gap-4 mb-5 bg-purple-50 rounded-2xl p-4">
+                  <div className="w-16 h-16 rounded-2xl overflow-hidden shrink-0 border-2 border-purple-200">
+                    {vs.image ? (
+                      <img src={vs.image} alt={vs.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold">
+                        {vs.name[0]}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-gray-900">{vs.name}</p>
+                    {vs.nameBn && <p className="text-sm text-gray-500">{vs.nameBn}</p>}
+                    <p className="text-xs text-purple-600 font-mono font-semibold mt-1">{vs.studentId}</p>
+                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${feeColor}`}>
+                        {vs.feeStatus === 'paid' ? 'ফি পরিশোধিত' : vs.feeStatus === 'due' ? 'বকেয়া' : 'আংশিক'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Info grid */}
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  {[
+                    { label: 'শ্রেণি', value: className },
+                    { label: 'বিভাগ', value: vs.section },
+                    { label: 'রোল', value: vs.roll },
+                    { label: 'সেশন', value: vs.session },
+                    { label: 'লিঙ্গ', value: vs.gender },
+                    { label: 'রক্তের গ্রুপ', value: vs.bloodGroup || '—' },
+                    { label: 'জন্ম তারিখ', value: vs.dob || '—' },
+                    { label: 'মোবাইল', value: vs.phone || '—' },
+                    { label: 'অভিভাবকের নম্বর', value: vs.guardianPhone || '—' },
+                    { label: 'পিতার নাম', value: vs.fatherName || '—' },
+                    { label: 'মাতার নাম', value: vs.motherName || '—' },
+                    { label: 'জন্ম সনদ নং', value: vs.birthCertNo || '—' },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="bg-gray-50 rounded-xl px-3 py-2.5">
+                      <p className="text-[10px] text-gray-400 mb-0.5">{label}</p>
+                      <p className="text-sm font-semibold text-gray-800">{value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {vs.address && (
+                  <div className="mt-3 bg-gray-50 rounded-xl px-3 py-2.5">
+                    <p className="text-[10px] text-gray-400 mb-0.5">ঠিকানা</p>
+                    <p className="text-sm font-semibold text-gray-800">{vs.address}</p>
+                  </div>
+                )}
+
+                <div className="flex gap-2 mt-5">
+                  <button onClick={() => { setViewStudentId(null); openEdit(vs); }}
+                    className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+                    <Edit size={14} /> সম্পাদনা করুন
+                  </button>
+                  <button onClick={() => setViewStudentId(null)}
+                    className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm hover:bg-gray-50">
+                    বন্ধ করুন
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
