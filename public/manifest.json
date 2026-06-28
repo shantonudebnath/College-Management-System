@@ -1,0 +1,26 @@
+{
+  "name": "এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা",
+  "short_name": "EISIM",
+  "description": "শিক্ষক ও শিক্ষার্থী পোর্টাল — Egaro Sindur Ishakhan Senior Madrasha",
+  "start_url": "/app",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f8f7ff",
+  "theme_color": "#7c3aed",
+  "orientation": "portrait-primary",
+  "lang": "bn",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

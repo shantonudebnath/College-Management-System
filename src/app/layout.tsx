@@ -16,6 +16,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="bn" className={inter.variable}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#7c3aed" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="EISIM" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <link rel="apple-touch-icon" href="/logo.png" />
       </head>
       <body className="min-h-screen bg-[#f8f7ff] antialiased">
         <TeachersProvider><NoticesProvider>{children}</NoticesProvider></TeachersProvider>

@@ -35,7 +35,7 @@ export default function LoginPage() {
         setLoading(false);
         return;
       }
-      window.location.href = role === 'student' ? '/student/dashboard' : '/teacher/dashboard';
+      window.location.href = role === 'student' ? '/app/student' : '/app/teacher';
       return;
     }
 
@@ -53,7 +53,7 @@ export default function LoginPage() {
       return;
     }
 
-    window.location.href = '/admin/dashboard';
+    window.location.href = '/app/admin';
   };
 
   const ROLE_LABELS = { student: 'ছাত্র', teacher: 'শিক্ষক', admin: 'অ্যাডমিন' };
