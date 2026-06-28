@@ -23,13 +23,8 @@ function clamp(val: string, max: number): number {
 }
 
 const EXAM_NAMES = [
-  'প্রথম সাময়িক পরীক্ষা',
   'অর্ধবার্ষিক পরীক্ষা',
-  'দ্বিতীয় সাময়িক পরীক্ষা',
   'বার্ষিক পরীক্ষা',
-  'প্রাক-নির্বাচনি পরীক্ষা',
-  'নির্বাচনি পরীক্ষা',
-  'টেস্ট পরীক্ষা',
 ];
 
 const GRADE_COLOR: Record<string, string> = {
