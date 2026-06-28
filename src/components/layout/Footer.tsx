@@ -83,15 +83,31 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-[#006633]/30">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-2 text-[11px] text-gray-500">
-          <p>© {new Date().getFullYear()} {COLLEGE_INFO.nameBn}. সর্বস্বত্ব সংরক্ষিত।</p>
-          <p>
-            Developed by{' '}
-            <a href="https://fivolix.tech" target="_blank" rel="noopener noreferrer" className="text-green-400 hover:text-green-300 font-semibold transition-colors ml-1">
-              Fivolix
-            </a>
-          </p>
+      {/* Developer info section */}
+      <div className="border-t border-[#006633]/20 bg-[#050d16]">
+        <div className="max-w-7xl mx-auto px-4 py-5">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p className="text-[11px] text-gray-600">© {new Date().getFullYear()} {COLLEGE_INFO.nameBn}. সর্বস্বত্ব সংরক্ষিত।</p>
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+              <span className="text-[11px] text-gray-500 font-semibold tracking-wide uppercase">Developed by</span>
+              <div className="flex flex-wrap items-center justify-center gap-3 text-[11px]">
+                <a href="https://fivolix.tech" target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-green-400 hover:text-green-300 font-bold transition-colors">
+                  <Globe size={11} /> fivolix.tech
+                </a>
+                <span className="text-gray-700 hidden sm:inline">·</span>
+                <a href="mailto:fivolix@gmail.com"
+                  className="flex items-center gap-1.5 text-gray-500 hover:text-green-400 transition-colors">
+                  <Mail size={11} /> fivolix@gmail.com
+                </a>
+                <span className="text-gray-700 hidden sm:inline">·</span>
+                <a href="tel:01908549552"
+                  className="flex items-center gap-1.5 text-gray-500 hover:text-green-400 transition-colors">
+                  <Phone size={11} /> 01908549552
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </footer>
