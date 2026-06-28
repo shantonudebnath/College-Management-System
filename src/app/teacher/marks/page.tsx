@@ -8,13 +8,8 @@ import { getGradeInfo } from '@/lib/result-utils';
 import { BarChart2, Save, CheckCircle, Lock, AlertTriangle } from 'lucide-react';
 
 const EXAM_OPTIONS = [
-  'প্রথম সাময়িক পরীক্ষা',
   'অর্ধবার্ষিক পরীক্ষা',
-  'দ্বিতীয় সাময়িক পরীক্ষা',
   'বার্ষিক পরীক্ষা',
-  'প্রাক-নির্বাচনি পরীক্ষা',
-  'নির্বাচনি পরীক্ষা',
-  'টেস্ট পরীক্ষা',
 ];
 
 const TEACHER_MARKS_KEY = 'teacher_marks_v1';

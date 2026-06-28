@@ -169,7 +169,7 @@ export default function AdminExamSchedulePage() {
   const [markSubmission, setMarkSubmission] = useState<MarkSubmission | null>(null);
 
   const [showExamForm, setShowExamForm] = useState(false);
-  const [examForm, setExamForm] = useState({ name: '', year: '২০২৪-২৫' });
+  const [examForm, setExamForm] = useState({ name: 'অর্ধবার্ষিক পরীক্ষা', year: '২০২৪-২৫' });
 
   const [showEntryModal, setShowEntryModal] = useState(false);
   const [editEntryId, setEditEntryId] = useState<string | null>(null);
@@ -387,20 +387,11 @@ export default function AdminExamSchedulePage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-semibold text-gray-600 block mb-1">পরীক্ষার নাম *</label>
-                  <input value={examForm.name} onChange={e => setExamForm(p => ({ ...p, name: e.target.value }))}
-                    onKeyDown={e => e.key === 'Enter' && addExam()}
-                    placeholder="যেমন: বার্ষিক পরীক্ষা ২০২৪" autoFocus list="exam-name-list"
-                    className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400" />
-                  <datalist id="exam-name-list">
-                    <option value="প্রথম সাময়িক পরীক্ষা" />
-                    <option value="দ্বিতীয় সাময়িক পরীক্ষা" />
-                    <option value="অর্ধ-বার্ষিক পরীক্ষা" />
-                    <option value="বার্ষিক পরীক্ষা" />
-                    <option value="প্রাক নির্বাচনী পরীক্ষা" />
-                    <option value="নির্বাচনী পরীক্ষা" />
-                    <option value="টেস্ট পরীক্ষা" />
-                    <option value="মডেল টেস্ট" />
-                  </datalist>
+                  <select value={examForm.name} onChange={e => setExamForm(p => ({ ...p, name: e.target.value }))}
+                    className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400">
+                    <option value="অর্ধবার্ষিক পরীক্ষা">অর্ধবার্ষিক পরীক্ষা</option>
+                    <option value="বার্ষিক পরীক্ষা">বার্ষিক পরীক্ষা</option>
+                  </select>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-600 block mb-1">শিক্ষাবর্ষ</label>
