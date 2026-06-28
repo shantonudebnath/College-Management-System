@@ -89,7 +89,7 @@ export default function TeacherAppHome() {
             <div className="grid grid-cols-3 gap-3">
               {section.items.map(item => (
                 <Link key={item.href} href={item.href}
-                  className="flex flex-col items-center gap-2.5 bg-white rounded-2xl py-4 px-2 shadow-sm border border-white/80 hover:shadow-md active:scale-95 transition-all">
+                  className="flex flex-col items-center gap-2.5 bg-white rounded-2xl py-4 px-2 shadow-sm border border-white/80 hover:shadow-md active:scale-95 transition-all overflow-hidden">
                   <div className="rounded-2xl flex items-center justify-center shadow-md"
                     style={{ background: item.g, width: 52, height: 52, minWidth: 52 }}>
                     <item.icon size={22} color="white" />

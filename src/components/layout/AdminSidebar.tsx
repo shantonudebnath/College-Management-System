@@ -1,6 +1,7 @@
 ﻿'use client';
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Users, UserCheck, BookOpen, BarChart2, Calendar,
@@ -42,8 +43,8 @@ function SidebarContent({ collapsed, setCollapsed, onClose }: { collapsed: boole
       <div className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'} p-4 border-b border-white/10`}>
         {!collapsed && (
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center">
-              <GraduationCap size={16} />
+            <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center p-0.5 shadow-md shrink-0">
+              <Image src="/logo.png" alt="Logo" width={28} height={28} className="object-contain" />
             </div>
             <div>
               <p className="font-bold text-xs leading-tight">Admin Panel</p>
@@ -98,9 +99,9 @@ export default function AdminSidebar() {
 
       <button
         onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed bottom-5 right-5 z-40 gradient-primary rounded-2xl flex items-center justify-center shadow-xl text-white hover:scale-105 transition-transform p-3"
+        className="lg:hidden fixed bottom-5 right-5 z-40 gradient-primary rounded-2xl flex items-center justify-center shadow-xl hover:scale-105 transition-transform p-2"
       >
-        <GraduationCap size={22} />
+        <Image src="/logo.png" alt="Logo" width={30} height={30} className="object-contain" />
       </button>
 
       {mobileOpen && (
