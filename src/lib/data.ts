@@ -391,6 +391,43 @@ export const EXAM_RESULTS: ExamResult[] = [
     ],
     totalMarks: 639, totalFullMarks: 950, percentage: 67.3, gpa: 3.65, grade: 'A-', status: 'pass', examName: 'অর্ধবার্ষিক পরীক্ষা', year: '2024'
   },
+  // ── বার্ষিক পরীক্ষা ২০২৪ demo data ─────────────────────────────────────────
+  {
+    id: 'bar-s1-2024',
+    studentId: 's1', studentName: 'Mohammad Rafiqul Islam', class: 'class-10', roll: 1,
+    subjects: [
+      { name: 'Quran Majid & Tajwid', fullMark: 100, cqMarks: 90, mcqMarks: 0,  practicalMarks: 0,  marks: 90, grade: 'A+', gpa: 5.0, isPassed: true },
+      { name: 'Hadith Sharif',        fullMark: 100, cqMarks: 82, mcqMarks: 0,  practicalMarks: 0,  marks: 82, grade: 'A+', gpa: 5.0, isPassed: true },
+      { name: 'Arabic 1st Paper',     fullMark: 100, cqMarks: 75, mcqMarks: 0,  practicalMarks: 0,  marks: 75, grade: 'A',  gpa: 4.0, isPassed: true },
+      { name: 'Arabic 2nd Paper',     fullMark: 100, cqMarks: 70, mcqMarks: 0,  practicalMarks: 0,  marks: 70, grade: 'A',  gpa: 4.0, isPassed: true },
+      { name: 'Bengali 1st Paper',    fullMark: 100, cqMarks: 65, mcqMarks: 20, practicalMarks: 0,  marks: 85, grade: 'A+', gpa: 5.0, isPassed: true },
+      { name: 'English 1st Paper',    fullMark: 100, cqMarks: 70, mcqMarks: 0,  practicalMarks: 0,  marks: 70, grade: 'A',  gpa: 4.0, isPassed: true },
+      { name: 'Mathematics',          fullMark: 100, cqMarks: 64, mcqMarks: 28, practicalMarks: 0,  marks: 92, grade: 'A+', gpa: 5.0, isPassed: true },
+      { name: 'Islamic History',      fullMark: 100, cqMarks: 57, mcqMarks: 23, practicalMarks: 0,  marks: 80, grade: 'A+', gpa: 5.0, isPassed: true },
+      { name: 'Aqaid & Fiqh',        fullMark: 100, cqMarks: 88, mcqMarks: 0,  practicalMarks: 0,  marks: 88, grade: 'A+', gpa: 5.0, isPassed: true },
+      { name: 'ICT',                  fullMark: 50,  cqMarks: 0,  mcqMarks: 22, practicalMarks: 23, marks: 45, grade: 'A+', gpa: 5.0, isPassed: true },
+    ],
+    totalMarks: 777, totalFullMarks: 950, percentage: 81.8, gpa: 4.70, grade: 'A+', status: 'pass', examName: 'বার্ষিক পরীক্ষা', year: '2024',
+    createdAt: '2024-11-20T10:00:00.000Z',
+  },
+  {
+    id: 'bar-s2-2024',
+    studentId: 's2', studentName: 'Fatema Akter', class: 'class-10', roll: 2,
+    subjects: [
+      { name: 'Quran Majid & Tajwid', fullMark: 100, cqMarks: 80, mcqMarks: 0,  practicalMarks: 0,  marks: 80, grade: 'A+', gpa: 5.0, isPassed: true },
+      { name: 'Hadith Sharif',        fullMark: 100, cqMarks: 75, mcqMarks: 0,  practicalMarks: 0,  marks: 75, grade: 'A',  gpa: 4.0, isPassed: true },
+      { name: 'Arabic 1st Paper',     fullMark: 100, cqMarks: 68, mcqMarks: 0,  practicalMarks: 0,  marks: 68, grade: 'A-', gpa: 3.5, isPassed: true },
+      { name: 'Arabic 2nd Paper',     fullMark: 100, cqMarks: 65, mcqMarks: 0,  practicalMarks: 0,  marks: 65, grade: 'A-', gpa: 3.5, isPassed: true },
+      { name: 'Bengali 1st Paper',    fullMark: 100, cqMarks: 56, mcqMarks: 22, practicalMarks: 0,  marks: 78, grade: 'A',  gpa: 4.0, isPassed: true },
+      { name: 'English 1st Paper',    fullMark: 100, cqMarks: 62, mcqMarks: 0,  practicalMarks: 0,  marks: 62, grade: 'A-', gpa: 3.5, isPassed: true },
+      { name: 'Mathematics',          fullMark: 100, cqMarks: 43, mcqMarks: 17, practicalMarks: 0,  marks: 60, grade: 'A-', gpa: 3.5, isPassed: true },
+      { name: 'Islamic History',      fullMark: 100, cqMarks: 49, mcqMarks: 23, practicalMarks: 0,  marks: 72, grade: 'A',  gpa: 4.0, isPassed: true },
+      { name: 'Aqaid & Fiqh',        fullMark: 100, cqMarks: 85, mcqMarks: 0,  practicalMarks: 0,  marks: 85, grade: 'A+', gpa: 5.0, isPassed: true },
+      { name: 'ICT',                  fullMark: 50,  cqMarks: 0,  mcqMarks: 19, practicalMarks: 21, marks: 40, grade: 'A',  gpa: 4.0, isPassed: true },
+    ],
+    totalMarks: 685, totalFullMarks: 950, percentage: 72.1, gpa: 4.00, grade: 'A', status: 'pass', examName: 'বার্ষিক পরীক্ষা', year: '2024',
+    createdAt: '2024-11-20T10:00:00.000Z',
+  },
 ];
 
 export const FEES: Fee[] = [
