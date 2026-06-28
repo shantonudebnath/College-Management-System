@@ -55,28 +55,18 @@ export default function AdminTeachersPage() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    try {
-      const c = localStorage.getItem('teacher_credentials');
-      if (c) setCredsMap(JSON.parse(c));
-    } catch { /* ignore */ }
-  }, []);
-
-  // backfill credentials for any teacher that doesn't have one yet
-  useEffect(() => {
     if (teachers.length === 0) return;
-    setCredsMap(prev => {
-      const updated = { ...prev };
-      let changed = false;
-      for (const t of teachers) {
-        if (!updated[t.id]) {
-          updated[t.id] = makeTchCred(t.teacherId);
-          changed = true;
-        }
-      }
-      if (!changed) return prev;
-      localStorage.setItem('teacher_credentials', JSON.stringify(updated));
-      return updated;
-    });
+    const stored: Record<string, Credential> = (() => {
+      try { const c = localStorage.getItem('teacher_credentials'); return c ? JSON.parse(c) : {}; }
+      catch { return {}; }
+    })();
+    const updated = { ...stored };
+    let changed = false;
+    for (const t of teachers) {
+      if (!updated[t.id]) { updated[t.id] = makeTchCred(t.teacherId); changed = true; }
+    }
+    if (changed) localStorage.setItem('teacher_credentials', JSON.stringify(updated));
+    setCredsMap(updated);
   }, [teachers]);
 
   const copyText = (text: string, key: string) => {
