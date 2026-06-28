@@ -4,6 +4,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { EXAM_RESULTS, MADRASHA_CLASSES, getGradeScale } from '@/lib/data';
 import { Search, Award, Download, Printer, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { printHtml } from '@/lib/print-utils';
 import type { ExamResult } from '@/lib/types';
 
 function getAllResults(): ExamResult[] {
@@ -27,7 +28,7 @@ function isPublished(examName: string): boolean {
 export default function ResultPage() {
   const [roll, setRoll] = useState('');
   const [classId, setClassId] = useState('class-10');
-  const [exam, setExam] = useState('প্রথম সাময়িক পরীক্ষা');
+  const [exam, setExam] = useState('অর্ধবার্ষিক পরীক্ষা');
   const [result, setResult] = useState<ExamResult | null>(null);
   const [searched, setSearched] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -106,10 +107,7 @@ export default function ResultPage() {
 </div>
 <script>window.addEventListener('load', function() { setTimeout(function() { window.print(); }, 400); });<\/script>
 </body></html>`;
-    const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
-    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    printHtml(html);
   };
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -168,9 +166,9 @@ export default function ResultPage() {
                 <div>
                   <label className="text-xs font-semibold text-gray-600 mb-1 block">পরীক্ষার নাম *</label>
                   <select value={exam} onChange={e => setExam(e.target.value)} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400">
-                    <option>প্রথম সাময়িক পরীক্ষা</option>
-                    <option>দ্বিতীয় সাময়িক পরীক্ষা</option>
+                    <option>অর্ধবার্ষিক পরীক্ষা</option>
                     <option>বার্ষিক পরীক্ষা</option>
+                    <option>বার্ষিক চূড়ান্ত ফলাফল</option>
                   </select>
                 </div>
                 <div>
@@ -262,7 +260,7 @@ export default function ResultPage() {
 
                 {/* Actions */}
                 <div className="flex gap-3 mt-4">
-                  <button onClick={() => window.print()} className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors">
+                  <button onClick={downloadPdf} className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors">
                     <Printer size={15} /> প্রিন্ট
                   </button>
                   <button onClick={downloadPdf} className="flex-1 flex items-center justify-center gap-2 py-2.5 btn-primary rounded-xl text-sm font-semibold">

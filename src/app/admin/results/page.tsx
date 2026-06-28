@@ -6,6 +6,7 @@ import { loadResultsFromStorage, getGradeInfo, RESULTS_STORE_KEY } from '@/lib/r
 import type { ExamResult, SubjectResult, Student } from '@/lib/types';
 import { Award, CheckCircle, Download, Printer, Search, EyeOff, Lock, Unlock, ChevronDown, BarChart3, Shuffle, Users } from 'lucide-react';
 import { useNotices } from '@/context/NoticesContext';
+import { printHtml } from '@/lib/print-utils';
 
 const LS_KEY = 'published_results_v1';
 const MARK_SUBMISSION_KEY = 'nim_mark_submission_v1';
@@ -111,12 +112,8 @@ function openBoardStyleSheet(results: ExamResult[], examName: string) {
 ${sections}
 <div class="line">${esc(divider(`END OF RESULT [ ${dateCode} ]`))}</div>
 <div class="footer"><span>${esc(COLLEGE_INFO.name)} | Confidential</span><span>${today.toLocaleDateString('en-GB')}</span></div>
-<script>window.addEventListener('load',()=>setTimeout(()=>window.print(),300));<\/script>
 </body></html>`;
-  const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  window.open(url, '_blank');
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  printHtml(html);
 }
 
 function printResultSheet(results: ExamResult[], examName: string, classLabel: string) {
@@ -164,12 +161,8 @@ function printResultSheet(results: ExamResult[], examName: string, classLabel: s
   <div class="sig"><div class="sig-line">প্রধান শিক্ষক / অধ্যক্ষ</div><div class="sig-sub">${COLLEGE_INFO.nameBn}</div></div>
 </div>
 <div class="watermark">${COLLEGE_INFO.name} | এই ফলাফল শুধুমাত্র অভ্যন্তরীণ ব্যবহারের জন্য</div>
-<script>window.addEventListener('load',function(){setTimeout(function(){window.print();},400);});<\/script>
 </body></html>`;
-  const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  window.open(url, '_blank');
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  printHtml(html);
 }
 
 // ─── Year final builder ─────────────────────────────────────────────────────

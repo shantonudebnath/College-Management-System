@@ -5,6 +5,7 @@ import { useTeachers } from '@/context/TeachersContext';
 import { Shield, Shuffle, Download, Calendar, X, Bell, CheckCircle, ChevronDown, Users } from 'lucide-react';
 import { useNotices } from '@/context/NoticesContext';
 import type { Teacher } from '@/lib/types';
+import { printHtml } from '@/lib/print-utils';
 
 const EXAMS_KEY = 'nim_exams_v1';
 const ENTRIES_KEY = 'nim_exam_entries_v1';
@@ -231,13 +232,9 @@ export default function AdminGuardListPage() {
 </div>
 <div class="issue">প্রকাশের তারিখ: ${todayBn()}</div>
 </div>
-<script>window.addEventListener('load',function(){setTimeout(function(){window.print();},400);});<\/script>
 </body></html>`;
 
-    const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
-    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    printHtml(html);
   };
 
   return (

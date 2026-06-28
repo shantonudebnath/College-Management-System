@@ -5,7 +5,7 @@ import {
   loadWebsiteContent, saveWebsiteContent, DEFAULT_CONTENT, DEFAULT_ABOUT,
   type WebsiteContent, type GalleryItem, type FaqItem, type LinkItem, type SlideItem, type GoverningMember, type StaffMember, type FounderMember,
 } from '@/lib/website-content';
-import { Save, Plus, Trash2, Globe, Image as ImageIcon, HelpCircle, Link2, BarChart2, CheckCircle, SlidersHorizontal, Landmark, Users } from 'lucide-react';
+import { Save, Plus, Trash2, Globe, Image as ImageIcon, HelpCircle, Link2, BarChart2, CheckCircle, SlidersHorizontal, Landmark, Users, Upload } from 'lucide-react';
 
 type Tab = 'hero' | 'slides' | 'stats' | 'gallery' | 'faq' | 'links' | 'about' | 'teachers';
 
@@ -187,8 +187,24 @@ export default function WebsiteSettingsPage() {
                     </div>
                   )}
                   <div className="flex-1 space-y-2">
-                    <input value={g.url} onChange={e => set('gallery', content.gallery.map((x, j) => j === i ? { ...x, url: e.target.value } : x))}
-                      className={inp} placeholder="ছবির URL (https://...)" />
+                    <div className="flex gap-2">
+                      <input value={g.url} onChange={e => set('gallery', content.gallery.map((x, j) => j === i ? { ...x, url: e.target.value } : x))}
+                        className={`flex-1 ${inp}`} placeholder="ছবির URL (https://...)" />
+                      <label className="flex items-center gap-1 px-3 py-2 bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-xl text-xs font-semibold cursor-pointer border border-purple-200 shrink-0">
+                        <Upload size={12} /> আপলোড
+                        <input type="file" accept="image/*" className="sr-only"
+                          onChange={e => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const reader = new FileReader();
+                            reader.onload = ev => {
+                              const base64 = ev.target?.result as string;
+                              set('gallery', content.gallery.map((x, j) => j === i ? { ...x, url: base64 } : x));
+                            };
+                            reader.readAsDataURL(file);
+                          }} />
+                      </label>
+                    </div>
                     <input value={g.caption} onChange={e => set('gallery', content.gallery.map((x, j) => j === i ? { ...x, caption: e.target.value } : x))}
                       className={inp} placeholder="ক্যাপশন" />
                   </div>
@@ -197,6 +213,7 @@ export default function WebsiteSettingsPage() {
                 </div>
               </div>
             ))}
+            <p className="text-xs text-gray-400">💡 ছবি আপলোড করলে base64 হিসেবে সংরক্ষিত হবে। বড় ছবির ক্ষেত্রে URL ব্যবহার করুন।</p>
           </div>
         )}
 

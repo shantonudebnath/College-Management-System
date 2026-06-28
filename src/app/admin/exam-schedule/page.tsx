@@ -5,6 +5,8 @@ import DashboardHeader from '@/components/layout/DashboardHeader';
 import { MADRASHA_CLASSES, SUBJECTS_BY_CLASS } from '@/lib/data';
 import { Plus, Trash2, Download, X, Calendar, Edit2, Bell, CheckCircle, Lock, Unlock, ExternalLink } from 'lucide-react';
 import { useNotices } from '@/context/NoticesContext';
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
+import { printHtml } from '@/lib/print-utils';
 
 const EXAMS_KEY = 'nim_exams_v1';
 const ENTRIES_KEY = 'nim_exam_entries_v1';
@@ -149,15 +151,11 @@ ${bodyHtml}
   <div class="issue-date">প্রকাশের তারিখ: ${issueDate}</div>
 </div>
 </div>
-<script>window.addEventListener('load', function() { setTimeout(function() { window.print(); }, 400); });<\/script>
 </body></html>`;
 }
 
 function openPrintWindow(_title: string, html: string) {
-  const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  window.open(url, '_blank');
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  printHtml(html);
 }
 
 export default function AdminExamSchedulePage() {
@@ -170,6 +168,8 @@ export default function AdminExamSchedulePage() {
 
   const [showExamForm, setShowExamForm] = useState(false);
   const [examForm, setExamForm] = useState({ name: 'অর্ধবার্ষিক পরীক্ষা', year: '২০২৪-২৫' });
+  const [deleteExamId, setDeleteExamId] = useState<string | null>(null);
+  const [deleteEntryId, setDeleteEntryId] = useState<string | null>(null);
 
   const [showEntryModal, setShowEntryModal] = useState(false);
   const [editEntryId, setEditEntryId] = useState<string | null>(null);
@@ -266,7 +266,19 @@ export default function AdminExamSchedulePage() {
     setShowEntryModal(false);
   };
 
-  const deleteEntry = (id: string) => saveEntries(entries.filter(e => e.id !== id));
+  const confirmDeleteExam = () => {
+    if (!deleteExamId) return;
+    deleteExam(deleteExamId);
+    setDeleteExamId(null);
+  };
+
+  const confirmDeleteEntry = () => {
+    if (!deleteEntryId) return;
+    saveEntries(entries.filter(e => e.id !== deleteEntryId));
+    setDeleteEntryId(null);
+  };
+
+  const deleteEntry = (id: string) => setDeleteEntryId(id);
 
   const toggleClass = (classId: string) =>
     setEntryForm(p => ({
@@ -425,7 +437,7 @@ export default function AdminExamSchedulePage() {
                   <span>{exam.name}</span>
                   <span className={`text-xs ${selectedExamId === exam.id ? 'text-purple-200' : 'text-gray-400'}`}>{exam.year}</span>
                   <button
-                    onClick={ev => { ev.stopPropagation(); deleteExam(exam.id); }}
+                    onClick={ev => { ev.stopPropagation(); setDeleteExamId(exam.id); }}
                     className={`ml-1 rounded-full p-0.5 transition-colors ${selectedExamId === exam.id ? 'hover:bg-white/20 text-purple-200 hover:text-white' : 'hover:bg-red-100 text-gray-300 hover:text-red-500'}`}>
                     <X size={13} />
                   </button>
@@ -570,7 +582,7 @@ export default function AdminExamSchedulePage() {
                                 <td className="px-3 py-2.5">
                                   <div className="flex items-center justify-center gap-1">
                                     <button onClick={() => openEditEntry(e)} className="w-6 h-6 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 flex items-center justify-center"><Edit2 size={11} /></button>
-                                    <button onClick={() => deleteEntry(e.id)} className="w-6 h-6 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center"><Trash2 size={11} /></button>
+                                    <button onClick={() => setDeleteEntryId(e.id)} className="w-6 h-6 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center"><Trash2 size={11} /></button>
                                   </div>
                                 </td>
                               </tr>
@@ -586,6 +598,24 @@ export default function AdminExamSchedulePage() {
           </div>
         )}
       </div>
+
+      {/* Delete exam confirmation */}
+      {deleteExamId && (
+        <ConfirmDeleteModal
+          itemName={exams.find(e => e.id === deleteExamId)?.name}
+          onConfirm={confirmDeleteExam}
+          onCancel={() => setDeleteExamId(null)}
+        />
+      )}
+
+      {/* Delete entry confirmation */}
+      {deleteEntryId && (
+        <ConfirmDeleteModal
+          itemName={entries.find(e => e.id === deleteEntryId)?.subject}
+          onConfirm={confirmDeleteEntry}
+          onCancel={() => setDeleteEntryId(null)}
+        />
+      )}
 
       {/* Entry modal */}
       {showEntryModal && (

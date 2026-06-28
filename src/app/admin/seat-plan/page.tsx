@@ -5,6 +5,7 @@ import { STUDENTS, MADRASHA_CLASSES, COLLEGE_INFO } from '@/lib/data';
 import type { Student } from '@/lib/types';
 import { Plus, Trash2, Download, MapPin, Users, Edit2, Shuffle, ChevronDown, Calendar, Layers, CheckCircle2, UserCheck, LayoutGrid } from 'lucide-react';
 import { useTeachers } from '@/context/TeachersContext';
+import { printHtml } from '@/lib/print-utils';
 
 const EXAMS_KEY = 'nim_exams_v1';
 const ENTRIES_KEY = 'nim_exam_entries_v1';
@@ -156,15 +157,11 @@ ${sections}
 </div>
 <div class="issue">প্রকাশের তারিখ: ${todayBn()}</div>
 </div>
-<script>window.addEventListener('load',function(){setTimeout(function(){window.print();},400);});<\/script>
 </body></html>`;
 }
 
 function openPdf(html: string) {
-  const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  window.open(url, '_blank');
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  printHtml(html);
 }
 
 function buildStickerPdf(
@@ -246,7 +243,6 @@ function buildStickerPdf(
 <style>${STICKER_CSS}</style>
 </head><body>
 ${pages.join('') || '<div style="text-align:center;padding:40px;color:#999">কোনো আসন বরাদ্দ হয়নি</div>'}
-<script>window.addEventListener('load',function(){setTimeout(function(){window.print();},800);});<\/script>
 </body></html>`;
 }
 
@@ -326,7 +322,6 @@ function buildHallMapPdf(
   <div class="hdr-sub">${examName} — ${examYear} &nbsp;|&nbsp; হলভিত্তিক বেঞ্চ-আসন মানচিত্র</div>
 </div>
 ${sections || '<div style="text-align:center;padding:40px;color:#999">কোনো আসন বরাদ্দ হয়নি</div>'}
-<script>window.addEventListener('load',function(){setTimeout(function(){window.print();},800);});<\/script>
 </body></html>`;
 }
 

@@ -5,6 +5,7 @@ import { MADRASHA_CLASSES } from '@/lib/data';
 import { useTeachers } from '@/context/TeachersContext';
 import { Plus, X, Edit2, Save, Download, BookOpen, Bell, CheckCircle } from 'lucide-react';
 import { useNotices } from '@/context/NoticesContext';
+import { printHtml } from '@/lib/print-utils';
 
 const LS_KEY = 'master_routine_v2';
 
@@ -127,13 +128,9 @@ function openPrintWindow(title: string, bodyHtml: string, extraCss = '') {
   <div class="inst-addr">ঢাকা, বাংলাদেশ</div>
 </div>
 ${bodyHtml}
-<script>window.addEventListener('load', function() { setTimeout(function() { window.print(); }, 400); });<\/script>
 </body>
 </html>`;
-  const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  window.open(url, '_blank');
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  printHtml(html);
 }
 
 export default function AdminRoutinePage() {

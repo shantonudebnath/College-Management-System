@@ -3,6 +3,7 @@ import { useState } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { COLLEGE_INFO } from '@/lib/data';
 import { Award, Printer, RotateCcw, Eye } from 'lucide-react';
+import { printHtml } from '@/lib/print-utils';
 
 const EXAM_TYPES = ['দাখিল', 'আলিম', 'ফাজিল', 'কামিল', '৮ম'];
 const SUBJECTS = ['সাধারণ', 'বিজ্ঞান', 'মানবিক', 'ব্যবসায় শিক্ষা', 'দাখিল ভোকেশনাল'];
@@ -214,13 +215,7 @@ html,body{width:210mm;background:#fff;font-family:'Noto Serif Bengali','Vrinda',
   </div>
 </div>
 <script>
-window.addEventListener('load', function() {
-  if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(function() { setTimeout(window.print, 300); });
-  } else {
-    setTimeout(window.print, 1200);
-  }
-});
+/* print triggered by parent */
 <\/script>
 </body>
 </html>`;
@@ -331,10 +326,7 @@ export default function CertificatesPage() {
       });
     } catch { /* logo optional */ }
     const html = certHTML(form, logoDataUrl);
-    const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
-    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    printHtml(html);
   }
 
   const ready = !!(form.studentName && form.fatherName);

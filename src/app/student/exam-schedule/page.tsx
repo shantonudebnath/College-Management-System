@@ -4,6 +4,7 @@ import DashboardHeader from '@/components/layout/DashboardHeader';
 import { MADRASHA_CLASSES } from '@/lib/data';
 import { Calendar, Clock, Download, ChevronDown } from 'lucide-react';
 import { useStudentSession } from '@/hooks/useStudentSession';
+import { printHtml } from '@/lib/print-utils';
 
 const EXAMS_KEY = 'nim_exams_v1';
 const ENTRIES_KEY = 'nim_exam_entries_v1';
@@ -140,12 +141,8 @@ function openPrintWindow(examName: string, className: string, year: string, rows
   <div class="issue-date">প্রকাশের তারিখ: ${issueDate}</div>
 </div>
 </div>
-<script>window.addEventListener('load', function() { setTimeout(function() { window.print(); }, 400); });<\/script>
 </body></html>`;
-  const blob = new Blob([fullHtml], { type: 'text/html; charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  window.open(url, '_blank');
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  printHtml(fullHtml);
 }
 
 export default function StudentExamSchedulePage() {
