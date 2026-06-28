@@ -61,6 +61,24 @@ export default function AdminTeachersPage() {
     } catch { /* ignore */ }
   }, []);
 
+  // backfill credentials for any teacher that doesn't have one yet
+  useEffect(() => {
+    if (teachers.length === 0) return;
+    setCredsMap(prev => {
+      const updated = { ...prev };
+      let changed = false;
+      for (const t of teachers) {
+        if (!updated[t.id]) {
+          updated[t.id] = makeTchCred(t.teacherId);
+          changed = true;
+        }
+      }
+      if (!changed) return prev;
+      localStorage.setItem('teacher_credentials', JSON.stringify(updated));
+      return updated;
+    });
+  }, [teachers]);
+
   const copyText = (text: string, key: string) => {
     navigator.clipboard.writeText(text).catch(() => {});
     setCopied(key); setTimeout(() => setCopied(''), 2000);
