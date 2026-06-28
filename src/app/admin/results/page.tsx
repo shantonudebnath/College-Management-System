@@ -540,7 +540,6 @@ export default function AdminResultsPage() {
             <div className="mt-3 flex flex-wrap gap-2">
               {[ODB_EXAM, BAR_EXAM].map(name => {
                 const count = allResults.filter(r => r.year === yearFilter && r.examName === name).length;
-                if (count === 0) return null;
                 const isPub = publishedExams.includes(pubKey(name, yearFilter));
                 return (
                   <button key={name} onClick={() => { setExamFilter(name); setClassFilter(''); setSearch(''); }}
