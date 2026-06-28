@@ -354,7 +354,7 @@ export const NOTICES: Notice[] = [
   { id: 'n3', title: 'মাসিক বেতন পরিশোধের নোটিশ', content: 'আগামী ১০ জুনের মধ্যে মাসিক বেতন পরিশোধ করতে হবে। অন্যথায় বিলম্ব মাশুল আরোপ করা হবে।', date: '2024-06-01', type: 'fee', target: 'student', isImportant: true, postedBy: 'Admin' },
   { id: 'n4', title: 'শিক্ষক প্রশিক্ষণ কর্মশালা', content: 'আগামী ২০ জুন শিক্ষক প্রশিক্ষণ কর্মশালা অনুষ্ঠিত হবে। সকল শিক্ষকদের উপস্থিত থাকতে অনুরোধ করা হচ্ছে।', date: '2024-06-05', type: 'general', target: 'teacher', isImportant: false, postedBy: 'Admin' },
   { id: 'n5', title: 'ঈদুল আযহা উপলক্ষে ছুটির নোটিশ', content: 'ঈদুল আযহা উপলক্ষে ১৬ জুন থেকে ২৫ জুন পর্যন্ত মাদ্রাসা বন্ধ থাকবে।', date: '2024-06-10', type: 'holiday', target: 'all', isImportant: false, postedBy: 'Admin' },
-  { id: 'n6', title: 'প্রথম সাময়িক পরীক্ষার ফলাফল', content: 'প্রথম সাময়িক পরীক্ষার ফলাফল প্রকাশিত হয়েছে। শিক্ষার্থীরা তাদের রোল নম্বর দিয়ে ফলাফল দেখতে পারবে।', date: '2024-05-20', type: 'result', target: 'all', isImportant: false, postedBy: 'Admin' },
+  { id: 'n6', title: 'অর্ধবার্ষিক পরীক্ষার ফলাফল', content: 'অর্ধবার্ষিক পরীক্ষার ফলাফল প্রকাশিত হয়েছে। শিক্ষার্থীরা তাদের রোল নম্বর দিয়ে ফলাফল দেখতে পারবে।', date: '2024-05-20', type: 'result', target: 'all', isImportant: false, postedBy: 'Admin' },
 ];
 
 // Static seed results — uses updated SubjectResult shape
@@ -373,7 +373,7 @@ export const EXAM_RESULTS: ExamResult[] = [
       { name: 'Aqaid & Fiqh',        fullMark: 100, cqMarks: 90, mcqMarks: 0, practicalMarks: 0, marks: 90, grade: 'A+', gpa: 5.0, isPassed: true },
       { name: 'ICT',                  fullMark: 50,  cqMarks: 0,  mcqMarks: 20, practicalMarks: 22, marks: 42, grade: 'A+', gpa: 5.0, isPassed: true },
     ],
-    totalMarks: 761, totalFullMarks: 950, percentage: 80.1, gpa: 4.35, grade: 'A+', status: 'pass', examName: 'প্রথম সাময়িক পরীক্ষা', year: '2024'
+    totalMarks: 761, totalFullMarks: 950, percentage: 80.1, gpa: 4.35, grade: 'A+', status: 'pass', examName: 'অর্ধবার্ষিক পরীক্ষা', year: '2024'
   },
   {
     studentId: 's2', studentName: 'Fatema Akter', class: 'class-10', roll: 2,
@@ -389,7 +389,7 @@ export const EXAM_RESULTS: ExamResult[] = [
       { name: 'Aqaid & Fiqh',        fullMark: 100, cqMarks: 80, mcqMarks: 0, practicalMarks: 0, marks: 80, grade: 'A+', gpa: 5.0, isPassed: true },
       { name: 'ICT',                  fullMark: 50,  cqMarks: 0,  mcqMarks: 16, practicalMarks: 18, marks: 34, grade: 'A-', gpa: 3.5, isPassed: true },
     ],
-    totalMarks: 639, totalFullMarks: 950, percentage: 67.3, gpa: 3.65, grade: 'A-', status: 'pass', examName: 'প্রথম সাময়িক পরীক্ষা', year: '2024'
+    totalMarks: 639, totalFullMarks: 950, percentage: 67.3, gpa: 3.65, grade: 'A-', status: 'pass', examName: 'অর্ধবার্ষিক পরীক্ষা', year: '2024'
   },
 ];
 
