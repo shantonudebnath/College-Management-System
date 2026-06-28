@@ -82,21 +82,6 @@ export default function Navbar() {
   return (
     <>
       {/* Bangladesh flag color strip */}
-      <div className="flex h-[5px] hidden md:flex">
-        <div className="flex-1 bg-[#006A4E]" />
-        <div className="w-24 bg-[#F42A41]" />
-      </div>
-
-      {/* Government identity bar */}
-      <div className="bg-[#006633] text-white/90 text-[11px] py-1.5 hidden md:block">
-        <div className="max-w-7xl mx-auto px-4 lg:px-6 flex justify-between items-center">
-          <span className="font-semibold tracking-wide flex items-center gap-2">
-            🇧🇩 গণপ্রজাতন্ত্রী বাংলাদেশ | বাংলাদেশ মাদ্রাসা শিক্ষা বোর্ড অনুমোদিত
-          </span>
-          <span className="text-white/60">EIIN: {COLLEGE_INFO.eiin} | স্থাপিত: {COLLEGE_INFO.established}</span>
-        </div>
-      </div>
-
       {/* Top info bar */}
       <div className="bg-[#07111e] text-white/60 text-xs py-2 hidden md:block">
         <div className="max-w-7xl mx-auto px-4 lg:px-6 flex justify-between items-center">
