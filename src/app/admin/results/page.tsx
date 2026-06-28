@@ -10,9 +10,8 @@ import { useNotices } from '@/context/NoticesContext';
 const LS_KEY = 'published_results_v1';
 const MARK_SUBMISSION_KEY = 'nim_mark_submission_v1';
 
-const ODB_EXAM   = 'অর্ধবার্ষিক পরীক্ষা';
-const BAR_EXAM   = 'বার্ষিক পরীক্ষা';
-const FINAL_EXAM = 'বার্ষিক চূড়ান্ত ফলাফল';
+const ODB_EXAM = 'অর্ধবার্ষিক পরীক্ষা';
+const BAR_EXAM = 'বার্ষিক পরীক্ষা';
 
 function pubKey(examName: string, year: string) { return `${examName}||${year}`; }
 
@@ -200,7 +199,6 @@ function buildYearFinal(year: string, allResults: ExamResult[]): ExamResult[] {
 
     return {
       ...barR,
-      id: `final-${barR.studentId}-${year}`,
       subjects: avgSubjects,
       totalMarks,
       totalFullMarks: totalFull,
@@ -208,7 +206,7 @@ function buildYearFinal(year: string, allResults: ExamResult[]): ExamResult[] {
       gpa,
       grade: gi.grade,
       status: (failed.length === 0 ? 'pass' : 'fail') as 'pass' | 'fail',
-      examName: FINAL_EXAM,
+      examName: BAR_EXAM,
       failedSubjects: failed.length > 0 ? failed : undefined,
       createdAt: new Date().toISOString(),
     };
@@ -396,24 +394,26 @@ export default function AdminResultsPage() {
     }
     const finals = buildYearFinal(yearFilter, allResults);
     const stored = loadResultsFromStorage();
-    const cleaned = stored.filter(r => !(r.examName === FINAL_EXAM && r.year === yearFilter));
+    const cleaned = stored.filter(r => !(r.examName === BAR_EXAM && r.year === yearFilter));
     const newStore = [...cleaned, ...finals];
     localStorage.setItem(RESULTS_STORE_KEY, JSON.stringify(newStore));
-    const reloaded = [...EXAM_RESULTS, ...newStore];
+    const reloaded = [
+      ...EXAM_RESULTS.filter(r => !(r.examName === BAR_EXAM && r.year === yearFilter)),
+      ...newStore,
+    ];
     setAllResults(reloaded);
-    setExamFilter(FINAL_EXAM);
-    alert(`${finals.length} জনের চূড়ান্ত বার্ষিক ফলাফল তৈরি হয়েছে (অর্ধবার্ষিক + বার্ষিক গড়)।`);
+    alert(`${finals.length} জনের বার্ষিক পরীক্ষার ফলাফল তৈরি হয়েছে (অর্ধবার্ষিক + বার্ষিক গড়)।`);
   };
 
   // ── Auto-assign rolls based on year final result ────────────────────────────
   const doAssignRolls = () => {
     if (!yearFilter) return;
-    const finals = allResults.filter(r => r.examName === FINAL_EXAM && r.year === yearFilter);
+    const finals = allResults.filter(r => r.examName === BAR_EXAM && r.year === yearFilter);
     if (finals.length === 0) {
-      alert('চূড়ান্ত ফলাফল নেই। আগে চূড়ান্ত ফলাফল তৈরি করুন।');
+      alert('বার্ষিক পরীক্ষার ফলাফল নেই। আগে ফলাফল তৈরি করুন।');
       return;
     }
-    const go = confirm(`${yearFilter} সালের চূড়ান্ত ফলাফল অনুযায়ী ${finals.length} জনের রোল নম্বর পুনর্বণ্টন করবেন?\n\n(GPA → শতকরা → পুরনো রোল অনুযায়ী ক্রম, সর্বোচ্চ থেকে সর্বনিম্ন)`);
+    const go = confirm(`${yearFilter} সালের বার্ষিক ফলাফল অনুযায়ী ${finals.length} জনের রোল নম্বর পুনর্বণ্টন করবেন?\n\n(GPA → শতকরা → পুরনো রোল অনুযায়ী ক্রম, সর্বোচ্চ থেকে সর্বনিম্ন)`);
     if (!go) return;
 
     let students: Student[] = [];
@@ -538,7 +538,7 @@ export default function AdminResultsPage() {
           {/* Exam type info chips */}
           {yearFilter && (
             <div className="mt-3 flex flex-wrap gap-2">
-              {[ODB_EXAM, BAR_EXAM, FINAL_EXAM].map(name => {
+              {[ODB_EXAM, BAR_EXAM].map(name => {
                 const count = allResults.filter(r => r.year === yearFilter && r.examName === name).length;
                 if (count === 0) return null;
                 const isPub = publishedExams.includes(pubKey(name, yearFilter));
@@ -653,8 +653,8 @@ export default function AdminResultsPage() {
               </button>
             )}
 
-            {/* চূড়ান্ত ফলাফল → রোল বণ্টন */}
-            {examFilter === FINAL_EXAM && yearFilter && published && (
+            {/* বার্ষিক publish হলে → রোল বণ্টন */}
+            {examFilter === BAR_EXAM && yearFilter && published && (
               <button
                 onClick={doAssignRolls}
                 className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-indigo-700 shadow-sm transition-colors">
