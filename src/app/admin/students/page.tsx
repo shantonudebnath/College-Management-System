@@ -1,12 +1,13 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import { STUDENTS, MADRASHA_CLASSES, COLLEGE_INFO } from '@/lib/data';
+import { STUDENTS, MADRASHA_CLASSES } from '@/lib/data';
 import {
   Users, Plus, Search, Edit, Trash2, Eye, Download, Camera, X, Save,
   ChevronDown, ArrowUpCircle, AlertTriangle, CheckCircle, IdCard, Key, Copy, EyeOff, Printer,
 } from 'lucide-react';
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
+import StudentIdCard from '@/components/ui/StudentIdCard';
 import type { Student } from '@/lib/types';
 
 interface AdmitCardConfig { id: string; examName: string; class: string; issued: boolean; }
@@ -29,69 +30,6 @@ const STATUS_COLOR: Record<string, string> = {
   due: 'bg-red-100 text-red-700',
   partial: 'bg-amber-100 text-amber-700',
 };
-
-function IdCardContent({ ps, psClass }: { ps: Student; psClass: string }) {
-  return (
-    <>
-      <div style={{ background: '#1e1b4b', color: '#fff', padding: '5px 8px 4px', textAlign: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="" style={{ width: '22px', height: '22px', objectFit: 'contain', borderRadius: '4px', background: '#fff', padding: '1px' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-          <div>
-            <div style={{ fontSize: '8.5pt', fontWeight: 900, lineHeight: 1.2 }}>{COLLEGE_INFO.nameBn}</div>
-            <div style={{ fontSize: '5pt', color: '#a5b4fc', marginTop: '1px' }}>{COLLEGE_INFO.address}</div>
-          </div>
-        </div>
-        <div style={{ marginTop: '3px', background: 'rgba(255,255,255,0.15)', borderRadius: '4px', padding: '1.5px 0', fontSize: '7pt', fontWeight: 700, letterSpacing: '1px' }}>শিক্ষার্থী পরিচয়পত্র</div>
-      </div>
-      <div style={{ display: 'flex', gap: 0, padding: '5px 6px', minHeight: '38mm' }}>
-        <div style={{ width: '20mm', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
-          <div style={{ width: '18mm', height: '22mm', border: '1.5px solid #1e1b4b', borderRadius: '4px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f3f4f6' }}>
-            {ps.image
-              // eslint-disable-next-line @next/next/no-img-element
-              ? <img src={ps.image} alt={ps.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              : <div style={{ textAlign: 'center', color: '#9ca3af', fontSize: '6pt' }}><div style={{ fontSize: '18pt', color: '#d1d5db' }}>☐</div>ছবি</div>}
-          </div>
-          <div style={{ fontSize: '5pt', color: '#6b7280', textAlign: 'center' }}>সত্যায়িত ছবি</div>
-        </div>
-        <div style={{ width: '1px', background: '#e5e7eb', margin: '0 5px', flexShrink: 0 }} />
-        <div style={{ flex: 1, fontSize: '6.5pt' }}>
-          {[
-            ['নাম', ps.name],
-            ['বাংলা নাম', ps.nameBn || '—'],
-            ['পিতার নাম', ps.fatherName || '—'],
-            ['মাতার নাম', ps.motherName || '—'],
-            ['শ্রেণি', `${psClass} | শাখা: ${ps.section || '—'}`],
-            ['রোল নং', String(ps.roll ?? '—')],
-            ['শিক্ষার্থী আইডি', ps.studentId],
-            ['সেশন', ps.session || '—'],
-            ['রক্তের গ্রুপ', (ps as { bloodGroup?: string }).bloodGroup || '—'],
-          ].map(([label, value]) => (
-            <div key={label} style={{ display: 'flex', alignItems: 'baseline', marginBottom: '1.5mm', borderBottom: '0.5px solid #f3f4f6', paddingBottom: '1mm' }}>
-              <span style={{ minWidth: '20mm', color: '#6b7280', flexShrink: 0 }}>{label}:</span>
-              <span style={{ fontWeight: 700, color: '#111827', flex: 1 }}>{value}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div style={{ borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', padding: '3mm 6mm 3mm', background: '#fafafa' }}>
-        <div style={{ textAlign: 'center', fontSize: '5.5pt', color: '#6b7280' }}>
-          <div style={{ height: '8mm' }} />
-          <div style={{ borderTop: '0.8px solid #9ca3af', paddingTop: '1mm', minWidth: '20mm' }}>শিক্ষার্থীর স্বাক্ষর</div>
-        </div>
-        <div style={{ textAlign: 'center', fontSize: '5pt', color: '#9ca3af' }}>
-          <div>EIIN: {COLLEGE_INFO.eiin}</div>
-          <div>{COLLEGE_INFO.phone.split(',')[0]}</div>
-        </div>
-        <div style={{ textAlign: 'center', fontSize: '5.5pt', color: '#6b7280' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/principal-sign.png" alt="" style={{ height: '8mm', maxWidth: '24mm', objectFit: 'contain', display: 'block', margin: '0 auto' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-          <div style={{ borderTop: '0.8px solid #9ca3af', paddingTop: '1mm', minWidth: '20mm' }}>অধ্যক্ষের স্বাক্ষর</div>
-        </div>
-      </div>
-    </>
-  );
-}
 
 function makeCred(studentId: string, roll: number): Credential {
   return {
@@ -333,10 +271,22 @@ export default function AdminStudentsPage() {
 
   const handleCancel = () => { setShowForm(false); setForm({ ...emptyForm }); setEditId(null); };
 
-  const handleBulkPrint = () => {
-    setBulkIdPrint(true);
-    setTimeout(() => { window.print(); setTimeout(() => setBulkIdPrint(false), 500); }, 200);
-  };
+  // useEffect-based print: fires after React commits DOM, so the print div is guaranteed to exist
+  useEffect(() => {
+    if (!printIdStudent) return;
+    window.print();
+    const handler = () => setPrintIdStudent(null);
+    window.addEventListener('afterprint', handler, { once: true });
+    return () => window.removeEventListener('afterprint', handler);
+  }, [printIdStudent]);
+
+  useEffect(() => {
+    if (!bulkIdPrint) return;
+    window.print();
+    const handler = () => setBulkIdPrint(false);
+    window.addEventListener('afterprint', handler, { once: true });
+    return () => window.removeEventListener('afterprint', handler);
+  }, [bulkIdPrint]);
 
   const exportToExcel = () => {
     const headers = ['শিক্ষার্থী আইডি', 'নাম', 'বাংলা নাম', 'পিতার নাম', 'মাতার নাম', 'শ্রেণি', 'শাখা', 'রোল', 'সেশন', 'মোবাইল', 'ফি অবস্থা'];
@@ -388,7 +338,7 @@ export default function AdminStudentsPage() {
           <button onClick={exportToExcel} className="flex items-center gap-2 border border-gray-200 bg-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 hover:border-green-300 hover:text-green-700 transition-colors">
             <Download size={14} /> Excel
           </button>
-          <button onClick={handleBulkPrint} title={`${filtered.filter(s => selectedIds.has(s.id)).length}টি নির্বাচিত শিক্ষার্থীর পরিচয়পত্র PDF`} className="flex items-center gap-2 border border-gray-200 bg-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 hover:border-blue-300 hover:text-blue-700 transition-colors">
+          <button onClick={() => setBulkIdPrint(true)} title={`${filtered.filter(s => selectedIds.has(s.id)).length}টি নির্বাচিত শিক্ষার্থীর পরিচয়পত্র PDF`} className="flex items-center gap-2 border border-gray-200 bg-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 hover:border-blue-300 hover:text-blue-700 transition-colors">
             <Printer size={14} /> পরিচয়পত্র PDF
           </button>
           <button onClick={openPromote} className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors">
@@ -859,7 +809,7 @@ export default function AdminStudentsPage() {
               width: '85.6mm', border: '2px solid #1e1b4b', borderRadius: '8px',
               fontFamily: "'Noto Serif Bengali','Vrinda',serif", overflow: 'hidden', background: '#fff',
             }}>
-              <IdCardContent ps={ps} psClass={psClass} />
+              <StudentIdCard student={ps} className={psClass} />
             </div>
           </>
         );
@@ -891,7 +841,7 @@ export default function AdminStudentsPage() {
                     width: '85.6mm', border: '2px solid #1e1b4b', borderRadius: '8px',
                     fontFamily: "'Noto Serif Bengali','Vrinda',serif", overflow: 'hidden', background: '#fff',
                   }}>
-                    <IdCardContent ps={ps} psClass={psClass} />
+                    <StudentIdCard student={ps} className={psClass} />
                   </div>
                 </div>
               );
@@ -974,7 +924,7 @@ export default function AdminStudentsPage() {
                     className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
                     <Edit size={14} /> সম্পাদনা
                   </button>
-                  <button onClick={() => { setPrintIdStudent(vs); setTimeout(() => window.print(), 100); }}
+                  <button onClick={() => { setViewStudentId(null); setPrintIdStudent(vs); }}
                     className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
                     <Printer size={14} /> পরিচয়পত্র
                   </button>
