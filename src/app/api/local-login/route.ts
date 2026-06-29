@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { TEACHERS, STUDENTS as STATIC_STUDENTS } from '@/lib/data';
 
 const COOKIE = 'nim_session';
 const MAX_AGE = 60 * 60 * 24 * 7;
@@ -28,23 +29,33 @@ export async function POST(req: NextRequest) {
   const cleanId = id.trim();
 
   if (role === 'student') {
-    const { data: student, error } = await supabase
+    const rollNum = parseInt(cleanId) || 0;
+    const { data: student } = await supabase
       .from('students')
       .select('id, student_id, roll')
-      .or(`student_id.eq.${cleanId},roll.eq.${parseInt(cleanId) || 0}`)
+      .or(`student_id.eq.${cleanId},roll.eq.${rollNum}`)
       .single();
 
-    if (error || !student) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+    let stuId: string | undefined;
+    let stuRoll: number | undefined;
+    if (student) {
+      stuId = student.student_id;
+      stuRoll = student.roll;
+    } else {
+      // Fallback to hardcoded data
+      const found = STATIC_STUDENTS.find(s => s.studentId === cleanId || s.roll === rollNum);
+      if (found) { stuId = found.studentId; stuRoll = found.roll; }
     }
 
-    const expected = makeStudentPassword(student.roll);
-    if (password !== expected) {
+    if (!stuId || stuRoll === undefined) {
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+    }
+    if (password !== makeStudentPassword(stuRoll)) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
     const res = NextResponse.json({ success: true, role });
-    res.cookies.set(COOKIE, JSON.stringify({ id: student.student_id, role }), {
+    res.cookies.set(COOKIE, JSON.stringify({ id: stuId, role }), {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       path: '/',
@@ -55,23 +66,30 @@ export async function POST(req: NextRequest) {
   }
 
   if (role === 'teacher') {
-    const { data: teacher, error } = await supabase
+    const { data: teacher } = await supabase
       .from('teachers')
       .select('id, teacher_id')
       .eq('teacher_id', cleanId)
       .single();
 
-    if (error || !teacher) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+    let tchId: string | undefined;
+    if (teacher) {
+      tchId = teacher.teacher_id;
+    } else {
+      // Fallback to hardcoded data
+      const found = TEACHERS.find(t => t.teacherId === cleanId);
+      if (found) tchId = found.teacherId;
     }
 
-    const expected = makeTeacherPassword(teacher.teacher_id);
-    if (password !== expected) {
+    if (!tchId) {
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+    }
+    if (password !== makeTeacherPassword(tchId)) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
     const res = NextResponse.json({ success: true, role });
-    res.cookies.set(COOKIE, JSON.stringify({ id: teacher.teacher_id, role }), {
+    res.cookies.set(COOKIE, JSON.stringify({ id: tchId, role }), {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       path: '/',

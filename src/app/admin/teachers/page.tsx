@@ -11,9 +11,10 @@ import { kvGet, kvSet } from '@/lib/supabase/kv';
 interface Credential { username: string; password: string; }
 
 function makeTchCred(teacherId: string): Credential {
+  const num = teacherId.replace(/\D/g, '').padStart(4, '0').slice(-4);
   return {
     username: teacherId,
-    password: `NIM@Teacher#${new Date().getFullYear()}`,
+    password: `NIM@Teacher#${num}`,
   };
 }
 
@@ -59,11 +60,10 @@ export default function AdminTeachersPage() {
     if (teachers.length === 0) return;
     kvGet<Record<string, Credential>>('teacher_credentials').then(stored => {
       const updated = { ...(stored ?? {}) };
-      let changed = false;
       for (const t of teachers) {
-        if (!updated[t.id]) { updated[t.id] = makeTchCred(t.teacherId); changed = true; }
+        updated[t.id] = makeTchCred(t.teacherId);
       }
-      if (changed) kvSet('teacher_credentials', updated);
+      kvSet('teacher_credentials', updated);
       setCredsMap(updated);
     });
   }, [teachers]);
