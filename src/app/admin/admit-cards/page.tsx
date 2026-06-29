@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { FEES, MADRASHA_CLASSES, STUDENTS, COLLEGE_INFO } from '@/lib/data';
@@ -8,6 +8,9 @@ import type { Student } from '@/lib/types';
 import { IdCard, Trash2, Printer, X, Users, CheckCircle, AlertCircle, ChevronDown, Settings, RefreshCw } from 'lucide-react';
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
 import type { Fee } from '@/lib/types';
+import { kvGet, kvSet } from '@/lib/supabase/kv';
+import { useStudents } from '@/context/StudentsContext';
+import { useFees } from '@/context/FeesContext';
 
 const EXAMS_KEY = 'nim_exams_v1';
 const ENTRIES_KEY = 'nim_exam_entries_v1';
@@ -34,13 +37,14 @@ interface ScheduleItem { subject: string; date: string; startTime: string; endTi
 interface SeatInfo { hallName: string; seatNumber: number; guardName?: string; }
 
 export default function AdminAdmitCardsPage() {
-  const [cards, setCards] = useState<AdmitCardConfig[]>(() => {
-    if (typeof window === 'undefined') return [];
-    try { const s = localStorage.getItem('admit_cards_store'); return s ? JSON.parse(s) : []; } catch { return []; }
-  });
-  const [feeTypes, setFeeTypes] = useState<string[]>([]);
-  const [allFees, setAllFees] = useState<Fee[]>(FEES);
-  const [allStudents, setAllStudents] = useState<Student[]>(STUDENTS);
+  const { students: ctxStudents } = useStudents();
+  const { fees: ctxFees } = useFees();
+  const allStudents = ctxStudents.length > 0 ? ctxStudents : STUDENTS;
+  const allFees: Fee[] = ctxFees.length > 0 ? ctxFees : FEES;
+  const feeTypes = [...new Set(allFees.map(f => f.feeType))];
+
+  const [cards, setCards] = useState<AdmitCardConfig[]>([]);
+  const cardsLoaded = useRef(false);
   const [allExams, setAllExams] = useState<Exam[]>([]);
   const [allEntries, setAllEntries] = useState<ExamEntry[]>([]);
   const [allHalls, setAllHalls] = useState<Hall[]>([]);
@@ -55,31 +59,26 @@ export default function AdminAdmitCardsPage() {
   const [printCard, setPrintCard] = useState<AdmitCardConfig | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
-  useEffect(() => { localStorage.setItem('admit_cards_store', JSON.stringify(cards)); }, [cards]);
+  useEffect(() => {
+    if (!cardsLoaded.current) { cardsLoaded.current = true; return; }
+    kvSet('admit_cards_store', cards);
+  }, [cards]);
 
   useEffect(() => {
     setMounted(true);
-    try {
-      const stored = localStorage.getItem('fees_store');
-      const fees: Fee[] = stored ? JSON.parse(stored) : FEES;
-      setAllFees(fees);
-      setFeeTypes([...new Set(fees.map(f => f.feeType))]);
-    } catch { setFeeTypes([...new Set(FEES.map(f => f.feeType))]); }
-    try {
-      const raw = localStorage.getItem('students_store');
-      if (raw) {
-        const stored: Student[] = JSON.parse(raw);
-        const ids = new Set(stored.map(s => s.id));
-        setAllStudents([...stored, ...STUDENTS.filter(s => !ids.has(s.id))]);
-      }
-    } catch {}
-    try {
-      const e = localStorage.getItem(EXAMS_KEY);
-      if (e) { const p = JSON.parse(e); setAllExams(p); if (p.length > 0) setSelectedExamId(p[0].id); }
-      const en = localStorage.getItem(ENTRIES_KEY); if (en) setAllEntries(JSON.parse(en));
-      const h = localStorage.getItem(HALLS_KEY); if (h) setAllHalls(JSON.parse(h));
-      const s = localStorage.getItem(SEATS_KEY); if (s) setAllSeats(JSON.parse(s));
-    } catch {}
+    Promise.all([
+      kvGet<AdmitCardConfig[]>('admit_cards_store'),
+      kvGet<Exam[]>(EXAMS_KEY),
+      kvGet<ExamEntry[]>(ENTRIES_KEY),
+      kvGet<Hall[]>(HALLS_KEY),
+      kvGet<SeatAssignment[]>(SEATS_KEY),
+    ]).then(([cardsData, examsData, entriesData, hallsData, seatsData]) => {
+      if (cardsData) setCards(cardsData);
+      if (examsData) { setAllExams(examsData); if (examsData.length > 0) setSelectedExamId(examsData[0].id); }
+      if (entriesData) setAllEntries(entriesData);
+      if (hallsData) setAllHalls(hallsData);
+      if (seatsData) setAllSeats(seatsData);
+    });
   }, []);
 
   const isStudentEligible = (studentId: string, card: AdmitCardConfig) => {

@@ -2,13 +2,15 @@
 import { useState, useEffect, useMemo } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { EXAM_RESULTS, MADRASHA_CLASSES, COLLEGE_INFO, STUDENTS } from '@/lib/data';
-import { loadResultsFromStorage, getGradeInfo, RESULTS_STORE_KEY } from '@/lib/result-utils';
+import { getGradeInfo } from '@/lib/result-utils';
 import type { ExamResult, SubjectResult, Student } from '@/lib/types';
 import { Award, CheckCircle, Download, Printer, Search, EyeOff, Lock, Unlock, ChevronDown, BarChart3, Shuffle, Users } from 'lucide-react';
 import { useNotices } from '@/context/NoticesContext';
+import { useResults } from '@/context/ResultsContext';
+import { useStudents } from '@/context/StudentsContext';
+import { kvGet, kvSet } from '@/lib/supabase/kv';
 import { printHtml } from '@/lib/print-utils';
 
-const LS_KEY = 'published_results_v1';
 const MARK_SUBMISSION_KEY = 'nim_mark_submission_v1';
 
 const ODB_EXAM   = 'অর্ধবার্ষিক পরীক্ষা';
@@ -16,10 +18,6 @@ const BAR_EXAM   = 'বার্ষিক পরীক্ষা';
 const FINAL_EXAM = 'বার্ষিক চূড়ান্ত ফলাফল';
 
 function pubKey(examName: string, year: string) { return `${examName}||${year}`; }
-
-function getPublished(): string[] {
-  try { return JSON.parse(localStorage.getItem(LS_KEY) ?? '[]'); } catch { return []; }
-}
 
 function gradeChip(grade: string) {
   if (grade === 'A+') return 'text-emerald-700 bg-emerald-50 border border-emerald-200';
@@ -284,8 +282,8 @@ function ClassGroup({ classId, results }: { classId: string; results: ExamResult
 // ─── Main page ─────────────────────────────────────────────────────────────────
 export default function AdminResultsPage() {
   const { addNotice } = useNotices();
-  const [allResults, setAllResults]         = useState<ExamResult[]>([]);
-  const [publishedExams, setPublishedExams] = useState<string[]>([]);
+  const { results: storedResults, publishedExams, publishExam, unpublishExam, setResults } = useResults();
+  const { students } = useStudents();
   const [yearFilter, setYearFilter]         = useState('');
   const [examFilter, setExamFilter]         = useState('');
   const [classFilter, setClassFilter]       = useState('');
@@ -294,18 +292,19 @@ export default function AdminResultsPage() {
   const [markSubmission, setMarkSubmission] = useState<MarkSubmission | null>(null);
   const [submissionExamId, setSubmissionExamId] = useState('');
 
+  const allResults = useMemo(() => {
+    const ids = new Set(storedResults.map(r => r.id));
+    return [...storedResults, ...EXAM_RESULTS.filter(r => !ids.has(r.id))];
+  }, [storedResults]);
+
   useEffect(() => {
-    const stored = loadResultsFromStorage();
-    const all = [...EXAM_RESULTS, ...stored];
-    setAllResults(all);
-    setPublishedExams(getPublished());
-    const years = [...new Set(all.map(r => r.year))].sort().reverse();
+    const years = [...new Set(allResults.map(r => r.year))].sort().reverse();
     if (years[0]) setYearFilter(years[0]);
-    const firstExam = [...new Set(all.map(r => r.examName))][0];
+    const firstExam = [...new Set(allResults.map(r => r.examName))][0];
     if (firstExam) setExamFilter(firstExam);
-    try { setLiveExams(JSON.parse(localStorage.getItem('nim_exams_v1') ?? '[]')); } catch {}
-    try { setMarkSubmission(JSON.parse(localStorage.getItem(MARK_SUBMISSION_KEY) ?? 'null')); } catch {}
-  }, []);
+    kvGet<LiveExam[]>('nim_exams_v1').then(d => { if (d) setLiveExams(d); });
+    kvGet<MarkSubmission>(MARK_SUBMISSION_KEY).then(d => setMarkSubmission(d));
+  }, [allResults]);
 
   const availableYears = useMemo(() =>
     [...new Set(allResults.map(r => r.year))].sort().reverse(),
@@ -338,14 +337,10 @@ export default function AdminResultsPage() {
   const curPubKey = examFilter && yearFilter ? pubKey(examFilter, yearFilter) : '';
   const published = !!curPubKey && publishedExams.includes(curPubKey);
 
-  const togglePublish = () => {
+  const togglePublish = async () => {
     if (!curPubKey) return;
     const isPublishing = !published;
-    const next = published
-      ? publishedExams.filter(e => e !== curPubKey)
-      : [...publishedExams, curPubKey];
-    setPublishedExams(next);
-    try { localStorage.setItem(LS_KEY, JSON.stringify(next)); } catch {}
+    if (isPublishing) await publishExam(curPubKey); else await unpublishExam(curPubKey);
     if (isPublishing) {
       const examAll = allResults.filter(r => r.examName === examFilter && r.year === yearFilter);
       const pc = examAll.filter(r => r.status === 'pass').length;
@@ -360,22 +355,22 @@ export default function AdminResultsPage() {
     }
   };
 
-  const openMarkSubmission = () => {
+  const openMarkSubmission = async () => {
     const exam = liveExams.find(e => e.id === submissionExamId);
     if (!exam) return;
     const val: MarkSubmission = { examId: exam.id, examName: exam.name, year: exam.year };
-    localStorage.setItem(MARK_SUBMISSION_KEY, JSON.stringify(val));
+    await kvSet(MARK_SUBMISSION_KEY, val);
     setMarkSubmission(val);
     setSubmissionExamId('');
   };
 
-  const closeMarkSubmission = () => {
-    localStorage.removeItem(MARK_SUBMISSION_KEY);
+  const closeMarkSubmission = async () => {
+    await kvSet(MARK_SUBMISSION_KEY, null);
     setMarkSubmission(null);
   };
 
   // ── Build বার্ষিক চূড়ান্ত ফলাফল from avg of অর্ধবার্ষিক + বার্ষিক ─────────
-  const doFinalizeResult = () => {
+  const doFinalizeResult = async () => {
     if (!yearFilter) return;
     const barCount = allResults.filter(r => r.examName === BAR_EXAM && r.year === yearFilter).length;
     if (barCount === 0) {
@@ -388,12 +383,8 @@ export default function AdminResultsPage() {
       if (!go) return;
     }
     const finals = buildYearFinal(yearFilter, allResults);
-    const stored = loadResultsFromStorage();
-    const cleaned = stored.filter(r => !(r.examName === FINAL_EXAM && r.year === yearFilter));
-    const newStore = [...cleaned, ...finals];
-    localStorage.setItem(RESULTS_STORE_KEY, JSON.stringify(newStore));
-    const reloaded = [...EXAM_RESULTS, ...newStore];
-    setAllResults(reloaded);
+    const cleaned = storedResults.filter(r => !(r.examName === FINAL_EXAM && r.year === yearFilter));
+    await setResults([...cleaned, ...finals]);
     setExamFilter(FINAL_EXAM);
     alert(`${finals.length} জনের চূড়ান্ত বার্ষিক ফলাফল তৈরি হয়েছে (অর্ধবার্ষিক + বার্ষিক গড়)।`);
   };
@@ -409,14 +400,8 @@ export default function AdminResultsPage() {
     const go = confirm(`${yearFilter} সালের চূড়ান্ত ফলাফল অনুযায়ী ${finals.length} জনের রোল নম্বর পুনর্বণ্টন করবেন?\n\n(GPA → শতকরা → পুরনো রোল অনুযায়ী ক্রম, সর্বোচ্চ থেকে সর্বনিম্ন)`);
     if (!go) return;
 
-    let students: Student[] = [];
-    try {
-      const s = localStorage.getItem('students_store');
-      if (s) students = JSON.parse(s);
-    } catch {}
-    if (students.length === 0) students = [...STUDENTS];
-
-    const updated = [...students];
+    const allStudents = students.length > 0 ? students : [...STUDENTS];
+    const updated = [...allStudents];
     const classIds = [...new Set(finals.map(r => r.class))];
 
     for (const classId of classIds) {
@@ -432,7 +417,6 @@ export default function AdminResultsPage() {
       });
     }
 
-    localStorage.setItem('students_store', JSON.stringify(updated));
     alert(`${finals.length} জন শিক্ষার্থীর নতুন রোল বণ্টন সম্পন্ন হয়েছে।`);
   };
 

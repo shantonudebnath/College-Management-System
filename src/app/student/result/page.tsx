@@ -2,10 +2,10 @@
 import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { EXAM_RESULTS } from '@/lib/data';
-import { loadResultsFromStorage, isExamPublished } from '@/lib/result-utils';
 import type { ExamResult } from '@/lib/types';
 import { Award, CheckCircle, Download, Printer, Lock } from 'lucide-react';
 import { useStudentSession } from '@/hooks/useStudentSession';
+import { useResults } from '@/context/ResultsContext';
 
 async function downloadMarksheetPDF(result: ExamResult) {
   const { jsPDF } = await import('jspdf');
@@ -159,19 +159,14 @@ const getGradeColor = (grade: string) => {
 
 export default function StudentResultPage() {
   const { student, loading: sessionLoading } = useStudentSession();
+  const { results: storedResults, publishedExams } = useResults();
   const [result, setResult] = useState<ExamResult | null>(null);
   const [isPublished, setIsPublished] = useState(false);
 
   useEffect(() => {
     if (!student) return;
 
-    // Merge static + localStorage results
-    let storeResults: ExamResult[] = [];
-    try { storeResults = loadResultsFromStorage(); } catch { /* ignore */ }
-
-    const all = [...EXAM_RESULTS, ...storeResults];
-
-    // Find the student's result (prefer most-recently saved)
+    const all = [...EXAM_RESULTS, ...storedResults];
     const found = all
       .filter(r => r.studentId === student.id)
       .sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
@@ -180,9 +175,10 @@ export default function StudentResultPage() {
     setResult(found);
 
     if (found) {
-      setIsPublished(isExamPublished(found.examName));
+      const key = `${found.examName}||${found.year ?? ''}`;
+      setIsPublished(publishedExams.includes(key));
     }
-  }, [student]);
+  }, [student, storedResults, publishedExams]);
 
   if (sessionLoading) {
     return (

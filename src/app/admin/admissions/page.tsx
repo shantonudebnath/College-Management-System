@@ -4,6 +4,7 @@ import DashboardHeader from '@/components/layout/DashboardHeader';
 import { loadAdmissions, updateAdmissionStatus, type AdmissionApplication } from '@/lib/website-content';
 import { MADRASHA_CLASSES } from '@/lib/data';
 import { CheckCircle, XCircle, Clock, Users, Eye, X } from 'lucide-react';
+import { useStudents } from '@/context/StudentsContext';
 
 function statusBadge(s: AdmissionApplication['status']) {
   if (s === 'accepted') return <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-100 px-2.5 py-1 rounded-full"><CheckCircle size={11} />গৃহীত</span>;
@@ -12,6 +13,7 @@ function statusBadge(s: AdmissionApplication['status']) {
 }
 
 export default function AdminAdmissionsPage() {
+  const { upsertStudent } = useStudents();
   const [apps, setApps] = useState<AdmissionApplication[]>([]);
   const [filter, setFilter] = useState<'all' | 'pending' | 'accepted' | 'rejected'>('all');
   const [selected, setSelected] = useState<AdmissionApplication | null>(null);
@@ -20,33 +22,31 @@ export default function AdminAdmissionsPage() {
 
   const refresh = () => setApps(loadAdmissions().sort((a, b) => b.appliedAt.localeCompare(a.appliedAt)));
 
-  const handleAccept = (id: string) => {
+  const handleAccept = async (id: string) => {
     const app = updateAdmissionStatus(id, 'accepted');
     if (!app) return;
-    // Auto-add to students store
-    try {
-      const existing: unknown[] = JSON.parse(localStorage.getItem('students_store') ?? '[]');
-      const cls = MADRASHA_CLASSES.find(c => c.id === app.applyingClass);
-      const newStudent = {
-        id: `stu-adm-${id}`,
-        name: app.nameEn || app.nameBn,
-        nameBn: app.nameBn,
-        class: app.applyingClass,
-        className: cls?.nameBn ?? app.applyingClass,
-        roll: Date.now() % 1000,
-        section: 'A',
-        gender: 'male',
-        phone: app.phone,
-        address: app.address,
-        parentName: app.fatherName,
-        dob: app.dob,
-        admissionDate: new Date().toISOString().slice(0, 10),
-        studentId: `STD-${new Date().getFullYear()}-${String(Date.now()).slice(-3)}`,
-        status: 'active',
-        image: '',
-      };
-      localStorage.setItem('students_store', JSON.stringify([...existing, newStudent]));
-    } catch {}
+    // Auto-add to Supabase students
+    const cls = MADRASHA_CLASSES.find(c => c.id === app.applyingClass);
+    await upsertStudent({
+      id: `stu-adm-${id}`,
+      name: app.nameEn || app.nameBn,
+      nameBn: app.nameBn,
+      class: app.applyingClass,
+      roll: Date.now() % 1000,
+      section: 'A',
+      gender: 'male',
+      phone: app.phone,
+      address: app.address,
+      fatherName: app.fatherName,
+      motherName: '',
+      dob: app.dob,
+      studentId: `STD-${new Date().getFullYear()}-${String(Date.now()).slice(-3)}`,
+      session: `${new Date().getFullYear()}`,
+      religion: '',
+      registrationStatus: 'approved',
+      feeStatus: 'due',
+      createdAt: new Date().toISOString().slice(0, 10),
+    });
     refresh();
     setSelected(null);
   };

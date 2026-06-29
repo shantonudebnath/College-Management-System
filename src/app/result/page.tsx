@@ -6,26 +6,10 @@ import { EXAM_RESULTS, MADRASHA_CLASSES, getGradeScale } from '@/lib/data';
 import { Search, Award, Download, Printer, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { printHtml } from '@/lib/print-utils';
 import type { ExamResult } from '@/lib/types';
-
-function getAllResults(): ExamResult[] {
-  try {
-    const stored: ExamResult[] = JSON.parse(localStorage.getItem('results_store') ?? '[]');
-    return [...EXAM_RESULTS, ...stored];
-  } catch {
-    return [...EXAM_RESULTS];
-  }
-}
-
-function isPublished(examName: string): boolean {
-  try {
-    const list: string[] = JSON.parse(localStorage.getItem('published_results_v1') ?? '[]');
-    return list.includes(examName);
-  } catch {
-    return false;
-  }
-}
+import { useResults } from '@/context/ResultsContext';
 
 export default function ResultPage() {
+  const { results: storedResults, publishedExams } = useResults();
   const [roll, setRoll] = useState('');
   const [classId, setClassId] = useState('class-10');
   const [exam, setExam] = useState('অর্ধবার্ষিক পরীক্ষা');
@@ -115,7 +99,7 @@ export default function ResultPage() {
     setLoading(true);
     await new Promise(r => setTimeout(r, 600));
 
-    if (!isPublished(exam)) {
+    if (!publishedExams.some(k => k.startsWith(exam + '||'))) {
       setResult(null);
       setSearched(true);
       setNotPublished(true);
@@ -124,7 +108,7 @@ export default function ResultPage() {
     }
 
     setNotPublished(false);
-    const all = getAllResults();
+    const all = [...EXAM_RESULTS, ...storedResults];
     const found = all.find(r => r.roll === parseInt(roll) && r.class === classId && r.examName === exam);
     setResult(found || null);
     setSearched(true);

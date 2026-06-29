@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
 const COOKIE = 'nim_session';
-const MAX_AGE = 60 * 60 * 24 * 7; // 7 days
+const MAX_AGE = 60 * 60 * 24 * 7;
 
-function validate(id: string, password: string, role: string): boolean {
-  if (role === 'student') {
-    const m = id.match(/^STD-\d{4}-(\d{3})$/i);
-    return !!m && password === `NIM@${m[1]}`;
-  }
-  if (role === 'teacher') {
-    return /^TCH-\d+$/i.test(id) && /^NIM@Teacher#\d{4}$/.test(password);
-  }
-  return false;
+function makeStudentPassword(roll: number): string {
+  return `NIM@${roll.toString().padStart(3, '0')}`;
+}
+
+function makeTeacherPassword(teacherId: string): string {
+  const num = teacherId.replace(/\D/g, '').padStart(4, '0').slice(-4);
+  return `NIM@Teacher#${num}`;
 }
 
 export async function POST(req: NextRequest) {
@@ -19,16 +18,68 @@ export async function POST(req: NextRequest) {
   if (!id || !password || !role) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
   }
-  if (!validate(id.trim(), password, role)) {
-    return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
-  }
-  const res = NextResponse.json({ success: true, role });
-  res.cookies.set(COOKIE, JSON.stringify({ id: id.trim(), role }), {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    maxAge: MAX_AGE,
-    sameSite: 'lax',
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+  const supabase = createClient(supabaseUrl, serviceKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
   });
-  return res;
+
+  const cleanId = id.trim();
+
+  if (role === 'student') {
+    const { data: student, error } = await supabase
+      .from('students')
+      .select('id, student_id, roll')
+      .or(`student_id.eq.${cleanId},roll.eq.${parseInt(cleanId) || 0}`)
+      .single();
+
+    if (error || !student) {
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+    }
+
+    const expected = makeStudentPassword(student.roll);
+    if (password !== expected) {
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+    }
+
+    const res = NextResponse.json({ success: true, role });
+    res.cookies.set(COOKIE, JSON.stringify({ id: student.student_id, role }), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+      maxAge: MAX_AGE,
+      sameSite: 'lax',
+    });
+    return res;
+  }
+
+  if (role === 'teacher') {
+    const { data: teacher, error } = await supabase
+      .from('teachers')
+      .select('id, teacher_id')
+      .eq('teacher_id', cleanId)
+      .single();
+
+    if (error || !teacher) {
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+    }
+
+    const expected = makeTeacherPassword(teacher.teacher_id);
+    if (password !== expected) {
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+    }
+
+    const res = NextResponse.json({ success: true, role });
+    res.cookies.set(COOKIE, JSON.stringify({ id: teacher.teacher_id, role }), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+      maxAge: MAX_AGE,
+      sameSite: 'lax',
+    });
+    return res;
+  }
+
+  return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
 }

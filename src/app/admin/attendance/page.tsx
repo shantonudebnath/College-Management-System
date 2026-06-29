@@ -4,6 +4,9 @@ import DashboardHeader from '@/components/layout/DashboardHeader';
 import { TEACHERS, STUDENTS } from '@/lib/data';
 import type { Student } from '@/lib/types';
 import { CheckCircle, XCircle, Clock, Calendar, Users, GraduationCap, ChevronLeft, ChevronRight, Download, Sun, ChevronDown } from 'lucide-react';
+import { useStudents } from '@/context/StudentsContext';
+import { useAttendance } from '@/context/AttendanceContext';
+import { kvGet, kvSet } from '@/lib/supabase/kv';
 
 const MONTHS = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
 const WEEK_DAYS = ['শনি', 'রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহ', 'শুক্র'];
@@ -40,53 +43,37 @@ function daysInMonth(year: number, month: number) {
 }
 
 export default function AdminAttendancePage() {
+  const { students: contextStudents } = useStudents();
+  const { getMonthAttendance } = useAttendance();
+  const allStudents = contextStudents.length > 0 ? contextStudents : STUDENTS;
+
   const [section, setSection] = useState<'teacher' | 'student'>('teacher');
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(CURRENT_YEAR);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
-  const [allStudents, setAllStudents] = useState<Student[]>(STUDENTS);
   const [realAtt, setRealAtt] = useState<Map<string, Map<string, 'present' | 'absent' | 'late'>>>(new Map());
   const [holidays, setHolidays] = useState<Set<string>>(new Set());
   const [showHolidayPanel, setShowHolidayPanel] = useState(false);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem('students_store');
-      if (raw) {
-        const stored: Student[] = JSON.parse(raw);
-        const ids = new Set(stored.map(s => s.id));
-        setAllStudents([...stored, ...STUDENTS.filter(s => !ids.has(s.id))]);
-      }
-    } catch {}
-    try {
-      const h = localStorage.getItem(HOLIDAYS_KEY);
-      if (h) setHolidays(new Set(JSON.parse(h) as string[]));
-    } catch {}
+    kvGet<string[]>(HOLIDAYS_KEY).then(h => { if (h) setHolidays(new Set(h)); });
   }, []);
 
   useEffect(() => {
     if (section !== 'student') return;
-    const map = new Map<string, Map<string, 'present' | 'absent' | 'late'>>();
-    try {
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (!key?.startsWith('nim_attendance_')) continue;
-        const dateStr = key.slice(-10);
-        const [y, m] = dateStr.split('-');
-        if (parseInt(m, 10) - 1 !== selectedMonth || parseInt(y, 10) !== selectedYear) continue;
-        const rec: Record<string, 'present' | 'absent' | 'late'> = JSON.parse(localStorage.getItem(key) ?? '{}');
-        for (const [sid, status] of Object.entries(rec)) {
-          if (!map.has(sid)) map.set(sid, new Map());
-          map.get(sid)!.set(dateStr, status);
-        }
-      }
-    } catch {}
-    setRealAtt(map);
-  }, [section, selectedMonth, selectedYear]);
+    getMonthAttendance(selectedYear, selectedMonth).then(records => {
+      const map = new Map<string, Map<string, 'present' | 'absent' | 'late'>>();
+      records.forEach(({ studentId, date, status }) => {
+        if (!map.has(studentId)) map.set(studentId, new Map());
+        map.get(studentId)!.set(date, status as 'present' | 'absent' | 'late');
+      });
+      setRealAtt(map);
+    });
+  }, [section, selectedMonth, selectedYear, getMonthAttendance]);
 
   const saveHolidays = useCallback((h: Set<string>) => {
     setHolidays(h);
-    localStorage.setItem(HOLIDAYS_KEY, JSON.stringify([...h]));
+    kvSet(HOLIDAYS_KEY, [...h]);
   }, []);
 
   const isHoliday = useCallback((day: number, month = selectedMonth, year = selectedYear): boolean => {

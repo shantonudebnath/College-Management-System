@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { MADRASHA_CLASSES } from '@/lib/data';
 import { useTeachers } from '@/context/TeachersContext';
+import { kvGet, kvSet } from '@/lib/supabase/kv';
 import { Plus, X, Edit2, Save, Download, BookOpen, Bell, CheckCircle } from 'lucide-react';
 import { useNotices } from '@/context/NoticesContext';
 import { printHtml } from '@/lib/print-utils';
@@ -150,15 +151,12 @@ export default function AdminRoutinePage() {
   const [cellForm, setCellForm] = useState({ subject: '', classIds: [] as string[] });
 
   useEffect(() => {
-    try {
-      const s = localStorage.getItem(LS_KEY);
-      if (s) setRoutine(JSON.parse(s));
-    } catch {}
+    kvGet<MasterRoutine>(LS_KEY).then(data => { if (data) setRoutine(data); });
   }, []);
 
   const persist = useCallback((next: MasterRoutine) => {
     setRoutine(next);
-    try { localStorage.setItem(LS_KEY, JSON.stringify(next)); } catch {}
+    kvSet(LS_KEY, next);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }, []);

@@ -2,7 +2,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { MADRASHA_CLASSES, SUBJECTS_BY_CLASS, STUDENTS, EXAM_RESULTS } from '@/lib/data';
-import { calculateExamResult, saveResultToStorage, loadResultsFromStorage, getGradeInfo, RESULTS_STORE_KEY } from '@/lib/result-utils';
+import { calculateExamResult, getGradeInfo } from '@/lib/result-utils';
+import { useResults } from '@/context/ResultsContext';
+import { useStudents } from '@/context/StudentsContext';
+import { kvGet } from '@/lib/supabase/kv';
 import type { Student, ExamResult, Subject } from '@/lib/types';
 import { Save, Search, ChevronDown, CheckCircle, AlertCircle, BookOpen, User, X, Trash2, RefreshCw } from 'lucide-react';
 
@@ -40,6 +43,9 @@ const GRADE_COLOR: Record<string, string> = {
 // ─── component ────────────────────────────────────────────────────────────────
 
 export default function AdminResultEntryPage() {
+  const { results: storedResults, upsertResult, deleteResult: deleteResultFromCtx } = useResults();
+  const { students: allStudents } = useStudents();
+
   // ── form state ──
   const [liveExams, setLiveExams]       = useState<{id:string;name:string;year:string}[]>([]);
   const [examName, setExamName]         = useState(EXAM_NAMES[0]);
@@ -49,28 +55,22 @@ export default function AdminResultEntryPage() {
   const [selectedStudentId, setSelectedStudentId] = useState('');
   const [marks, setMarks]               = useState<MarksMap>({});
   const [saved, setSaved]               = useState(false);
-  const [savedResults, setSavedResults] = useState<ExamResult[]>([]);
-  const [allStudents, setAllStudents]   = useState<Student[]>(STUDENTS);
   const [studentSearch, setStudentSearch] = useState('');
+
+  const savedResults = useMemo(() => {
+    const ids = new Set(storedResults.map(r => r.id));
+    return [...storedResults, ...EXAM_RESULTS.filter(r => !ids.has(r.id))];
+  }, [storedResults]);
 
   // ── bootstrap ──
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('students_store');
-      if (stored) {
-        const parsed: Student[] = JSON.parse(stored);
-        if (parsed.length > 0) setAllStudents(parsed);
-      }
-    } catch { /* ignore */ }
-    setSavedResults([...EXAM_RESULTS, ...loadResultsFromStorage()]);
-    try {
-      const exams: {id:string;name:string;year:string}[] = JSON.parse(localStorage.getItem('nim_exams_v1') ?? '[]');
-      setLiveExams(exams);
-      if (exams.length > 0) {
+    kvGet<{id:string;name:string;year:string}[]>('nim_exams_v1').then(exams => {
+      if (exams && exams.length > 0) {
+        setLiveExams(exams);
         setExamName(exams[0].name);
         setExamYear(exams[0].year);
       }
-    } catch { /* ignore */ }
+    });
   }, []);
 
   // ── derived values ──
@@ -156,7 +156,7 @@ export default function AdminResultEntryPage() {
   }
 
   // ── save ──
-  function handleSave() {
+  async function handleSave() {
     if (!selectedStudent || !selectedClass || calcSubjects.length === 0) return;
 
     const result = calculateExamResult({
@@ -175,20 +175,15 @@ export default function AdminResultEntryPage() {
       year:     examYear,
     });
 
-    saveResultToStorage(result);
-    setSavedResults([...EXAM_RESULTS, ...loadResultsFromStorage()]);
+    await upsertResult(result);
     setSaved(true);
     setTimeout(() => setSaved(false), 3500);
   }
 
   // ── delete a stored result ──
-  function deleteResult(studentId: string, eName: string, yr: string) {
-    try {
-      const all: ExamResult[] = JSON.parse(localStorage.getItem(RESULTS_STORE_KEY) ?? '[]');
-      const filtered = all.filter(r => !(r.studentId === studentId && r.examName === eName && r.year === yr));
-      localStorage.setItem(RESULTS_STORE_KEY, JSON.stringify(filtered));
-      setSavedResults([...EXAM_RESULTS, ...filtered]);
-    } catch { /* ignore */ }
+  async function deleteResult(studentId: string, eName: string, yr: string) {
+    const toDelete = storedResults.find(r => r.studentId === studentId && r.examName === eName && r.year === yr);
+    if (toDelete?.id) await deleteResultFromCtx(toDelete.id);
   }
 
   // ── recently saved results for this exam+class ──

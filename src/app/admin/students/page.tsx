@@ -10,6 +10,8 @@ import {
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
 import StudentIdCard from '@/components/ui/StudentIdCard';
 import type { Student } from '@/lib/types';
+import { useStudents } from '@/context/StudentsContext';
+import { kvGet, kvSet } from '@/lib/supabase/kv';
 
 interface AdmitCardConfig { id: string; examName: string; class: string; issued: boolean; }
 interface Credential { username: string; password: string; }
@@ -56,7 +58,7 @@ async function createSupabaseUser(displayId: string, password: string, role: str
 }
 
 export default function AdminStudentsPage() {
-  const [students, setStudents] = useState<Student[]>([]);
+  const { students, upsertStudent, deleteStudent, setStudents: saveStudents } = useStudents();
   const [credsMap, setCredsMap] = useState<Record<string, Credential>>({});
   const [search, setSearch] = useState('');
   const [filterClass, setFilterClass] = useState('');
@@ -85,39 +87,21 @@ export default function AdminStudentsPage() {
   const selectAllRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    let loadedStudents = STUDENTS;
-    try {
-      const s = localStorage.getItem('students_store');
-      const stored: Student[] = s ? JSON.parse(s) : [];
-      const storedIds = new Set(stored.map((st: Student) => st.id));
-      const merged = [...stored, ...STUDENTS.filter(st => !storedIds.has(st.id))];
-      loadedStudents = merged.length > 0 ? merged : STUDENTS;
-      setStudents(loadedStudents);
-    } catch { setStudents(STUDENTS); }
-    try {
-      const c = localStorage.getItem('student_credentials');
-      const existing: Record<string, Credential> = c ? JSON.parse(c) : {};
-      let updated = false;
-      loadedStudents.forEach(st => {
-        if (!existing[st.id]) {
-          existing[st.id] = makeCred(st.studentId, st.roll);
-          updated = true;
-        }
-      });
-      if (updated) localStorage.setItem('student_credentials', JSON.stringify(existing));
-      setCredsMap(existing);
-    } catch { /* ignore */ }
-    try {
-      const a = localStorage.getItem('admit_cards_store');
-      if (a) setAdmitCards(JSON.parse(a));
-    } catch { /* ignore */ }
+    kvGet<AdmitCardConfig[]>('admit_cards_store').then(data => { if (data) setAdmitCards(data); });
     setMounted(true);
   }, []);
 
   useEffect(() => {
-    if (students.length > 0 || localStorage.getItem('students_store')) {
-      localStorage.setItem('students_store', JSON.stringify(students));
-    }
+    if (students.length === 0) return;
+    kvGet<Record<string, Credential>>('student_credentials').then(stored => {
+      const existing: Record<string, Credential> = stored ?? {};
+      let updated = false;
+      students.forEach(st => {
+        if (!existing[st.id]) { existing[st.id] = makeCred(st.studentId, st.roll); updated = true; }
+      });
+      if (updated) kvSet('student_credentials', existing);
+      setCredsMap(existing);
+    });
   }, [students]);
 
   const getIssuedCards = (classId: string) => admitCards.filter(c => c.issued && c.class === classId);
@@ -185,14 +169,14 @@ export default function AdminStudentsPage() {
   const togglePromoteOne = (id: string) => setPromoteSelected(prev => {
     const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n;
   });
-  const confirmPromote = () => {
+  const confirmPromote = async () => {
     if (!promoteClass || !promoteNextClassId) return;
     const updated = students.map(s =>
       s.class === promoteClass && promoteSelected.has(s.id)
         ? { ...s, class: promoteNextClassId, session: incrementSession(s.session ?? '') }
         : s
     );
-    setStudents(updated);
+    await saveStudents(updated);
     const msg = `${promoteCount}জন শিক্ষার্থী ${getClassName(promoteClass)} থেকে ${getClassName(promoteNextClassId)} তে উন্নীত হয়েছে।`;
     setPromoteStep(0); setPromoteClass(''); setPromoteSelected(new Set());
     setPromoteSuccess(msg); setTimeout(() => setPromoteSuccess(''), 5000);
@@ -224,13 +208,14 @@ export default function AdminStudentsPage() {
   const handleSave = async () => {
     if (!form.name) return;
     if (editId) {
-      setStudents(prev => prev.map(s => s.id === editId ? {
-        ...s, name: form.name, nameBn: form.nameBn, fatherName: form.fatherName,
+      const existing = students.find(s => s.id === editId);
+      if (existing) await upsertStudent({
+        ...existing, name: form.name, nameBn: form.nameBn, fatherName: form.fatherName,
         motherName: form.motherName, class: finalClass, section: form.section,
         session: form.session, phone: form.phone, guardianPhone: form.guardianPhone,
         dob: form.dob, birthCertNo: form.birthCertNo, bloodGroup: form.bloodGroup,
         gender: form.gender, address: form.address, image: form.image || undefined,
-      } : s));
+      });
       setShowForm(false); setForm({ ...emptyForm }); setEditId(null);
       setSaved(true); setTimeout(() => setSaved(false), 3000);
     } else {
@@ -254,9 +239,9 @@ export default function AdminStudentsPage() {
       const cred = makeCred(newSt.studentId, roll);
       const newCreds = { ...credsMap, [newSt.id]: cred };
 
-      setStudents(prev => [...prev, newSt]);
+      await upsertStudent(newSt);
       setCredsMap(newCreds);
-      localStorage.setItem('student_credentials', JSON.stringify(newCreds));
+      await kvSet('student_credentials', newCreds);
 
       await createSupabaseUser(newSt.studentId, cred.password, 'student');
 
@@ -787,7 +772,7 @@ export default function AdminStudentsPage() {
       {deleteTarget && (
         <ConfirmDeleteModal
           itemName={deleteTarget.name}
-          onConfirm={() => { setStudents(prev => prev.filter(x => x.id !== deleteTarget.id)); setDeleteTarget(null); }}
+          onConfirm={() => { deleteStudent(deleteTarget.id); setDeleteTarget(null); }}
           onCancel={() => setDeleteTarget(null)}
         />
       )}

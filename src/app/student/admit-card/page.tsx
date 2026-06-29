@@ -5,6 +5,8 @@ import { COLLEGE_INFO, FEES } from '@/lib/data';
 import { useStudentSession } from '@/hooks/useStudentSession';
 import { IdCard, Printer, CheckCircle, AlertCircle, X, Lock, MapPin } from 'lucide-react';
 import type { Fee } from '@/lib/types';
+import { kvGet } from '@/lib/supabase/kv';
+import { useFees } from '@/context/FeesContext';
 
 interface AdmitCardConfig {
   id: string;
@@ -33,27 +35,27 @@ interface SeatAssignment { examId: string; hallId: string; studentId: string; se
 
 export default function AdmitCardPage() {
   const { student, loading: sessionLoading } = useStudentSession();
+  const { fees: ctxFees } = useFees();
   const STUDENT_ID = student?.id ?? '';
   const [admitCards, setAdmitCards] = useState<AdmitCardConfig[]>([]);
-  const [allFees, setAllFees] = useState<Fee[]>(FEES);
+  const allFees: Fee[] = ctxFees.length > 0 ? ctxFees : FEES;
   const [allEntries, setAllEntries] = useState<ExamEntry[]>([]);
   const [allHalls, setAllHalls] = useState<Hall[]>([]);
   const [allSeats, setAllSeats] = useState<SeatAssignment[]>([]);
   const [selectedCard, setSelectedCard] = useState<AdmitCardConfig | null>(null);
 
   useEffect(() => {
-    try {
-      const storedCards = localStorage.getItem('admit_cards_store');
-      if (storedCards) setAdmitCards(JSON.parse(storedCards));
-      const storedFees = localStorage.getItem('fees_store');
-      if (storedFees) setAllFees(JSON.parse(storedFees));
-      const en = localStorage.getItem('nim_exam_entries_v1');
-      if (en) setAllEntries(JSON.parse(en));
-      const h = localStorage.getItem('nim_halls_v1');
-      if (h) setAllHalls(JSON.parse(h));
-      const s = localStorage.getItem('nim_seats_v1');
-      if (s) setAllSeats(JSON.parse(s));
-    } catch {}
+    Promise.all([
+      kvGet<AdmitCardConfig[]>('admit_cards_store'),
+      kvGet<ExamEntry[]>('nim_exam_entries_v1'),
+      kvGet<Hall[]>('nim_halls_v1'),
+      kvGet<SeatAssignment[]>('nim_seats_v1'),
+    ]).then(([cardsData, entriesData, hallsData, seatsData]) => {
+      if (cardsData) setAdmitCards(cardsData);
+      if (entriesData) setAllEntries(entriesData);
+      if (hallsData) setAllHalls(hallsData);
+      if (seatsData) setAllSeats(seatsData);
+    });
   }, []);
 
   const studentFees = allFees.filter(f => f.studentId === STUDENT_ID);

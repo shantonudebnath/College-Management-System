@@ -4,6 +4,7 @@ import DashboardHeader from '@/components/layout/DashboardHeader';
 import { NOTES } from '@/lib/data';
 import { FileText, Download, BookOpen, Lightbulb, User, Search } from 'lucide-react';
 import type { Note } from '@/lib/types';
+import { kvGet } from '@/lib/supabase/kv';
 
 export default function StudentNotesPage() {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -11,10 +12,9 @@ export default function StudentNotesPage() {
   const [activeTab, setActiveTab] = useState<'note' | 'suggestion'>('note');
 
   useEffect(() => {
-    try {
-      const s = localStorage.getItem('notes_store');
-      setNotes(s ? JSON.parse(s) : NOTES);
-    } catch { setNotes(NOTES); }
+    kvGet<Note[]>('notes_store').then(data => {
+      setNotes(data ?? NOTES);
+    });
   }, []);
 
   const filtered = notes

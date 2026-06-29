@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { useStudentSession } from '@/hooks/useStudentSession';
+import { useAttendance } from '@/context/AttendanceContext';
 import { CheckCircle, XCircle, Clock, Calendar, TrendingUp, AlertCircle } from 'lucide-react';
 
 const MONTHS = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
@@ -25,29 +26,23 @@ const STATUS_LABEL: Record<DayStatus, string> = {
 
 export default function StudentAttendancePage() {
   const { student, loading: sessionLoading } = useStudentSession();
+  const { getMonthAttendance } = useAttendance();
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [monthData, setMonthData] = useState<Record<number, DayStatus>>({});
   const year = new Date().getFullYear();
 
   useEffect(() => {
     if (!student?.class || !student?.id) { setMonthData({}); return; }
-    const days = DAYS_IN_MONTH[selectedMonth];
-    const data: Record<number, DayStatus> = {};
-    for (let d = 1; d <= days; d++) {
-      const dateStr = `${year}-${String(selectedMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-      try {
-        const raw = localStorage.getItem(`nim_attendance_${student.class}_${dateStr}`);
-        if (raw) {
-          const rec: Record<string, 'present' | 'absent' | 'late'> = JSON.parse(raw);
-          data[d] = rec[student.id] ?? 'none';
-        } else {
-          data[d] = 'none';
-        }
-      } catch {
-        data[d] = 'none';
-      }
-    }
-    setMonthData(data);
+    getMonthAttendance(year, selectedMonth).then(records => {
+      const studentRecords = records.filter(r => r.studentId === student.id);
+      const data: Record<number, DayStatus> = {};
+      studentRecords.forEach(r => {
+        const day = parseInt(r.date.split('-')[2], 10);
+        data[day] = r.status as DayStatus;
+      });
+      setMonthData(data);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [student?.id, student?.class, selectedMonth, year]);
 
   const days = DAYS_IN_MONTH[selectedMonth];

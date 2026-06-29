@@ -1,54 +1,34 @@
 'use client';
-import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import { FEES, MADRASHA_CLASSES, STUDENTS } from '@/lib/data';
+import { STUDENTS, MADRASHA_CLASSES } from '@/lib/data';
 import { useCurrentTeacher } from '@/context/CurrentTeacherContext';
 import { useTeachers } from '@/context/TeachersContext';
+import { useStudents } from '@/context/StudentsContext';
+import { useFees } from '@/context/FeesContext';
+import { useState } from 'react';
 import { CreditCard, CheckCircle, AlertCircle, Clock } from 'lucide-react';
-import type { Fee, Student } from '@/lib/types';
 
 export default function TeacherFeesPage() {
   const { currentTeacherId, assignedClassId } = useCurrentTeacher();
   const { teachers } = useTeachers();
+  const { students: ctxStudents } = useStudents();
+  const { fees, upsertFee } = useFees();
   const currentTeacher = teachers.find(t => t.id === currentTeacherId);
+  const allStudents = ctxStudents.length > 0 ? ctxStudents : STUDENTS;
 
-  const [fees, setFees] = useState<Fee[]>([]);
-  const [allStudents, setAllStudents] = useState<Student[]>(STUDENTS);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<'paid' | 'due' | null>(null);
 
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('fees_store');
-      setFees(stored ? JSON.parse(stored) : FEES);
-    } catch { setFees(FEES); }
-    try {
-      const raw = localStorage.getItem('students_store');
-      if (raw) {
-        const stored: Student[] = JSON.parse(raw);
-        const ids = new Set(stored.map(s => s.id));
-        setAllStudents([...stored, ...STUDENTS.filter(s => !ids.has(s.id))]);
-      }
-    } catch {}
-  }, []);
-
-  const save = (updated: Fee[]) => {
-    setFees(updated);
-    try { localStorage.setItem('fees_store', JSON.stringify(updated)); } catch {}
-  };
-
-  const markPaid = (id: string) => {
-    save(fees.map(f => f.id === id ? {
-      ...f, status: 'paid' as const,
-      paidDate: new Date().toISOString().split('T')[0],
-      receiptNo: `RCP-${Date.now().toString().slice(-6)}`,
-    } : f));
+  const markPaid = async (id: string) => {
+    const fee = fees.find(f => f.id === id);
+    if (fee) await upsertFee({ ...fee, status: 'paid', paidDate: new Date().toISOString().split('T')[0], receiptNo: `RCP-${Date.now().toString().slice(-6)}` });
     setConfirmId(null);
     setConfirmAction(null);
   };
 
-  const markDue = (id: string) => {
-    save(fees.map(f => f.id === id ? { ...f, status: 'due' as const, paidDate: undefined, receiptNo: undefined } : f));
+  const markDue = async (id: string) => {
+    const fee = fees.find(f => f.id === id);
+    if (fee) await upsertFee({ ...fee, status: 'due', paidDate: undefined, receiptNo: undefined });
     setConfirmId(null);
     setConfirmAction(null);
   };

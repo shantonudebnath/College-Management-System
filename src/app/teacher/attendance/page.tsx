@@ -2,39 +2,36 @@
 import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { STUDENTS, MADRASHA_CLASSES } from '@/lib/data';
-import type { Student } from '@/lib/types';
 import { useCurrentTeacher } from '@/context/CurrentTeacherContext';
 import { useTeachers } from '@/context/TeachersContext';
+import { useStudents } from '@/context/StudentsContext';
+import { useAttendance } from '@/context/AttendanceContext';
 import { ClipboardList, CheckCircle, XCircle, Save, AlertCircle } from 'lucide-react';
 
 export default function TeacherAttendancePage() {
   const { currentTeacherId, assignedClassId } = useCurrentTeacher();
   const { teachers } = useTeachers();
+  const { students: ctxStudents } = useStudents();
+  const { getAttendance, saveAttendance } = useAttendance();
   const currentTeacher = teachers.find(t => t.id === currentTeacherId);
+  const allStudents = ctxStudents.length > 0 ? ctxStudents : STUDENTS;
 
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [attendance, setAttendance] = useState<Record<string, 'present' | 'absent' | 'late'>>({});
   const [saved, setSaved] = useState(false);
-  const [allStudents, setAllStudents] = useState<Student[]>(STUDENTS);
+
+  const loadAttendanceForDate = async (classId: string, d: string) => {
+    const records = await getAttendance(classId, d);
+    const map: Record<string, 'present' | 'absent' | 'late'> = {};
+    records.forEach(r => { map[r.studentId] = r.status; });
+    setAttendance(map);
+  };
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem('students_store');
-      if (raw) {
-        const stored: Student[] = JSON.parse(raw);
-        const ids = new Set(stored.map(s => s.id));
-        setAllStudents([...stored, ...STUDENTS.filter(s => !ids.has(s.id))]);
-      }
-    } catch {}
-
-    // Load previously saved attendance for today
     if (assignedClassId) {
-      const today = new Date().toISOString().split('T')[0];
-      try {
-        const raw = localStorage.getItem(`nim_attendance_${assignedClassId}_${today}`);
-        if (raw) setAttendance(JSON.parse(raw));
-      } catch {}
+      loadAttendanceForDate(assignedClassId, date);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assignedClassId]);
 
   const assignedClass = MADRASHA_CLASSES.find(c => c.id === assignedClassId);
@@ -52,11 +49,14 @@ export default function TeacherAttendancePage() {
     setSaved(false);
   };
 
-  const handleSave = () => {
-    try {
-      const key = `nim_attendance_${assignedClassId}_${date}`;
-      localStorage.setItem(key, JSON.stringify(attendance));
-    } catch {}
+  const handleSave = async () => {
+    if (!assignedClassId) return;
+    const records = classStudents.map(s => ({
+      studentId: s.id,
+      studentName: s.name,
+      status: attendance[s.id] ?? 'absent',
+    }));
+    await saveAttendance(assignedClassId, date, records);
     setSaved(true);
   };
 
@@ -101,14 +101,12 @@ export default function TeacherAttendancePage() {
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-600 block mb-1">তারিখ</label>
-                <input type="date" value={date} onChange={e => {
+                <input type="date" value={date} onChange={async e => {
                   const newDate = e.target.value;
                   setDate(newDate);
                   setSaved(false);
-                  try {
-                    const raw = localStorage.getItem(`nim_attendance_${assignedClassId}_${newDate}`);
-                    setAttendance(raw ? JSON.parse(raw) : {});
-                  } catch { setAttendance({}); }
+                  setAttendance({});
+                  if (assignedClassId) await loadAttendanceForDate(assignedClassId, newDate);
                 }}
                   className="px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400" />
               </div>

@@ -4,9 +4,11 @@ import DashboardHeader from '@/components/layout/DashboardHeader';
 import { MADRASHA_CLASSES } from '@/lib/data';
 import { User, Phone, BookOpen, Calendar, Edit3, Save, X, Camera, Hash } from 'lucide-react';
 import { useStudentSession } from '@/hooks/useStudentSession';
+import { useStudents } from '@/context/StudentsContext';
 
 export default function StudentProfilePage() {
   const { student, loading } = useStudentSession();
+  const { upsertStudent } = useStudents();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
     phone: '',
@@ -27,22 +29,15 @@ export default function StudentProfilePage() {
     reader.readAsDataURL(file);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (student) {
-      try {
-        const raw = localStorage.getItem('students_store');
-        const list = raw ? JSON.parse(raw) : [];
-        const idx = list.findIndex((s: { studentId: string }) => s.studentId === student.studentId);
-        const updated = {
-          ...student,
-          phone: form.phone || student.phone,
-          address: form.address || student.address,
-          guardianPhone: form.guardianPhone || (student as unknown as Record<string, unknown>).guardianPhone,
-          image: profileImg ?? student.image,
-        };
-        if (idx >= 0) list[idx] = updated; else list.push(updated);
-        localStorage.setItem('students_store', JSON.stringify(list));
-      } catch { /* ignore */ }
+      await upsertStudent({
+        ...student,
+        phone: form.phone || student.phone,
+        address: form.address || student.address,
+        guardianPhone: form.guardianPhone || (student as unknown as Record<string, unknown>).guardianPhone as string,
+        image: profileImg ?? student.image,
+      });
     }
     setSaved(true);
     setEditing(false);

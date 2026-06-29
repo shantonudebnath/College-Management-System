@@ -5,6 +5,7 @@ import DashboardHeader from '@/components/layout/DashboardHeader';
 import { MADRASHA_CLASSES, SUBJECTS_BY_CLASS } from '@/lib/data';
 import { Plus, Trash2, Download, X, Calendar, Edit2, Bell, CheckCircle, Lock, Unlock, ExternalLink } from 'lucide-react';
 import { useNotices } from '@/context/NoticesContext';
+import { kvGet, kvSet } from '@/lib/supabase/kv';
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
 import { printHtml } from '@/lib/print-utils';
 
@@ -178,18 +179,19 @@ export default function AdminExamSchedulePage() {
   });
 
   useEffect(() => {
-    try {
-      const e = localStorage.getItem(EXAMS_KEY);
-      if (e) { const parsed = JSON.parse(e); setExams(parsed); if (parsed.length > 0) setSelectedExamId(parsed[0].id); }
-      const en = localStorage.getItem(ENTRIES_KEY);
-      if (en) setEntries(JSON.parse(en));
-      const ms = localStorage.getItem(MARK_SUBMISSION_KEY);
-      if (ms) setMarkSubmission(JSON.parse(ms));
-    } catch {}
+    Promise.all([
+      kvGet<Exam[]>(EXAMS_KEY),
+      kvGet<ExamEntry[]>(ENTRIES_KEY),
+      kvGet<MarkSubmission>(MARK_SUBMISSION_KEY),
+    ]).then(([examsData, entriesData, msData]) => {
+      if (examsData) { setExams(examsData); if (examsData.length > 0) setSelectedExamId(examsData[0].id); }
+      if (entriesData) setEntries(entriesData);
+      if (msData) setMarkSubmission(msData);
+    });
   }, []);
 
-  const saveExams = (data: Exam[]) => { setExams(data); localStorage.setItem(EXAMS_KEY, JSON.stringify(data)); };
-  const saveEntries = (data: ExamEntry[]) => { setEntries(data); localStorage.setItem(ENTRIES_KEY, JSON.stringify(data)); };
+  const saveExams = (data: Exam[]) => { setExams(data); kvSet(EXAMS_KEY, data); };
+  const saveEntries = (data: ExamEntry[]) => { setEntries(data); kvSet(ENTRIES_KEY, data); };
 
   const addExam = () => {
     if (!examForm.name.trim()) return;
@@ -208,8 +210,7 @@ export default function AdminExamSchedulePage() {
       type: 'exam', target: 'all', isImportant: false, postedBy: 'Admin',
     });
     // Auto-generate admit cards for all classes
-    try {
-      const existing: { examId?: string }[] = JSON.parse(localStorage.getItem('admit_cards_store') ?? '[]');
+    kvGet<{ examId?: string }[]>('admit_cards_store').then(existing => {
       const today = new Date().toISOString().split('T')[0];
       const newCards = MADRASHA_CLASSES.map(cls => ({
         id: `ac_${exam.id}_${cls.id}`,
@@ -222,8 +223,8 @@ export default function AdminExamSchedulePage() {
         createdAt: today,
         specialRecommendations: [],
       }));
-      localStorage.setItem('admit_cards_store', JSON.stringify([...newCards, ...existing]));
-    } catch {}
+      kvSet('admit_cards_store', [...newCards, ...(existing ?? [])]);
+    });
   };
 
   const deleteExam = (id: string) => {
@@ -232,16 +233,17 @@ export default function AdminExamSchedulePage() {
     saveEntries(entries.filter(e => e.examId !== id));
     setSelectedExamId(next[0]?.id ?? null);
     // Cleanup related data
-    try {
-      const cards = JSON.parse(localStorage.getItem('admit_cards_store') ?? '[]');
-      localStorage.setItem('admit_cards_store', JSON.stringify(cards.filter((c: { examId?: string }) => c.examId !== id)));
-      const hallsData: { id: string; examId: string }[] = JSON.parse(localStorage.getItem('nim_halls_v1') ?? '[]');
-      localStorage.setItem('nim_halls_v1', JSON.stringify(hallsData.filter(h => h.examId !== id)));
-      const seatsData: { examId: string }[] = JSON.parse(localStorage.getItem('nim_seats_v1') ?? '[]');
-      localStorage.setItem('nim_seats_v1', JSON.stringify(seatsData.filter(s => s.examId !== id)));
-      const guardsData: { examId: string }[] = JSON.parse(localStorage.getItem('nim_guard_assignments_v1') ?? '[]');
-      localStorage.setItem('nim_guard_assignments_v1', JSON.stringify(guardsData.filter(g => g.examId !== id)));
-    } catch {}
+    Promise.all([
+      kvGet<{ examId?: string }[]>('admit_cards_store'),
+      kvGet<{ id: string; examId: string }[]>('nim_halls_v1'),
+      kvGet<{ examId: string }[]>('nim_seats_v1'),
+      kvGet<{ examId: string }[]>('nim_guard_assignments_v1'),
+    ]).then(([cards, halls, seats, guards]) => {
+      kvSet('admit_cards_store', (cards ?? []).filter(c => c.examId !== id));
+      kvSet('nim_halls_v1', (halls ?? []).filter(h => h.examId !== id));
+      kvSet('nim_seats_v1', (seats ?? []).filter(s => s.examId !== id));
+      kvSet('nim_guard_assignments_v1', (guards ?? []).filter(g => g.examId !== id));
+    });
   };
 
   const openAddEntry = () => {
@@ -308,12 +310,12 @@ export default function AdminExamSchedulePage() {
 
   const openMarkSubmission = (exam: Exam) => {
     const val: MarkSubmission = { examId: exam.id, examName: exam.name, year: exam.year };
-    localStorage.setItem(MARK_SUBMISSION_KEY, JSON.stringify(val));
+    kvSet(MARK_SUBMISSION_KEY, val);
     setMarkSubmission(val);
   };
 
   const closeMarkSubmission = () => {
-    localStorage.removeItem(MARK_SUBMISSION_KEY);
+    kvSet(MARK_SUBMISSION_KEY, null);
     setMarkSubmission(null);
   };
 

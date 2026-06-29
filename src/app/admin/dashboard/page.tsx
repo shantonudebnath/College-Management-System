@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { STUDENTS, TEACHERS, NOTICES, FEES, MADRASHA_CLASSES } from '@/lib/data';
 import type { Student } from '@/lib/types';
+import { useStudents } from '@/context/StudentsContext';
 import { Users, GraduationCap, CreditCard, Bell, TrendingUp, AlertCircle, Award } from 'lucide-react';
 import Link from 'next/link';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
@@ -32,24 +33,10 @@ const LEVEL_NAMES: Record<string, string> = {
   alim: 'আলিম',
 };
 
-function loadStudents(): Student[] {
-  try {
-    const s = localStorage.getItem('students_store');
-    const stored: Student[] = s ? JSON.parse(s) : [];
-    const storedIds = new Set(stored.map((st: Student) => st.id));
-    const merged = [...stored, ...STUDENTS.filter(st => !storedIds.has(st.id))];
-    return merged.length > 0 ? merged : STUDENTS;
-  } catch {
-    return STUDENTS;
-  }
-}
 
 export default function AdminDashboard() {
-  const [students, setStudents] = useState<Student[]>(STUDENTS);
-
-  useEffect(() => {
-    setStudents(loadStudents());
-  }, []);
+  const { students: ctxStudents } = useStudents();
+  const students = ctxStudents.length > 0 ? ctxStudents : STUDENTS;
 
   const totalFees = FEES.reduce((s, f) => s + f.amount, 0);
   const paidFees = FEES.filter(f => f.status === 'paid').reduce((s, f) => s + f.amount, 0);

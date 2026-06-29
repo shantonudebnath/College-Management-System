@@ -4,7 +4,9 @@ import DashboardHeader from '@/components/layout/DashboardHeader';
 import { SUBJECTS_BY_CLASS, STUDENTS, MADRASHA_CLASSES } from '@/lib/data';
 import { useTeachers } from '@/context/TeachersContext';
 import { useCurrentTeacher } from '@/context/CurrentTeacherContext';
+import { useStudents } from '@/context/StudentsContext';
 import { getGradeInfo } from '@/lib/result-utils';
+import { kvGet, kvSet } from '@/lib/supabase/kv';
 import { BarChart2, Save, CheckCircle, Lock, AlertTriangle } from 'lucide-react';
 
 const EXAM_OPTIONS = [
@@ -27,22 +29,19 @@ interface TeacherMarkEntry {
   savedAt: string;
 }
 
-function loadTeacherMarks(): TeacherMarkEntry[] {
-  try { return JSON.parse(localStorage.getItem(TEACHER_MARKS_KEY) ?? '[]'); } catch { return []; }
-}
-
-function saveTeacherMarks(entry: TeacherMarkEntry): void {
-  const existing = loadTeacherMarks();
+async function saveTeacherMarks(entry: TeacherMarkEntry): Promise<void> {
+  const existing = (await kvGet<TeacherMarkEntry[]>(TEACHER_MARKS_KEY)) ?? [];
   const filtered = existing.filter(e =>
     !(e.teacherId === entry.teacherId && e.classId === entry.classId &&
       e.examName === entry.examName && e.year === entry.year && e.subjectName === entry.subjectName)
   );
-  localStorage.setItem(TEACHER_MARKS_KEY, JSON.stringify([...filtered, entry]));
+  await kvSet(TEACHER_MARKS_KEY, [...filtered, entry]);
 }
 
 export default function TeacherMarksPage() {
   const { teachers } = useTeachers();
   const { currentTeacherId } = useCurrentTeacher();
+  const { students: ctxStudents } = useStudents();
 
   // Teacher identity — may be null while context is loading; page still works
   const teacher = useMemo(
@@ -62,11 +61,11 @@ export default function TeacherMarksPage() {
   const [subjectName, setSubjectName] = useState('');
   const [marks,       setMarks]       = useState<Record<string, { cq: string; mcq: string; practical: string }>>({});
   const [saved,       setSaved]       = useState(false);
-  const [extraStudents, setExtraStudents] = useState<typeof STUDENTS>([]);
 
   const [liveExams, setLiveExams]             = useState<LiveExam[]>([]);
   const [markSubmission, setMarkSubmission]   = useState<MarkSubmission | null>(null);
   const [selectedExamId, setSelectedExamId]   = useState<string>('');
+  const extraStudents = ctxStudents;
 
   const selectedLiveExam = liveExams.find(e => e.id === selectedExamId);
   const exam = selectedLiveExam?.name ?? staticExam;
@@ -82,11 +81,15 @@ export default function TeacherMarksPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [classList.map(c => c.id).join(',')]);
 
-  // Load extra students + live exams + mark submission gate
+  // Load live exams + mark submission gate
   useEffect(() => {
-    try { setExtraStudents(JSON.parse(localStorage.getItem('students_store') ?? '[]')); } catch {}
-    try { setLiveExams(JSON.parse(localStorage.getItem('nim_exams_v1') ?? '[]')); } catch {}
-    try { setMarkSubmission(JSON.parse(localStorage.getItem('nim_mark_submission_v1') ?? 'null')); } catch {}
+    Promise.all([
+      kvGet<LiveExam[]>('nim_exams_v1'),
+      kvGet<MarkSubmission>('nim_mark_submission_v1'),
+    ]).then(([exams, ms]) => {
+      if (exams) setLiveExams(exams);
+      if (ms) setMarkSubmission(ms);
+    });
   }, []);
 
   // Auto-select the open submission exam when data loads
@@ -150,13 +153,13 @@ export default function TeacherMarksPage() {
     setSaved(false);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!sub) return;
     const rows = students.map(s => {
       const m = marks[s.id] ?? { cq: '', mcq: '', practical: '' };
       return { studentId: s.id, studentName: s.name, roll: s.roll ?? 0, cq: parseFloat(m.cq) || 0, mcq: parseFloat(m.mcq) || 0, practical: parseFloat(m.practical) || 0 };
     });
-    saveTeacherMarks({ teacherId: teacher?.id ?? 'unknown', classId: cls, examName: exam, year, subjectName: sub.name, marks: rows, savedAt: new Date().toISOString() });
+    await saveTeacherMarks({ teacherId: teacher?.id ?? 'unknown', classId: cls, examName: exam, year, subjectName: sub.name, marks: rows, savedAt: new Date().toISOString() });
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };

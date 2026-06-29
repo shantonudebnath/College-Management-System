@@ -6,6 +6,8 @@ import type { Student } from '@/lib/types';
 import { Plus, Trash2, Download, MapPin, Users, Edit2, Shuffle, ChevronDown, Calendar, Layers, CheckCircle2, UserCheck, LayoutGrid } from 'lucide-react';
 import { useTeachers } from '@/context/TeachersContext';
 import { printHtml } from '@/lib/print-utils';
+import { kvGet, kvSet } from '@/lib/supabase/kv';
+import { useStudents } from '@/context/StudentsContext';
 
 const EXAMS_KEY = 'nim_exams_v1';
 const ENTRIES_KEY = 'nim_exam_entries_v1';
@@ -347,11 +349,12 @@ function interleaveByClass(students: Student[]): Student[] {
 }
 
 export default function SeatPlanPage() {
+  const { students: ctxStudents } = useStudents();
   const [exams, setExams] = useState<Exam[]>([]);
   const [entries, setEntries] = useState<ExamEntry[]>([]);
   const [halls, setHalls] = useState<Hall[]>([]);
   const [seats, setSeats] = useState<SeatAssignment[]>([]);
-  const [allStudents, setAllStudents] = useState<Student[]>(STUDENTS);
+  const allStudents = ctxStudents.length > 0 ? ctxStudents : STUDENTS;
   const [selectedExamId, setSelectedExamId] = useState<string | null>(null);
 
   const [showHallForm, setShowHallForm] = useState(false);
@@ -362,41 +365,30 @@ export default function SeatPlanPage() {
   const [viewModeMap, setViewModeMap] = useState<Record<string, 'table' | 'visual'>>({});
 
   useEffect(() => {
-    try {
-      const e = localStorage.getItem(EXAMS_KEY);
-      if (e) { const p = JSON.parse(e); setExams(p); if (p.length > 0) setSelectedExamId(p[0].id); }
-      const en = localStorage.getItem(ENTRIES_KEY);
-      if (en) setEntries(JSON.parse(en));
-      const h = localStorage.getItem(HALLS_KEY);
-      if (h) {
-        const parsed: Hall[] = JSON.parse(h);
-        setHalls(parsed.map(hall => ({
-          ...hall,
-          classIds: Array.isArray(hall.classIds) ? hall.classIds : [],
-          branches: hall.branches ?? 1,
-          seatsPerBranch: hall.seatsPerBranch ?? hall.capacity,
-        })));
-      }
-      const s = localStorage.getItem(SEATS_KEY);
-      if (s) {
-        const parsed: SeatAssignment[] = JSON.parse(s);
-        setSeats(parsed.map(seat => ({
-          ...seat,
-          branchNumber: seat.branchNumber ?? 1,
-          seatInBranch: seat.seatInBranch ?? seat.seatNumber,
-        })));
-      }
-      const raw = localStorage.getItem('students_store');
-      if (raw) {
-        const stored: Student[] = JSON.parse(raw);
-        const ids = new Set(stored.map(s => s.id));
-        setAllStudents([...stored, ...STUDENTS.filter(s => !ids.has(s.id))]);
-      }
-    } catch {}
+    Promise.all([
+      kvGet<Exam[]>(EXAMS_KEY),
+      kvGet<ExamEntry[]>(ENTRIES_KEY),
+      kvGet<Hall[]>(HALLS_KEY),
+      kvGet<SeatAssignment[]>(SEATS_KEY),
+    ]).then(([examsData, entriesData, hallsData, seatsData]) => {
+      if (examsData) { setExams(examsData); if (examsData.length > 0) setSelectedExamId(examsData[0].id); }
+      if (entriesData) setEntries(entriesData);
+      if (hallsData) setHalls(hallsData.map(hall => ({
+        ...hall,
+        classIds: Array.isArray(hall.classIds) ? hall.classIds : [],
+        branches: hall.branches ?? 1,
+        seatsPerBranch: hall.seatsPerBranch ?? hall.capacity,
+      })));
+      if (seatsData) setSeats(seatsData.map(seat => ({
+        ...seat,
+        branchNumber: seat.branchNumber ?? 1,
+        seatInBranch: seat.seatInBranch ?? seat.seatNumber,
+      })));
+    });
   }, []);
 
-  const saveHalls = (data: Hall[]) => { setHalls(data); localStorage.setItem(HALLS_KEY, JSON.stringify(data)); };
-  const saveSeats = (data: SeatAssignment[]) => { setSeats(data); localStorage.setItem(SEATS_KEY, JSON.stringify(data)); };
+  const saveHalls = (data: Hall[]) => { setHalls(data); kvSet(HALLS_KEY, data); };
+  const saveSeats = (data: SeatAssignment[]) => { setSeats(data); kvSet(SEATS_KEY, data); };
 
   const selectedExam = exams.find(e => e.id === selectedExamId);
   const examHalls = halls.filter(h => h.examId === selectedExamId);

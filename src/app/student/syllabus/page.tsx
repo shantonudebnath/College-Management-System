@@ -4,6 +4,7 @@ import DashboardHeader from '@/components/layout/DashboardHeader';
 import { SYLLABUS } from '@/lib/data';
 import { BookOpen, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import type { Syllabus } from '@/lib/types';
+import { kvGet } from '@/lib/supabase/kv';
 
 const STATUS_MAP = {
   completed: { label: 'সম্পন্ন', color: 'bg-green-100 text-green-700', icon: CheckCircle },
@@ -15,10 +16,9 @@ export default function SyllabusPage() {
   const [syllabus, setSyllabus] = useState<(Syllabus & { content?: string })[]>([]);
 
   useEffect(() => {
-    try {
-      const s = localStorage.getItem('syllabus_store');
-      setSyllabus(s ? JSON.parse(s) : SYLLABUS);
-    } catch { setSyllabus(SYLLABUS); }
+    kvGet<Syllabus[]>('syllabus_store').then(data => {
+      setSyllabus(data ?? SYLLABUS);
+    });
   }, []);
 
   const subjects = [...new Set(syllabus.map(s => s.subject))];

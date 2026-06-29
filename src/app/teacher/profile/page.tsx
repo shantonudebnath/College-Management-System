@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { TEACHERS } from '@/lib/data';
 import { User, Phone, BookOpen, Edit3, Save, X, Camera, Award, Hash } from 'lucide-react';
+import { kvGet, kvSet } from '@/lib/supabase/kv';
 
 const teacher = TEACHERS[0];
 const STORAGE_KEY = `teacher_profile_${teacher.id}`;
@@ -20,14 +21,10 @@ export default function TeacherProfilePage() {
   const photoRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const data = JSON.parse(stored);
-        if (data.form) setForm(data.form);
-        if (data.image) setProfileImg(data.image);
-      }
-    } catch { /* ignore */ }
+    kvGet<{ form: typeof form; image?: string }>(STORAGE_KEY).then(data => {
+      if (data?.form) setForm(data.form);
+      if (data?.image) setProfileImg(data.image);
+    });
   }, []);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,10 +35,8 @@ export default function TeacherProfilePage() {
     reader.readAsDataURL(file);
   };
 
-  const handleSave = () => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ form, image: profileImg }));
-    } catch { /* ignore */ }
+  const handleSave = async () => {
+    await kvSet(STORAGE_KEY, { form, image: profileImg });
     setSaved(true);
     setEditing(false);
     setTimeout(() => setSaved(false), 3000);

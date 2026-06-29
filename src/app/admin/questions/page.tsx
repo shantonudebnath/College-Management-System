@@ -4,6 +4,7 @@ import DashboardHeader from '@/components/layout/DashboardHeader';
 import { MADRASHA_CLASSES } from '@/lib/data';
 import { HelpCircle, FileText, Eye, X, Download, ChevronDown, Search, Trash2 } from 'lucide-react';
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
+import { kvGet, kvSet } from '@/lib/supabase/kv';
 
 interface QuestionPaper {
   id: string;
@@ -29,15 +30,14 @@ export default function AdminQuestionsPage() {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    try {
-      const s = localStorage.getItem('question_papers_store');
-      if (s) setQuestions(JSON.parse(s));
-    } catch { /* ignore */ }
+    kvGet<QuestionPaper[]>('question_papers_store').then(data => {
+      if (data) setQuestions(data);
+    });
   }, []);
 
   const saveQuestions = (updated: QuestionPaper[]) => {
     setQuestions(updated);
-    localStorage.setItem('question_papers_store', JSON.stringify(updated));
+    kvSet('question_papers_store', updated);
   };
 
   const getClassName = (id: string) => MADRASHA_CLASSES.find(c => c.id === id)?.nameBn ?? id;

@@ -6,6 +6,7 @@ import StudentIdCard from '@/components/ui/StudentIdCard';
 import { STUDENTS, MADRASHA_CLASSES } from '@/lib/data';
 import type { Student } from '@/lib/types';
 import { Printer, Users, ChevronDown } from 'lucide-react';
+import { useStudents } from '@/context/StudentsContext';
 
 const CARDS_PER_PAGE = 6;
 
@@ -20,21 +21,13 @@ function getClassName(id: string) {
 }
 
 export default function AdminIdCardsPage() {
-  const [students, setStudents] = useState<Student[]>([]);
+  const { students: ctxStudents } = useStudents();
+  const students = ctxStudents.length > 0 ? ctxStudents : STUDENTS;
   const [filterClass, setFilterClass] = useState('');
   const [filterSession, setFilterSession] = useState('');
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-    try {
-      const s = localStorage.getItem('students_store');
-      const stored: Student[] = s ? JSON.parse(s) : [];
-      const storedIds = new Set(stored.map(st => st.id));
-      const merged = [...stored, ...STUDENTS.filter(st => !storedIds.has(st.id))];
-      setStudents(merged.length > 0 ? merged : STUDENTS);
-    } catch { setStudents(STUDENTS); }
-  }, []);
+  useEffect(() => { setMounted(true); }, []);
 
   const sessions = Array.from(new Set(students.map(s => s.session).filter(Boolean))).sort().reverse();
 

@@ -5,6 +5,7 @@ import { MADRASHA_CLASSES } from '@/lib/data';
 import { Calendar, Clock, Download, ChevronDown } from 'lucide-react';
 import { useStudentSession } from '@/hooks/useStudentSession';
 import { printHtml } from '@/lib/print-utils';
+import { kvGet } from '@/lib/supabase/kv';
 
 const EXAMS_KEY = 'nim_exams_v1';
 const ENTRIES_KEY = 'nim_exam_entries_v1';
@@ -155,12 +156,13 @@ export default function StudentExamSchedulePage() {
   const classInfo = MADRASHA_CLASSES.find(c => c.id === (student?.class ?? ''));
 
   useEffect(() => {
-    try {
-      const e = localStorage.getItem(EXAMS_KEY);
-      if (e) { const parsed = JSON.parse(e); setExams(parsed); if (parsed.length > 0) setSelectedExamId(parsed[0].id); }
-      const en = localStorage.getItem(ENTRIES_KEY);
-      if (en) setEntries(JSON.parse(en));
-    } catch {}
+    Promise.all([
+      kvGet<Exam[]>(EXAMS_KEY),
+      kvGet<ExamEntry[]>(ENTRIES_KEY),
+    ]).then(([examsData, entriesData]) => {
+      if (examsData) { setExams(examsData); if (examsData.length > 0) setSelectedExamId(examsData[0].id); }
+      if (entriesData) setEntries(entriesData);
+    });
   }, []);
 
   const selectedExam = exams.find(e => e.id === selectedExamId);

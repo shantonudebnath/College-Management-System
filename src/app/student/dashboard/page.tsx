@@ -1,22 +1,14 @@
 'use client';
-import { useEffect, useState } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import { NOTICES, EXAM_RESULTS, FEES, EXAM_SCHEDULE } from '@/lib/data';
+import { NOTICES, EXAM_RESULTS, EXAM_SCHEDULE } from '@/lib/data';
 import { Award, CreditCard, Bell, Calendar, BookOpen, FileDown, CheckCircle, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useStudentSession } from '@/hooks/useStudentSession';
-import type { Fee } from '@/lib/types';
+import { useFees } from '@/context/FeesContext';
 
 export default function StudentDashboard() {
   const { student, loading } = useStudentSession();
-  const [allFees, setAllFees] = useState<Fee[]>(FEES);
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('fees_store');
-      if (stored) setAllFees(JSON.parse(stored));
-    } catch { /* ignore */ }
-  }, []);
+  const { fees: allFees } = useFees();
 
   if (loading) {
     return (

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { useTeachers } from '@/context/TeachersContext';
 import { LayoutGrid } from 'lucide-react';
+import { kvGet } from '@/lib/supabase/kv';
 
 const LS_KEY = 'master_routine_v2';
 const CURRENT_TEACHER_ID = 't3';
@@ -79,10 +80,9 @@ export default function TeacherRoutinePage() {
   const teacher = teachers.find(t => t.id === CURRENT_TEACHER_ID) ?? teachers[0];
 
   useEffect(() => {
-    try {
-      const s = localStorage.getItem(LS_KEY);
-      if (s) setRoutine(JSON.parse(s));
-    } catch {}
+    kvGet<MasterRoutine>(LS_KEY).then(data => {
+      if (data) setRoutine(data);
+    });
   }, []);
 
   if (!teacher) return null;

@@ -4,6 +4,7 @@ import DashboardHeader from '@/components/layout/DashboardHeader';
 import { MADRASHA_CLASSES, STUDENTS } from '@/lib/data';
 import { useTeachers } from '@/context/TeachersContext';
 import { UserCheck, CheckCircle, Users, BookOpen } from 'lucide-react';
+import { kvGet, kvSet } from '@/lib/supabase/kv';
 
 export const CLASS_TEACHERS_KEY = 'nim_class_teachers_v1';
 
@@ -18,10 +19,9 @@ export default function ClassTeachersPage() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(CLASS_TEACHERS_KEY);
-      if (stored) setAssignments(JSON.parse(stored));
-    } catch {}
+    kvGet<ClassTeacher[]>(CLASS_TEACHERS_KEY).then(stored => {
+      if (stored) setAssignments(stored);
+    });
   }, []);
 
   const getAssigned = (classId: string) =>
@@ -31,7 +31,7 @@ export default function ClassTeachersPage() {
     const updated = assignments.filter(a => a.classId !== classId);
     if (teacherId) updated.push({ classId, teacherId });
     setAssignments(updated);
-    try { localStorage.setItem(CLASS_TEACHERS_KEY, JSON.stringify(updated)); } catch {}
+    kvSet(CLASS_TEACHERS_KEY, updated);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };

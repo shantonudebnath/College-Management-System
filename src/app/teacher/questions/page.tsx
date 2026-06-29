@@ -4,6 +4,7 @@ import DashboardHeader from '@/components/layout/DashboardHeader';
 import { MADRASHA_CLASSES, SUBJECTS_BY_CLASS } from '@/lib/data';
 import { HelpCircle, Plus, Send, Trash2, Lock, FileText, Upload, Eye, X, Download, ChevronDown } from 'lucide-react';
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
+import { kvGet, kvSet } from '@/lib/supabase/kv';
 
 interface QuestionPaper {
   id: string;
@@ -37,14 +38,13 @@ export default function TeacherQuestionsPage() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    try {
-      const s = localStorage.getItem('question_papers_store');
-      if (s) setQuestions(JSON.parse(s));
-    } catch { /* ignore */ }
+    kvGet<QuestionPaper[]>('question_papers_store').then(data => {
+      if (data) setQuestions(data);
+    });
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('question_papers_store', JSON.stringify(questions));
+    if (questions.length > 0) kvSet('question_papers_store', questions);
   }, [questions]);
 
   const subjects = (SUBJECTS_BY_CLASS[form.class as keyof typeof SUBJECTS_BY_CLASS] ?? []).map((s: { name: string }) => s.name);

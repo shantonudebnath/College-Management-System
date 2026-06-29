@@ -5,6 +5,7 @@ import { SYLLABUS, MADRASHA_CLASSES, SUBJECTS_BY_CLASS } from '@/lib/data';
 import { BookOpen, Plus, Save, CheckCircle, Clock, AlertCircle, Trash2, X, ChevronDown, Edit } from 'lucide-react';
 import RichTextEditor from '@/components/ui/RichTextEditor';
 import type { Syllabus } from '@/lib/types';
+import { kvGet, kvSet } from '@/lib/supabase/kv';
 
 const STATUS_OPTIONS = [
   { value: 'completed', label: 'সম্পন্ন', color: 'bg-green-100 text-green-700' },
@@ -29,16 +30,13 @@ export default function TeacherSyllabusPage() {
   const [filterClass, setFilterClass] = useState('class-10');
 
   useEffect(() => {
-    try {
-      const s = localStorage.getItem('syllabus_store');
-      setSyllabus(s ? JSON.parse(s) : SYLLABUS);
-    } catch { setSyllabus(SYLLABUS); }
+    kvGet<Syllabus[]>('syllabus_store').then(data => {
+      setSyllabus(data ?? SYLLABUS);
+    });
   }, []);
 
   useEffect(() => {
-    if (syllabus.length > 0 || localStorage.getItem('syllabus_store')) {
-      localStorage.setItem('syllabus_store', JSON.stringify(syllabus));
-    }
+    if (syllabus.length > 0) kvSet('syllabus_store', syllabus);
   }, [syllabus]);
 
   const subjectsForClass = (classId: string): string[] => {

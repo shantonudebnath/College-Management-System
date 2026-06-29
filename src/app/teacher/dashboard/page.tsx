@@ -5,33 +5,18 @@ import { STUDENTS, MADRASHA_CLASSES } from '@/lib/data';
 import { useTeachers } from '@/context/TeachersContext';
 import { useNotices } from '@/context/NoticesContext';
 import { useCurrentTeacher } from '@/context/CurrentTeacherContext';
-import type { Student, Teacher } from '@/lib/types';
+import { useStudents } from '@/context/StudentsContext';
+import type { Teacher } from '@/lib/types';
 import { Users, BookOpen, ClipboardList, Bell, BarChart2 } from 'lucide-react';
 import Link from 'next/link';
-
-function loadStudents(): Student[] {
-  try {
-    const s = localStorage.getItem('students_store');
-    const stored: Student[] = s ? JSON.parse(s) : [];
-    const storedIds = new Set(stored.map((st: Student) => st.id));
-    const merged = [...stored, ...STUDENTS.filter(st => !storedIds.has(st.id))];
-    return merged.length > 0 ? merged : STUDENTS;
-  } catch {
-    return STUDENTS;
-  }
-}
 
 export default function TeacherDashboard() {
   const { teachers } = useTeachers();
   const { notices } = useNotices();
   const { currentTeacherId, setCurrentTeacher } = useCurrentTeacher();
-  const [allStudents, setAllStudents] = useState<Student[]>(STUDENTS);
+  const { students: ctxStudents } = useStudents();
+  const allStudents = ctxStudents.length > 0 ? ctxStudents : STUDENTS;
   const [resolvedTeacher, setResolvedTeacher] = useState<Teacher | null>(null);
-
-  // Load students from localStorage
-  useEffect(() => {
-    setAllStudents(loadStudents());
-  }, []);
 
   // Fetch session → match teacher by teacherId → update context
   useEffect(() => {

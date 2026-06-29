@@ -1,10 +1,9 @@
 'use client';
-import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import { FEES } from '@/lib/data';
 import { CreditCard, CheckCircle, Clock, AlertCircle, Download, Gift, Percent, BadgeDollarSign } from 'lucide-react';
 import type { Fee, Waiver } from '@/lib/types';
 import { useStudentSession } from '@/hooks/useStudentSession';
+import { useFees } from '@/context/FeesContext';
 
 function getWaiverDiscount(fee: Fee, waivers: Waiver[]): number {
   const active = waivers.filter(
@@ -21,19 +20,7 @@ function getWaiverDiscount(fee: Fee, waivers: Waiver[]): number {
 
 export default function StudentFeesPage() {
   const { student, loading: sessionLoading } = useStudentSession();
-  const [allFees, setAllFees] = useState<Fee[]>(FEES);
-  const [waivers, setWaivers] = useState<Waiver[]>([]);
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('fees_store');
-      if (stored) setAllFees(JSON.parse(stored));
-    } catch { /* ignore */ }
-    try {
-      const stored = localStorage.getItem('waivers_store');
-      if (stored) setWaivers(JSON.parse(stored));
-    } catch { /* ignore */ }
-  }, []);
+  const { fees: allFees, waivers } = useFees();
 
   const STUDENT_ID = student?.id ?? '';
   const studentFees = allFees.filter(f => f.studentId === STUDENT_ID);

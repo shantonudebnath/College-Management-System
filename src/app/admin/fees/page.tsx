@@ -5,10 +5,10 @@ import { FEES, MADRASHA_CLASSES, STUDENTS } from '@/lib/data';
 import { Plus, CheckCircle, AlertCircle, Download, Trash2, Gift, Percent, BadgeDollarSign, Search } from 'lucide-react';
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
 import { useNotices } from '@/context/NoticesContext';
+import { useFees } from '@/context/FeesContext';
+import { useStudents } from '@/context/StudentsContext';
+import { kvGet } from '@/lib/supabase/kv';
 import type { Fee, Waiver } from '@/lib/types';
-
-const LS_FEES = 'fees_store';
-const LS_WAIVERS = 'waivers_store';
 
 type Tab = 'fees' | 'waivers';
 
@@ -27,20 +27,11 @@ function getWaiverDiscount(fee: Fee, waivers: Waiver[]): number {
 
 export default function AdminFeesPage() {
   const [tab, setTab] = useState<Tab>('fees');
-
-  const [fees, setFees] = useState<Fee[]>(() => {
-    if (typeof window === 'undefined') return FEES;
-    try { const s = localStorage.getItem(LS_FEES); return s ? JSON.parse(s) : FEES; } catch { return FEES; }
-  });
-  const [waivers, setWaivers] = useState<Waiver[]>(() => {
-    if (typeof window === 'undefined') return [];
-    try { const s = localStorage.getItem(LS_WAIVERS); return s ? JSON.parse(s) : []; } catch { return []; }
-  });
-
+  const { fees, waivers, setFees: saveAllFees, upsertFee, deleteFee, setWaivers: saveAllWaivers, upsertWaiver, deleteWaiver: removeWaiver } = useFees();
+  const { students: allStudents } = useStudents();
   const { addNotice } = useNotices();
 
   // Fee form state
-  const [allStudents, setAllStudents] = useState(STUDENTS);
   const [showFeeForm, setShowFeeForm] = useState(false);
   const [feeForm, setFeeForm] = useState({ feeType: '', class: 'class-10', amount: '', dueDate: '' });
   const [feeExams, setFeeExams] = useState<{id:string;name:string;year:string}[]>([]);
@@ -63,18 +54,8 @@ export default function AdminFeesPage() {
   const [editingDiscountId, setEditingDiscountId] = useState<string | null>(null);
   const [discountInput, setDiscountInput] = useState('');
 
-  useEffect(() => { localStorage.setItem(LS_FEES, JSON.stringify(fees)); }, [fees]);
-  useEffect(() => { localStorage.setItem(LS_WAIVERS, JSON.stringify(waivers)); }, [waivers]);
   useEffect(() => {
-    try { setFeeExams(JSON.parse(localStorage.getItem('nim_exams_v1') ?? '[]')); } catch {}
-    try {
-      const raw = localStorage.getItem('students_store');
-      if (raw) {
-        const stored = JSON.parse(raw);
-        const ids = new Set(stored.map((s: typeof STUDENTS[0]) => s.id));
-        setAllStudents([...stored, ...STUDENTS.filter(s => !ids.has(s.id))]);
-      }
-    } catch {}
+    kvGet<{id:string;name:string;year:string}[]>('nim_exams_v1').then(data => { if (data) setFeeExams(data); });
   }, []);
 
   // Totals (discount-aware)
@@ -98,7 +79,7 @@ export default function AdminFeesPage() {
   const allFeeTypes = [...new Set(fees.map(f => f.feeType))];
 
   /* ---------- Fee actions ---------- */
-  const addFee = () => {
+  const addFee = async () => {
     if (!feeForm.feeType || !feeForm.amount) return;
     const className = MADRASHA_CLASSES.find(c => c.id === feeForm.class)?.nameBn ?? feeForm.class;
     const classStudents = allStudents.filter(s => s.class === feeForm.class);
@@ -112,7 +93,7 @@ export default function AdminFeesPage() {
       dueDate: feeForm.dueDate || '—',
       status: 'due' as const,
     }));
-    setFees(p => [...p, ...newFees]);
+    await saveAllFees([...fees, ...newFees]);
     addNotice({
       id: `n${Date.now()}`,
       title: `${feeForm.feeType} ফি নির্ধারণ — ${className}`,
@@ -124,12 +105,13 @@ export default function AdminFeesPage() {
     setFeeForm({ feeType: '', class: 'class-10', amount: '', dueDate: '' });
   };
 
-  const markPaid = (id: string) => setFees(p => p.map(f => f.id === id ? { ...f, status: 'paid' as const, paidDate: new Date().toISOString().split('T')[0], receiptNo: `RCP-2024-${Math.random().toFixed(3).slice(2)}` } : f));
-  const markDue = (id: string) => setFees(p => p.map(f => f.id === id ? { ...f, status: 'due' as const, paidDate: undefined, receiptNo: undefined } : f));
+  const markPaid = (id: string) => { const f = fees.find(x => x.id === id); if (f) upsertFee({ ...f, status: 'paid', paidDate: new Date().toISOString().split('T')[0], receiptNo: `RCP-2024-${Math.random().toFixed(3).slice(2)}` }); };
+  const markDue = (id: string) => { const f = fees.find(x => x.id === id); if (f) upsertFee({ ...f, status: 'due', paidDate: undefined, receiptNo: undefined }); };
 
   const saveDiscount = (id: string) => {
     const val = Number(discountInput);
-    setFees(p => p.map(f => f.id === id ? { ...f, discount: isNaN(val) || discountInput === '' ? undefined : Math.max(0, val) } : f));
+    const f = fees.find(x => x.id === id);
+    if (f) upsertFee({ ...f, discount: isNaN(val) || discountInput === '' ? undefined : Math.max(0, val) });
     setEditingDiscountId(null);
     setDiscountInput('');
   };
@@ -154,14 +136,14 @@ export default function AdminFeesPage() {
       appliedDate: new Date().toISOString().split('T')[0],
       isActive: true,
     };
-    setWaivers(p => [newWaiver, ...p]);
+    upsertWaiver(newWaiver);
     setShowWaiverForm(false);
     setWaiverForm({ studentId: '', waiverType: 'percentage', waiverValue: '', reason: '', feeTypes: 'all' });
     setWaiverSearch('');
   };
 
-  const toggleWaiver = (id: string) => setWaivers(p => p.map(w => w.id === id ? { ...w, isActive: !w.isActive } : w));
-  const deleteWaiver = (id: string) => setWaivers(p => p.filter(w => w.id !== id));
+  const toggleWaiver = (id: string) => { const w = waivers.find(x => x.id === id); if (w) upsertWaiver({ ...w, isActive: !w.isActive }); };
+  const deleteWaiver = (id: string) => removeWaiver(id);
 
   const selectedStudent = STUDENTS.find(s => s.id === waiverForm.studentId);
 
@@ -496,7 +478,7 @@ export default function AdminFeesPage() {
       {deleteTarget && (
         <ConfirmDeleteModal
           itemName={deleteTarget.name}
-          onConfirm={() => { setFees(p => p.filter(f => f.id !== deleteTarget.id)); setDeleteTarget(null); }}
+          onConfirm={() => { deleteFee(deleteTarget.id); setDeleteTarget(null); }}
           onCancel={() => setDeleteTarget(null)}
         />
       )}

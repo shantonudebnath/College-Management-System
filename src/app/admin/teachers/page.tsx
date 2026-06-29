@@ -6,6 +6,7 @@ import { useTeachers } from '@/context/TeachersContext';
 import { Plus, Search, Edit, Trash2, Phone, Mail, Camera, X, Save, ChevronDown, ChevronUp, ArrowUpDown, Key, Copy, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
 import type { Teacher } from '@/lib/types';
+import { kvGet, kvSet } from '@/lib/supabase/kv';
 
 interface Credential { username: string; password: string; }
 
@@ -56,17 +57,15 @@ export default function AdminTeachersPage() {
 
   useEffect(() => {
     if (teachers.length === 0) return;
-    const stored: Record<string, Credential> = (() => {
-      try { const c = localStorage.getItem('teacher_credentials'); return c ? JSON.parse(c) : {}; }
-      catch { return {}; }
-    })();
-    const updated = { ...stored };
-    let changed = false;
-    for (const t of teachers) {
-      if (!updated[t.id]) { updated[t.id] = makeTchCred(t.teacherId); changed = true; }
-    }
-    if (changed) localStorage.setItem('teacher_credentials', JSON.stringify(updated));
-    setCredsMap(updated);
+    kvGet<Record<string, Credential>>('teacher_credentials').then(stored => {
+      const updated = { ...(stored ?? {}) };
+      let changed = false;
+      for (const t of teachers) {
+        if (!updated[t.id]) { updated[t.id] = makeTchCred(t.teacherId); changed = true; }
+      }
+      if (changed) kvSet('teacher_credentials', updated);
+      setCredsMap(updated);
+    });
   }, [teachers]);
 
   const copyText = (text: string, key: string) => {
@@ -164,7 +163,7 @@ export default function AdminTeachersPage() {
       const newCreds = { ...credsMap, [t.id]: cred };
       setTeachers([...teachers, t]);
       setCredsMap(newCreds);
-      localStorage.setItem('teacher_credentials', JSON.stringify(newCreds));
+      kvSet('teacher_credentials', newCreds);
       await createSupabaseUser(t.teacherId, cred.password, 'teacher');
       setCreating(false);
       setShowForm(false); setForm({ ...emptyForm }); setEditId(null);

@@ -6,6 +6,7 @@ import { Shield, Shuffle, Download, Calendar, X, Bell, CheckCircle, ChevronDown,
 import { useNotices } from '@/context/NoticesContext';
 import type { Teacher } from '@/lib/types';
 import { printHtml } from '@/lib/print-utils';
+import { kvGet, kvSet } from '@/lib/supabase/kv';
 
 const EXAMS_KEY = 'nim_exams_v1';
 const ENTRIES_KEY = 'nim_exam_entries_v1';
@@ -105,26 +106,31 @@ export default function AdminGuardListPage() {
   const [showAvailPanel, setShowAvailPanel] = useState(false);
 
   useEffect(() => {
-    try {
-      const e = localStorage.getItem(EXAMS_KEY);
-      if (e) { const p = JSON.parse(e); setExams(p); if (p.length > 0) setSelectedExamId(p[0].id); }
-      const en = localStorage.getItem(ENTRIES_KEY); if (en) setEntries(JSON.parse(en));
-      const h = localStorage.getItem(HALLS_KEY); if (h) setHalls(JSON.parse(h));
-      const g = localStorage.getItem(GUARDS_KEY); if (g) setGuards(JSON.parse(g));
-      const av = localStorage.getItem(AVAIL_KEY); if (av) setAllAvail(JSON.parse(av));
-    } catch {}
+    Promise.all([
+      kvGet<typeof exams>(EXAMS_KEY),
+      kvGet<typeof entries>(ENTRIES_KEY),
+      kvGet<typeof halls>(HALLS_KEY),
+      kvGet<typeof guards>(GUARDS_KEY),
+      kvGet<typeof allAvail>(AVAIL_KEY),
+    ]).then(([examsData, entriesData, hallsData, guardsData, availData]) => {
+      if (examsData) { setExams(examsData); if (examsData.length > 0) setSelectedExamId(examsData[0].id); }
+      if (entriesData) setEntries(entriesData);
+      if (hallsData) setHalls(hallsData);
+      if (guardsData) setGuards(guardsData);
+      if (availData) setAllAvail(availData);
+    });
   }, []);
 
   const saveGuards = (data: GuardAssignment[]) => {
     setGuards(data);
-    localStorage.setItem(GUARDS_KEY, JSON.stringify(data));
+    kvSet(GUARDS_KEY, data);
   };
 
   const saveAvail = (avail: AvailMap) => {
     if (!selectedExamId) return;
     const updated = { ...allAvail, [selectedExamId]: avail };
     setAllAvail(updated);
-    localStorage.setItem(AVAIL_KEY, JSON.stringify(updated));
+    kvSet(AVAIL_KEY, updated);
   };
 
   const selectedExam = exams.find(e => e.id === selectedExamId);

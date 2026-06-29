@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { STUDENTS, MADRASHA_CLASSES } from '@/lib/data';
 import { LayoutGrid } from 'lucide-react';
+import { kvGet } from '@/lib/supabase/kv';
 
 const LS_KEY = 'master_routine_v2';
 const TEACHERS_KEY = 'nim_teachers_v1';
@@ -73,12 +74,13 @@ export default function StudentRoutinePage() {
   const classInfo = MADRASHA_CLASSES.find(c => c.id === student.class);
 
   useEffect(() => {
-    try {
-      const s = localStorage.getItem(LS_KEY);
-      if (s) setRoutine(JSON.parse(s));
-      const ts = localStorage.getItem(TEACHERS_KEY);
-      if (ts) setTeachers(JSON.parse(ts));
-    } catch {}
+    Promise.all([
+      kvGet<MasterRoutine>(LS_KEY),
+      kvGet<TeacherBasic[]>(TEACHERS_KEY),
+    ]).then(([routineData, teachersData]) => {
+      if (routineData) setRoutine(routineData);
+      if (teachersData) setTeachers(teachersData);
+    });
   }, []);
 
   // Find which teacher teaches this student's class on a given day/period

@@ -5,6 +5,7 @@ import { NOTES, SUBJECTS_BY_CLASS } from '@/lib/data';
 import { FileText, Plus, Trash2, Edit, Save, X, ChevronDown } from 'lucide-react';
 import RichTextEditor from '@/components/ui/RichTextEditor';
 import type { Note } from '@/lib/types';
+import { kvGet, kvSet } from '@/lib/supabase/kv';
 
 const TEACHER_ID = 't3';
 const TEACHER_NAME = 'Md. Shafiqul Islam';
@@ -20,16 +21,13 @@ export default function TeacherNotesPage() {
   const [editContent, setEditContent] = useState('');
 
   useEffect(() => {
-    try {
-      const s = localStorage.getItem('notes_store');
-      setNotes(s ? JSON.parse(s) : NOTES.filter(n => n.teacherId === TEACHER_ID || n.teacherId === 't1'));
-    } catch { setNotes(NOTES.filter(n => n.teacherId === TEACHER_ID || n.teacherId === 't1')); }
+    kvGet<Note[]>('notes_store').then(data => {
+      setNotes(data ?? NOTES.filter(n => n.teacherId === TEACHER_ID || n.teacherId === 't1'));
+    });
   }, []);
 
   useEffect(() => {
-    if (notes.length > 0 || localStorage.getItem('notes_store')) {
-      localStorage.setItem('notes_store', JSON.stringify(notes));
-    }
+    if (notes.length > 0) kvSet('notes_store', notes);
   }, [notes]);
 
   const subjects = (SUBJECTS_BY_CLASS[DEFAULT_CLASS as keyof typeof SUBJECTS_BY_CLASS] ?? []).map((s: { name: string }) => s.name);
