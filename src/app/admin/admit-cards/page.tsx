@@ -1,7 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { FEES, MADRASHA_CLASSES, STUDENTS, COLLEGE_INFO } from '@/lib/data';
+import { PRINCIPAL_SIGN } from '@/components/ui/StudentIdCard';
 import type { Student } from '@/lib/types';
 import { IdCard, Trash2, Printer, X, Users, CheckCircle, AlertCircle, ChevronDown, Settings, RefreshCw } from 'lucide-react';
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
@@ -44,6 +46,7 @@ export default function AdminAdmitCardsPage() {
   const [allHalls, setAllHalls] = useState<Hall[]>([]);
   const [allSeats, setAllSeats] = useState<SeatAssignment[]>([]);
 
+  const [mounted, setMounted] = useState(false);
   const [selectedExamId, setSelectedExamId] = useState<string | null>(null);
   const [editFeeCard, setEditFeeCard] = useState<AdmitCardConfig | null>(null);
   const [bulkFeeExamId, setBulkFeeExamId] = useState<string | null>(null);
@@ -55,6 +58,7 @@ export default function AdminAdmitCardsPage() {
   useEffect(() => { localStorage.setItem('admit_cards_store', JSON.stringify(cards)); }, [cards]);
 
   useEffect(() => {
+    setMounted(true);
     try {
       const stored = localStorage.getItem('fees_store');
       const fees: Fee[] = stored ? JSON.parse(stored) : FEES;
@@ -356,41 +360,50 @@ export default function AdminAdmitCardsPage() {
       )}
 
       {printCard && (
-        <>
-          <style>{`
-            @media print {
-              @page { size: A4 portrait; margin: 5mm; }
-              body * { visibility: hidden !important; }
-              #bulk-print-area, #bulk-print-area * { visibility: visible !important; }
-              #bulk-print-area { position: fixed !important; top: 0 !important; left: 0 !important; width: 200mm !important; margin: 0 !important; padding: 0 !important; }
-              .no-print { display: none !important; }
-            }
-          `}</style>
-          <div className="fixed inset-0 bg-black/60 z-50 flex items-start justify-center p-4 overflow-y-auto no-print">
-            <div className="bg-gray-100 rounded-2xl w-full max-w-5xl my-4 shadow-2xl">
-              <div className="flex items-center justify-between px-6 py-4 bg-white rounded-t-2xl border-b border-gray-200 no-print">
-                <div>
-                  <h2 className="font-semibold text-gray-900">{printCard.examName} — প্রিন্ট প্রিভিউ</h2>
-                  <p className="text-xs text-gray-400 mt-0.5">{MADRASHA_CLASSES.find(c => c.id === printCard.class)?.nameBn} — {printStudents.length} জন</p>
-                </div>
-                <div className="flex gap-2">
-                  <button onClick={() => window.print()} className="flex items-center gap-2 btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold">
-                    <Printer size={15} /> প্রিন্ট করুন
-                  </button>
-                  <button onClick={() => setPrintCard(null)} className="w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center hover:bg-gray-200"><X size={16} /></button>
-                </div>
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-start justify-center p-4 overflow-y-auto">
+          <div className="bg-gray-100 rounded-2xl w-full max-w-5xl my-4 shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 bg-white rounded-t-2xl border-b border-gray-200">
+              <div>
+                <h2 className="font-semibold text-gray-900">{printCard.examName} — প্রিন্ট প্রিভিউ</h2>
+                <p className="text-xs text-gray-400 mt-0.5">{MADRASHA_CLASSES.find(c => c.id === printCard.class)?.nameBn} — {printStudents.length} জন</p>
               </div>
-              <div className="p-6 overflow-y-auto max-h-[75vh] no-print">
-                <p className="text-xs text-gray-400 mb-3 text-center">প্রিভিউ (প্রতিটি A4 পাতায় ২টি করে কার্ড)</p>
-                <PreviewGrid students={printStudents} card={printCard} schedule={printSchedule} getSeatInfo={(sid) => getSeatInfo(sid, printCard.examId)} />
+              <div className="flex gap-2">
+                <button onClick={() => window.print()} className="flex items-center gap-2 btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold">
+                  <Printer size={15} /> প্রিন্ট করুন
+                </button>
+                <button onClick={() => setPrintCard(null)} className="w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center hover:bg-gray-200"><X size={16} /></button>
               </div>
             </div>
+            <div className="p-6 overflow-y-auto max-h-[75vh]">
+              <p className="text-xs text-gray-400 mb-3 text-center">প্রিভিউ (প্রতিটি A4 পাতায় ২টি করে কার্ড)</p>
+              <PreviewGrid students={printStudents} card={printCard} schedule={printSchedule} getSeatInfo={(sid) => getSeatInfo(sid, printCard.examId)} />
+            </div>
           </div>
-          <div id="bulk-print-area" style={{ display: 'none' }}>
-            <PrintGrid students={printStudents} card={printCard} schedule={printSchedule} getSeatInfo={(sid) => getSeatInfo(sid, printCard.examId)} />
-          </div>
-          <style>{`@media print { #bulk-print-area { display: block !important; } }`}</style>
-        </>
+        </div>
+      )}
+
+      {printCard && mounted && createPortal(
+        <div id="admit-print-area">
+          <style>{`
+            @media screen { #admit-print-area { display: none !important; } }
+            @media print {
+              @page { size: A4 portrait; margin: 8mm; }
+              body > *:not(#admit-print-area) { display: none !important; }
+              #admit-print-area { display: block !important; }
+              body { margin: 0 !important; padding: 0 !important; }
+              .admit-row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 4mm;
+                margin-bottom: 4mm;
+                page-break-inside: avoid;
+                break-inside: avoid;
+              }
+            }
+          `}</style>
+          <PrintGrid students={printStudents} card={printCard} schedule={printSchedule} getSeatInfo={(sid) => getSeatInfo(sid, printCard.examId)} />
+        </div>,
+        document.body
       )}
     </div>
   );
@@ -511,7 +524,7 @@ function MiniCard({ student, card, schedule, seatInfo }: { student: (typeof STUD
           </div>
           <div style={{ textAlign: 'center' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/principal-sign.png" alt="" style={{ height: '7mm', maxWidth: '28mm', objectFit: 'contain', display: 'block', margin: '0 auto' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+            <img src={PRINCIPAL_SIGN} alt="" style={{ height: '7mm', maxWidth: '28mm', objectFit: 'contain', display: 'block', margin: '0 auto' }} />
             <div style={{ borderTop: '0.8px solid #333', paddingTop: '0.5mm', minWidth: '24mm' }}>অধ্যক্ষ / প্রধান শিক্ষক</div>
           </div>
         </div>
@@ -526,5 +539,15 @@ function PreviewGrid({ students, card, schedule, getSeatInfo }: MiniCardGridProp
 }
 
 function PrintGrid({ students, card, schedule, getSeatInfo }: MiniCardGridProps) {
-  return <div style={{ width: '200mm', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3mm' }}>{students.map(s => <MiniCard key={s.id} student={s} card={card} schedule={schedule} seatInfo={getSeatInfo(s.id)} />)}</div>;
+  const pairs: Student[][] = [];
+  for (let i = 0; i < students.length; i += 2) pairs.push(students.slice(i, i + 2));
+  return (
+    <div style={{ width: '100%' }}>
+      {pairs.map((pair, i) => (
+        <div key={i} className="admit-row">
+          {pair.map(s => <MiniCard key={s.id} student={s} card={card} schedule={schedule} seatInfo={getSeatInfo(s.id)} />)}
+        </div>
+      ))}
+    </div>
+  );
 }
