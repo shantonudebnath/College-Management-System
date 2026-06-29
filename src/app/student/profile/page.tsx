@@ -28,6 +28,22 @@ export default function StudentProfilePage() {
   };
 
   const handleSave = () => {
+    if (student) {
+      try {
+        const raw = localStorage.getItem('students_store');
+        const list = raw ? JSON.parse(raw) : [];
+        const idx = list.findIndex((s: { studentId: string }) => s.studentId === student.studentId);
+        const updated = {
+          ...student,
+          phone: form.phone || student.phone,
+          address: form.address || student.address,
+          guardianPhone: form.guardianPhone || (student as Record<string, unknown>).guardianPhone,
+          image: profileImg ?? student.image,
+        };
+        if (idx >= 0) list[idx] = updated; else list.push(updated);
+        localStorage.setItem('students_store', JSON.stringify(list));
+      } catch { /* ignore */ }
+    }
     setSaved(true);
     setEditing(false);
     setTimeout(() => setSaved(false), 3000);

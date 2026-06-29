@@ -1,10 +1,11 @@
 ﻿'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { TEACHERS } from '@/lib/data';
-import { User, Phone, BookOpen, Edit3, Save, X, Camera, Mail, Award, Hash } from 'lucide-react';
+import { User, Phone, BookOpen, Edit3, Save, X, Camera, Award, Hash } from 'lucide-react';
 
 const teacher = TEACHERS[0];
+const STORAGE_KEY = `teacher_profile_${teacher.id}`;
 
 export default function TeacherProfilePage() {
   const [editing, setEditing] = useState(false);
@@ -18,6 +19,17 @@ export default function TeacherProfilePage() {
   const [profileImg, setProfileImg] = useState<string | undefined>(undefined);
   const photoRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const data = JSON.parse(stored);
+        if (data.form) setForm(data.form);
+        if (data.image) setProfileImg(data.image);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -27,6 +39,9 @@ export default function TeacherProfilePage() {
   };
 
   const handleSave = () => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ form, image: profileImg }));
+    } catch { /* ignore */ }
     setSaved(true);
     setEditing(false);
     setTimeout(() => setSaved(false), 3000);

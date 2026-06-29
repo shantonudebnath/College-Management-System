@@ -76,6 +76,7 @@ export default function AdminStudentsPage() {
   const [copied, setCopied] = useState('');
   const [creating, setCreating] = useState(false);
   const [viewStudentId, setViewStudentId] = useState<string | null>(null);
+  const [idCardPreview, setIdCardPreview] = useState<Student | null>(null);
   const [printIdStudent, setPrintIdStudent] = useState<Student | null>(null);
   const [bulkIdPrint, setBulkIdPrint] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -275,17 +276,19 @@ export default function AdminStudentsPage() {
   useEffect(() => {
     if (!printIdStudent) return;
     window.print();
-    const handler = () => setPrintIdStudent(null);
+    const timer = setTimeout(() => setPrintIdStudent(null), 3000);
+    const handler = () => { clearTimeout(timer); setPrintIdStudent(null); };
     window.addEventListener('afterprint', handler, { once: true });
-    return () => window.removeEventListener('afterprint', handler);
+    return () => { clearTimeout(timer); window.removeEventListener('afterprint', handler); };
   }, [printIdStudent]);
 
   useEffect(() => {
     if (!bulkIdPrint) return;
     window.print();
-    const handler = () => setBulkIdPrint(false);
+    const timer = setTimeout(() => setBulkIdPrint(false), 3000);
+    const handler = () => { clearTimeout(timer); setBulkIdPrint(false); };
     window.addEventListener('afterprint', handler, { once: true });
-    return () => window.removeEventListener('afterprint', handler);
+    return () => { clearTimeout(timer); window.removeEventListener('afterprint', handler); };
   }, [bulkIdPrint]);
 
   const exportToExcel = () => {
@@ -786,6 +789,37 @@ export default function AdminStudentsPage() {
         />
       )}
 
+      {/* ---- ID card preview modal ---- */}
+      {idCardPreview && (() => {
+        const ip = idCardPreview;
+        const ipClass = MADRASHA_CLASSES.find(c => c.id === ip.class)?.nameBn ?? ip.class;
+        return (
+          <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl animate-fadeIn flex flex-col items-center gap-4 p-5 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between w-full">
+                <h3 className="font-bold text-gray-900">পরিচয়পত্র</h3>
+                <button onClick={() => setIdCardPreview(null)} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400"><X size={16} /></button>
+              </div>
+              <div style={{
+                width: '85.6mm', border: '2px solid #1e1b4b', borderRadius: '8px',
+                fontFamily: "'Noto Serif Bengali','Vrinda',serif", overflow: 'hidden', background: '#fff',
+              }}>
+                <StudentIdCard student={ip} className={ipClass} />
+              </div>
+              <div className="flex gap-2 w-full">
+                <button
+                  onClick={() => { setIdCardPreview(null); setPrintIdStudent(ip); }}
+                  className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-2.5 text-sm font-semibold transition-colors"
+                >
+                  <Printer size={14} /> প্রিন্ট করুন
+                </button>
+                <button onClick={() => setIdCardPreview(null)} className="py-2.5 px-4 border border-gray-200 rounded-xl text-sm hover:bg-gray-50">বন্ধ</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* ---- Print-only ID card (single student) ---- */}
       {printIdStudent && (() => {
         const ps = printIdStudent;
@@ -924,9 +958,9 @@ export default function AdminStudentsPage() {
                     className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
                     <Edit size={14} /> সম্পাদনা
                   </button>
-                  <button onClick={() => { setViewStudentId(null); setPrintIdStudent(vs); }}
+                  <button onClick={() => { setViewStudentId(null); setIdCardPreview(vs); }}
                     className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
-                    <Printer size={14} /> পরিচয়পত্র
+                    <IdCard size={14} /> পরিচয়পত্র
                   </button>
                   <button onClick={() => setViewStudentId(null)}
                     className="py-2.5 px-4 border border-gray-200 rounded-xl text-sm hover:bg-gray-50">

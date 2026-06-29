@@ -37,9 +37,10 @@ export default function AdminIdCardsPage() {
   useEffect(() => {
     if (!printing) return;
     window.print();
-    const handler = () => setPrinting(false);
+    const timer = setTimeout(() => setPrinting(false), 3000);
+    const handler = () => { clearTimeout(timer); setPrinting(false); };
     window.addEventListener('afterprint', handler, { once: true });
-    return () => window.removeEventListener('afterprint', handler);
+    return () => { clearTimeout(timer); window.removeEventListener('afterprint', handler); };
   }, [printing]);
 
   const sessions = Array.from(new Set(students.map(s => s.session).filter(Boolean))).sort().reverse();
