@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { STUDENTS, MADRASHA_CLASSES } from '@/lib/data';
 import {
@@ -79,6 +80,7 @@ export default function AdminStudentsPage() {
   const [idCardPreview, setIdCardPreview] = useState<Student | null>(null);
   const [printIdStudent, setPrintIdStudent] = useState<Student | null>(null);
   const [bulkIdPrint, setBulkIdPrint] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const selectAllRef = useRef<HTMLInputElement>(null);
 
@@ -109,6 +111,7 @@ export default function AdminStudentsPage() {
       const a = localStorage.getItem('admit_cards_store');
       if (a) setAdmitCards(JSON.parse(a));
     } catch { /* ignore */ }
+    setMounted(true);
   }, []);
 
   useEffect(() => {
@@ -820,68 +823,59 @@ export default function AdminStudentsPage() {
         );
       })()}
 
-      {/* ---- Print-only ID card (single student) ---- */}
-      {printIdStudent && (() => {
-        const ps = printIdStudent;
-        const psClass = MADRASHA_CLASSES.find(c => c.id === ps.class)?.nameBn ?? ps.class;
-        return (
-          <>
-            <style>{`
-              @media screen { #admin-id-print { display: none; } }
-              @media print {
-                body * { visibility: hidden !important; }
-                #admin-id-print, #admin-id-print * { visibility: visible !important; }
-                #admin-id-print {
-                  position: fixed !important;
-                  top: 20mm !important; left: 50% !important;
-                  transform: translateX(-50%) !important;
-                  margin: 0 !important;
-                }
-              }
-            `}</style>
-            <div id="admin-id-print" style={{
-              width: '85.6mm', border: '2px solid #1e1b4b', borderRadius: '8px',
-              fontFamily: "'Noto Serif Bengali','Vrinda',serif", overflow: 'hidden', background: '#fff',
-            }}>
-              <StudentIdCard student={ps} className={psClass} />
-            </div>
-          </>
-        );
-      })()}
-
-      {/* ---- Bulk print: all selected students ---- */}
-      {bulkIdPrint && (
+      {/* ---- Print portals (rendered at body level for reliable print CSS) ---- */}
+      {mounted && createPortal(
         <>
           <style>{`
-            @media screen { #bulk-id-print { display: none; } }
+            @media screen { #admin-id-print, #bulk-id-print { display: none !important; } }
             @media print {
-              body * { visibility: hidden !important; }
-              #bulk-id-print, #bulk-id-print * { visibility: visible !important; }
-              #bulk-id-print {
-                position: fixed !important;
-                top: 0 !important; left: 0 !important;
-                width: 100% !important; margin: 0 !important; padding: 0 !important;
+              body > *:not(#admin-id-print):not(#bulk-id-print) { display: none !important; }
+              body { margin: 0 !important; padding: 0 !important; }
+              #admin-id-print {
+                display: flex !important;
+                justify-content: center;
+                align-items: flex-start;
+                padding-top: 20mm;
+                min-height: 100vh;
               }
+              #bulk-id-print { display: block !important; }
               .bulk-card-wrap { page-break-after: always; display: flex !important; justify-content: center; padding-top: 20mm; }
               .bulk-card-wrap:last-child { page-break-after: auto; }
             }
           `}</style>
-          <div id="bulk-id-print">
-            {filtered.filter(s => selectedIds.has(s.id)).map((ps) => {
-              const psClass = MADRASHA_CLASSES.find(c => c.id === ps.class)?.nameBn ?? ps.class;
-              return (
-                <div key={ps.id} className="bulk-card-wrap">
-                  <div style={{
-                    width: '85.6mm', border: '2px solid #1e1b4b', borderRadius: '8px',
-                    fontFamily: "'Noto Serif Bengali','Vrinda',serif", overflow: 'hidden', background: '#fff',
-                  }}>
-                    <StudentIdCard student={ps} className={psClass} />
-                  </div>
+          {printIdStudent && (() => {
+            const ps = printIdStudent;
+            const psClass = MADRASHA_CLASSES.find(c => c.id === ps.class)?.nameBn ?? ps.class;
+            return (
+              <div id="admin-id-print">
+                <div style={{
+                  width: '85.6mm', border: '2px solid #1e1b4b', borderRadius: '8px',
+                  fontFamily: "'Noto Serif Bengali','Vrinda',serif", overflow: 'hidden', background: '#fff',
+                }}>
+                  <StudentIdCard student={ps} className={psClass} />
                 </div>
-              );
-            })}
-          </div>
-        </>
+              </div>
+            );
+          })()}
+          {bulkIdPrint && (
+            <div id="bulk-id-print">
+              {filtered.filter(s => selectedIds.has(s.id)).map((ps) => {
+                const psClass = MADRASHA_CLASSES.find(c => c.id === ps.class)?.nameBn ?? ps.class;
+                return (
+                  <div key={ps.id} className="bulk-card-wrap">
+                    <div style={{
+                      width: '85.6mm', border: '2px solid #1e1b4b', borderRadius: '8px',
+                      fontFamily: "'Noto Serif Bengali','Vrinda',serif", overflow: 'hidden', background: '#fff',
+                    }}>
+                      <StudentIdCard student={ps} className={psClass} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>,
+        document.body
       )}
 
       {/* ---- Student detail view modal ---- */}

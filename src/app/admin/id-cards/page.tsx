@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import StudentIdCard from '@/components/ui/StudentIdCard';
 import { STUDENTS, MADRASHA_CLASSES } from '@/lib/data';
@@ -22,9 +23,10 @@ export default function AdminIdCardsPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [filterClass, setFilterClass] = useState('');
   const [filterSession, setFilterSession] = useState('');
-  const [printing, setPrinting] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     try {
       const s = localStorage.getItem('students_store');
       const stored: Student[] = s ? JSON.parse(s) : [];
@@ -33,15 +35,6 @@ export default function AdminIdCardsPage() {
       setStudents(merged.length > 0 ? merged : STUDENTS);
     } catch { setStudents(STUDENTS); }
   }, []);
-
-  useEffect(() => {
-    if (!printing) return;
-    window.print();
-    const timer = setTimeout(() => setPrinting(false), 3000);
-    const handler = () => { clearTimeout(timer); setPrinting(false); };
-    window.addEventListener('afterprint', handler, { once: true });
-    return () => { clearTimeout(timer); window.removeEventListener('afterprint', handler); };
-  }, [printing]);
 
   const sessions = Array.from(new Set(students.map(s => s.session).filter(Boolean))).sort().reverse();
 
@@ -65,15 +58,11 @@ export default function AdminIdCardsPage() {
   return (
     <div>
       <style>{`
-        @media screen { #id-cards-printable { display: none; } }
+        @media screen { #id-cards-printable { display: none !important; } }
         @media print {
-          body * { visibility: hidden !important; }
-          #id-cards-printable, #id-cards-printable * { visibility: visible !important; }
-          #id-cards-printable {
-            position: fixed !important;
-            top: 0 !important; left: 0 !important;
-            width: 100% !important; margin: 0 !important; padding: 0 !important;
-          }
+          body > *:not(#id-cards-printable) { display: none !important; }
+          #id-cards-printable { display: block !important; }
+          body { margin: 0 !important; padding: 0 !important; }
           .print-page {
             page-break-after: always;
             break-after: page;
@@ -141,12 +130,12 @@ export default function AdminIdCardsPage() {
             </div>
 
             <button
-              onClick={() => setPrinting(true)}
-              disabled={filtered.length === 0 || printing}
+              onClick={() => window.print()}
+              disabled={filtered.length === 0}
               className="flex items-center gap-2 btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50 transition-opacity"
             >
               <Printer size={16} />
-              {printing ? 'প্রিন্ট হচ্ছে...' : 'PDF / প্রিন্ট'}
+              PDF / প্রিন্ট
             </button>
           </div>
         </div>
@@ -176,18 +165,20 @@ export default function AdminIdCardsPage() {
         )}
       </div>
 
-      {/* Print-only output */}
-      <div id="id-cards-printable">
-        {pages.map((pageStudents, pageIdx) => (
-          <div key={pageIdx} className="print-page">
-            {pageStudents.map(s => (
-              <div key={s.id} style={{ ...CARD_STYLE, width: 'auto' }}>
-                <StudentIdCard student={s} className={getClassName(s.class)} />
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
+      {mounted && createPortal(
+        <div id="id-cards-printable">
+          {pages.map((pageStudents, pageIdx) => (
+            <div key={pageIdx} className="print-page">
+              {pageStudents.map(s => (
+                <div key={s.id} style={{ ...CARD_STYLE, width: 'auto' }}>
+                  <StudentIdCard student={s} className={getClassName(s.class)} />
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

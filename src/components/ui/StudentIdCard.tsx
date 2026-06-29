@@ -92,12 +92,13 @@ export default function StudentIdCard({ student: s, className: cls }: Props) {
           <div>{COLLEGE_INFO.phone.split(',')[0]}</div>
         </div>
         <div style={{ textAlign: 'center', fontSize: '5.5pt', color: '#6b7280' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/principal-sign.jpg" alt=""
-            style={{ height: '8mm', maxWidth: '24mm', objectFit: 'contain', display: 'block', margin: '0 auto' }}
-            onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-          />
+          <div style={{ height: '10mm', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/principal-sign.jpg" alt="অধ্যক্ষের স্বাক্ষর"
+              style={{ maxHeight: '10mm', maxWidth: '26mm', objectFit: 'contain', display: 'block' }}
+            />
+          </div>
           <div style={{ borderTop: '0.8px solid #9ca3af', paddingTop: '1mm', minWidth: '20mm' }}>অধ্যক্ষের স্বাক্ষর</div>
         </div>
       </div>
