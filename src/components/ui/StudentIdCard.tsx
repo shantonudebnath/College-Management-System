@@ -62,7 +62,7 @@ export default function StudentIdCard({ student: s, className: cls }: Props) {
             ['বাংলা নাম', s.nameBn || '—'],
             ['পিতার নাম', s.fatherName || '—'],
             ['মাতার নাম', s.motherName || '—'],
-            ['শ্রেণি', ${cls} | শাখা: ],
+            ['শ্রেণি', `${cls} | শাখা: ${s.section || '—'}`],
             ['রোল নং', String(s.roll ?? '—')],
             ['শিক্ষার্থী আইডি', s.studentId],
             ['সেশন', s.session || '—'],

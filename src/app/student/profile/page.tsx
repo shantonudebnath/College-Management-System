@@ -37,7 +37,7 @@ export default function StudentProfilePage() {
           ...student,
           phone: form.phone || student.phone,
           address: form.address || student.address,
-          guardianPhone: form.guardianPhone || (student as Record<string, unknown>).guardianPhone,
+          guardianPhone: form.guardianPhone || (student as unknown as Record<string, unknown>).guardianPhone,
           image: profileImg ?? student.image,
         };
         if (idx >= 0) list[idx] = updated; else list.push(updated);
