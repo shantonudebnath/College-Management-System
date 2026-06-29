@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { MADRASHA_CLASSES } from '@/lib/data';
 import { User, Phone, BookOpen, Calendar, Edit3, Save, X, Camera, Hash } from 'lucide-react';
@@ -16,6 +16,16 @@ export default function StudentProfilePage() {
     guardianPhone: '',
   });
   const [saved, setSaved] = useState(false);
+  const [profileImg, setProfileImg] = useState<string | undefined>(undefined);
+  const photoRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setProfileImg(reader.result as string);
+    reader.readAsDataURL(file);
+  };
 
   const handleSave = () => {
     setSaved(true);
@@ -51,12 +61,13 @@ export default function StudentProfilePage() {
           <div className="relative z-10 flex items-center gap-5">
             <div className="relative">
               <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center text-3xl font-bold border-2 border-white/30 overflow-hidden">
-                {student?.image
-                  ? <img src={student.image} alt={displayName} className="w-full h-full object-cover" />
+                {(profileImg ?? student?.image)
+                  ? <img src={profileImg ?? student?.image} alt={displayName} className="w-full h-full object-cover" />
                   : displayName[0]
                 }
               </div>
-              <button className="absolute -bottom-1 -right-1 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-100 transition-colors">
+              <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
+              <button onClick={() => photoRef.current?.click()} className="absolute -bottom-1 -right-1 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-100 transition-colors" title="ছবি পরিবর্তন করুন">
                 <Camera size={13} className="text-purple-700" />
               </button>
             </div>

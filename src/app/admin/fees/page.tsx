@@ -202,7 +202,7 @@ export default function AdminFeesPage() {
               <button onClick={() => setShowFeeForm(!showFeeForm)} className="flex items-center gap-2 btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold">
                 <Plus size={16} /> নতুন ফি নির্ধারণ
               </button>
-              <button className="flex items-center gap-2 border border-gray-200 bg-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50">
+              <button onClick={() => window.print()} className="flex items-center gap-2 border border-gray-200 bg-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50">
                 <Download size={14} /> রিপোর্ট
               </button>
             </div>

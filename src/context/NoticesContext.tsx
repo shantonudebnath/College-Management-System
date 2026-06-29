@@ -7,12 +7,14 @@ import { createClient } from '@/lib/supabase/client';
 interface NoticesCtx {
   notices: Notice[];
   addNotice: (n: Notice) => void;
+  updateNotice: (n: Notice) => void;
   deleteNotice: (id: string) => void;
 }
 
 const Ctx = createContext<NoticesCtx>({
   notices: NOTICES,
   addNotice: () => {},
+  updateNotice: () => {},
   deleteNotice: () => {},
 });
 
@@ -66,13 +68,23 @@ export function NoticesProvider({ children }: { children: ReactNode }) {
     if (!error) setNotices(prev => [n, ...prev]);
   };
 
+  const updateNotice = async (n: Notice) => {
+    const { error } = await supabase.from('notices').update({
+      title: n.title, content: n.content, type: n.type, target: n.target,
+      is_important: n.isImportant,
+      attachment_name: n.attachmentName ?? null,
+      attachment_data: n.attachmentData ?? null,
+    }).eq('id', n.id);
+    if (!error) setNotices(prev => prev.map(x => x.id === n.id ? n : x));
+  };
+
   const deleteNotice = async (id: string) => {
     const { error } = await supabase.from('notices').delete().eq('id', id);
     if (!error) setNotices(prev => prev.filter(n => n.id !== id));
   };
 
   return (
-    <Ctx.Provider value={{ notices: ready ? notices : NOTICES, addNotice, deleteNotice }}>
+    <Ctx.Provider value={{ notices: ready ? notices : NOTICES, addNotice, updateNotice, deleteNotice }}>
       {children}
     </Ctx.Provider>
   );

@@ -7,8 +7,9 @@ import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
 import type { Notice } from '@/lib/types';
 
 export default function AdminNoticesPage() {
-  const { notices, addNotice, deleteNotice } = useNotices();
+  const { notices, addNotice, updateNotice, deleteNotice } = useNotices();
   const [showForm, setShowForm] = useState(false);
+  const [editTarget, setEditTarget] = useState<Notice | null>(null);
   const [form, setForm] = useState({ title: '', content: '', type: 'general', target: 'all', isImportant: false });
   const [attachFile, setAttachFile] = useState<{ name: string; data: string } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
@@ -26,16 +27,41 @@ export default function AdminNoticesPage() {
     reader.readAsDataURL(file);
   };
 
-  const handleAdd = () => {
+  const openAdd = () => {
+    setEditTarget(null);
+    setForm({ title: '', content: '', type: 'general', target: 'all', isImportant: false });
+    setAttachFile(null);
+    setShowForm(true);
+  };
+
+  const openEdit = (n: Notice) => {
+    setEditTarget(n);
+    setForm({ title: n.title, content: n.content, type: n.type, target: n.target, isImportant: n.isImportant });
+    setAttachFile(n.attachmentData ? { name: n.attachmentName ?? 'file', data: n.attachmentData } : null);
+    setShowForm(true);
+  };
+
+  const handleSave = () => {
     if (!form.title || !form.content) return;
-    const n: Notice = {
-      id: `n${Date.now()}`, title: form.title, content: form.content,
-      date: new Date().toISOString().split('T')[0], type: form.type as Notice['type'],
-      target: form.target as Notice['target'], isImportant: form.isImportant, postedBy: 'Admin',
-      ...(attachFile ? { attachmentName: attachFile.name, attachmentData: attachFile.data } : {}),
-    };
-    addNotice(n);
+    if (editTarget) {
+      updateNotice({
+        ...editTarget,
+        title: form.title, content: form.content,
+        type: form.type as Notice['type'], target: form.target as Notice['target'],
+        isImportant: form.isImportant,
+        attachmentName: attachFile?.name, attachmentData: attachFile?.data,
+      });
+    } else {
+      const n: Notice = {
+        id: `n${Date.now()}`, title: form.title, content: form.content,
+        date: new Date().toISOString().split('T')[0], type: form.type as Notice['type'],
+        target: form.target as Notice['target'], isImportant: form.isImportant, postedBy: 'Admin',
+        ...(attachFile ? { attachmentName: attachFile.name, attachmentData: attachFile.data } : {}),
+      };
+      addNotice(n);
+    }
     setShowForm(false);
+    setEditTarget(null);
     setForm({ title: '', content: '', type: 'general', target: 'all', isImportant: false });
     setAttachFile(null);
   };
@@ -51,13 +77,16 @@ export default function AdminNoticesPage() {
     <div>
       <DashboardHeader title="নোটিশ ব্যবস্থাপনা" subtitle="নোটিশ তৈরি ও পরিচালনা করুন" userName="Admin" role="Super Admin" />
       <div className="p-6 space-y-5">
-        <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-2 btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold">
+        <button onClick={openAdd} className="flex items-center gap-2 btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold">
           <Plus size={16} /> নতুন নোটিশ তৈরি
         </button>
 
         {showForm && (
           <div className="bg-white rounded-2xl border-2 border-purple-200 p-5 animate-fadeIn space-y-3">
-            <h3 className="font-semibold text-gray-900">নতুন নোটিশ</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-gray-900">{editTarget ? 'নোটিশ সম্পাদনা' : 'নতুন নোটিশ'}</h3>
+              <button onClick={() => { setShowForm(false); setEditTarget(null); }} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400"><X size={16} /></button>
+            </div>
             <input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
               placeholder="নোটিশের শিরোনাম *"
               className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400" />
@@ -65,7 +94,6 @@ export default function AdminNoticesPage() {
               placeholder="নোটিশের বিষয়বস্তু *" rows={4}
               className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400 resize-none" />
 
-            {/* File attachment */}
             <div>
               <label className="text-xs font-semibold text-gray-600 block mb-1.5">ফাইল সংযুক্ত করুন <span className="text-gray-400 font-normal">(ঐচ্ছিক · সর্বোচ্চ ৫০০KB)</span></label>
               {attachFile ? (
@@ -98,8 +126,10 @@ export default function AdminNoticesPage() {
               </label>
             </div>
             <div className="flex gap-2">
-              <button onClick={handleAdd} className="flex items-center gap-2 btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold"><Send size={14} /> প্রকাশ করুন</button>
-              <button onClick={() => { setShowForm(false); setAttachFile(null); }} className="px-5 py-2.5 border border-gray-200 rounded-xl text-sm hover:bg-gray-50">বাতিল</button>
+              <button onClick={handleSave} className="flex items-center gap-2 btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold">
+                <Send size={14} /> {editTarget ? 'আপডেট করুন' : 'প্রকাশ করুন'}
+              </button>
+              <button onClick={() => { setShowForm(false); setEditTarget(null); setAttachFile(null); }} className="px-5 py-2.5 border border-gray-200 rounded-xl text-sm hover:bg-gray-50">বাতিল</button>
             </div>
           </div>
         )}
@@ -126,8 +156,8 @@ export default function AdminNoticesPage() {
                 <p className="text-xs text-gray-400 mt-2">📅 {notice.date}</p>
               </div>
               <div className="flex gap-1 shrink-0">
-                <button className="w-8 h-8 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center hover:bg-purple-100"><Edit size={14} /></button>
-                <button onClick={() => setDeleteTarget({ id: notice.id, name: notice.title })} className="w-8 h-8 bg-red-50 text-red-600 rounded-lg flex items-center justify-center hover:bg-red-100"><Trash2 size={14} /></button>
+                <button onClick={() => openEdit(notice)} className="w-8 h-8 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center hover:bg-purple-100" title="সম্পাদনা করুন"><Edit size={14} /></button>
+                <button onClick={() => setDeleteTarget({ id: notice.id, name: notice.title })} className="w-8 h-8 bg-red-50 text-red-600 rounded-lg flex items-center justify-center hover:bg-red-100" title="মুছুন"><Trash2 size={14} /></button>
               </div>
             </div>
           ))}
