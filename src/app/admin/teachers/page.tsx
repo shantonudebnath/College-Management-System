@@ -412,12 +412,10 @@ export default function AdminTeachersPage() {
                       <p className="text-xs text-gray-400">{teacher.teacherId}</p>
                     </div>
                     <div className="flex gap-1 shrink-0">
-                      {credsMap[teacher.id] && (
-                        <button onClick={() => { setShowCredId(teacher.id); setShowPass(false); }}
-                          className="w-7 h-7 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center hover:bg-amber-100" title="লগইন তথ্য">
-                          <Key size={12} />
-                        </button>
-                      )}
+                      <button onClick={() => { setShowCredId(teacher.id); setShowPass(false); }}
+                        className="w-7 h-7 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center hover:bg-amber-100" title="লগইন তথ্য">
+                        <Key size={12} />
+                      </button>
                       <button onClick={() => openEdit(teacher)} className="w-7 h-7 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center hover:bg-purple-100" title="সম্পাদনা করুন">
                         <Edit size={12} />
                       </button>
@@ -479,28 +477,30 @@ export default function AdminTeachersPage() {
       )}
 
       {/* View credential modal */}
-      {showCredId && credsMap[showCredId] && (() => {
+      {showCredId && (() => {
         const t = teachers.find(x => x.id === showCredId);
+        if (!t) return null;
+        const cred = makeTchCred(t.teacherId);
         return (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm animate-fadeIn p-6">
               <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center"><Key size={18} className="text-amber-600" /></div>
-                  <div><h3 className="font-bold text-gray-900">লগইন তথ্য</h3><p className="text-xs text-gray-500">{t?.name}</p></div>
+                  <div><h3 className="font-bold text-gray-900">লগইন তথ্য</h3><p className="text-xs text-gray-500">{t.name}</p></div>
                 </div>
                 <button onClick={() => setShowCredId(null)} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400"><X size={16} /></button>
               </div>
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
-                  <div><p className="text-[10px] text-gray-400 mb-0.5">ইউজারনেম</p><p className="text-sm font-bold font-mono text-gray-900">{credsMap[showCredId].username}</p></div>
-                  <button onClick={() => copyText(credsMap[showCredId].username, 'tvu')} className="text-gray-400 hover:text-purple-600">{copied === 'tvu' ? <CheckCircle size={15} className="text-green-500" /> : <Copy size={15} />}</button>
+                  <div><p className="text-[10px] text-gray-400 mb-0.5">ইউজারনেম</p><p className="text-sm font-bold font-mono text-gray-900">{cred.username}</p></div>
+                  <button onClick={() => copyText(cred.username, 'tvu')} className="text-gray-400 hover:text-purple-600">{copied === 'tvu' ? <CheckCircle size={15} className="text-green-500" /> : <Copy size={15} />}</button>
                 </div>
                 <div className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
-                  <div><p className="text-[10px] text-gray-400 mb-0.5">পাসওয়ার্ড</p><p className="text-sm font-bold font-mono text-gray-900">{showPass ? credsMap[showCredId].password : '••••••••'}</p></div>
+                  <div><p className="text-[10px] text-gray-400 mb-0.5">পাসওয়ার্ড</p><p className="text-sm font-bold font-mono text-gray-900">{showPass ? cred.password : '••••••••'}</p></div>
                   <div className="flex gap-2">
                     <button onClick={() => setShowPass(p => !p)} className="text-gray-400 hover:text-gray-700">{showPass ? <EyeOff size={15} /> : <Eye size={15} />}</button>
-                    <button onClick={() => copyText(credsMap[showCredId].password, 'tvp')} className="text-gray-400 hover:text-purple-600">{copied === 'tvp' ? <CheckCircle size={15} className="text-green-500" /> : <Copy size={15} />}</button>
+                    <button onClick={() => copyText(cred.password, 'tvp')} className="text-gray-400 hover:text-purple-600">{copied === 'tvp' ? <CheckCircle size={15} className="text-green-500" /> : <Copy size={15} />}</button>
                   </div>
                 </div>
               </div>
