@@ -14,6 +14,7 @@ const MENU = [
   { label: 'ফলাফল', href: '/student/result', icon: Award },
   { label: 'উপস্থিতি', href: '/student/attendance', icon: CheckSquare },
   { label: 'ফি বিবরণ', href: '/student/fees', icon: CreditCard },
+  { label: 'পরিচয়পত্র', href: '/student/id-card', icon: GraduationCap },
   { label: 'এডমিট কার্ড', href: '/student/admit-card', icon: IdCard },
   { label: 'পরীক্ষার সময়সূচী', href: '/student/exam-schedule', icon: Calendar },
   { label: 'ক্লাস রুটিন', href: '/student/routine', icon: LayoutGrid },

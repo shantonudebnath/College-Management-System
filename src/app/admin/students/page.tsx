@@ -4,7 +4,7 @@ import DashboardHeader from '@/components/layout/DashboardHeader';
 import { STUDENTS, MADRASHA_CLASSES } from '@/lib/data';
 import {
   Users, Plus, Search, Edit, Trash2, Eye, Download, Camera, X, Save,
-  ChevronDown, ArrowUpCircle, AlertTriangle, CheckCircle, IdCard, Key, Copy, EyeOff,
+  ChevronDown, ArrowUpCircle, AlertTriangle, CheckCircle, IdCard, Key, Copy, EyeOff, Printer,
 } from 'lucide-react';
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
 import type { Student } from '@/lib/types';
@@ -69,6 +69,7 @@ export default function AdminStudentsPage() {
   const [copied, setCopied] = useState('');
   const [creating, setCreating] = useState(false);
   const [viewStudentId, setViewStudentId] = useState<string | null>(null);
+  const [printIdStudent, setPrintIdStudent] = useState<Student | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const selectAllRef = useRef<HTMLInputElement>(null);
 
@@ -755,6 +756,90 @@ export default function AdminStudentsPage() {
         />
       )}
 
+      {/* ---- Print-only ID card ---- */}
+      {printIdStudent && (() => {
+        const ps = printIdStudent;
+        const psClass = MADRASHA_CLASSES.find(c => c.id === ps.class)?.nameBn ?? ps.class;
+        return (
+          <>
+            <style>{`
+              @media print {
+                body * { visibility: hidden !important; }
+                #admin-id-print, #admin-id-print * { visibility: visible !important; }
+                #admin-id-print {
+                  position: fixed !important;
+                  top: 20mm !important; left: 50% !important;
+                  transform: translateX(-50%) !important;
+                  margin: 0 !important;
+                }
+              }
+            `}</style>
+            <div id="admin-id-print" style={{
+              display: 'none',
+              width: '85.6mm', border: '2px solid #1e1b4b', borderRadius: '8px',
+              fontFamily: "'Noto Serif Bengali','Vrinda',serif", overflow: 'hidden', background: '#fff',
+            }}>
+              <div style={{ background: '#1e1b4b', color: '#fff', padding: '5px 8px 4px', textAlign: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/logo.png" alt="" style={{ width: '22px', height: '22px', objectFit: 'contain', borderRadius: '4px', background: '#fff', padding: '1px' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                  <div>
+                    <div style={{ fontSize: '8.5pt', fontWeight: 900, lineHeight: 1.2 }}>এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা</div>
+                    <div style={{ fontSize: '5pt', color: '#a5b4fc', marginTop: '1px' }}>এগারসিন্দুর, পাকুন্দিয়া, কিশোরগঞ্জ</div>
+                  </div>
+                </div>
+                <div style={{ marginTop: '3px', background: 'rgba(255,255,255,0.15)', borderRadius: '4px', padding: '1.5px 0', fontSize: '7pt', fontWeight: 700, letterSpacing: '1px' }}>শিক্ষার্থী পরিচয়পত্র</div>
+              </div>
+              <div style={{ display: 'flex', gap: 0, padding: '5px 6px', minHeight: '38mm' }}>
+                <div style={{ width: '20mm', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
+                  <div style={{ width: '18mm', height: '22mm', border: '1.5px solid #1e1b4b', borderRadius: '4px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f3f4f6' }}>
+                    {ps.image
+                      // eslint-disable-next-line @next/next/no-img-element
+                      ? <img src={ps.image} alt={ps.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      : <div style={{ textAlign: 'center', color: '#9ca3af', fontSize: '6pt' }}><div style={{ fontSize: '18pt', color: '#d1d5db' }}>☐</div>ছবি</div>}
+                  </div>
+                  <div style={{ fontSize: '5pt', color: '#6b7280', textAlign: 'center' }}>সত্যায়িত ছবি</div>
+                </div>
+                <div style={{ width: '1px', background: '#e5e7eb', margin: '0 5px', flexShrink: 0 }} />
+                <div style={{ flex: 1, fontSize: '6.5pt' }}>
+                  {[
+                    ['নাম', ps.name],
+                    ['বাংলা নাম', ps.nameBn || '—'],
+                    ['পিতার নাম', ps.fatherName || '—'],
+                    ['মাতার নাম', ps.motherName || '—'],
+                    ['শ্রেণি', `${psClass} | শাখা: ${ps.section || '—'}`],
+                    ['রোল নং', String(ps.roll ?? '—')],
+                    ['শিক্ষার্থী আইডি', ps.studentId],
+                    ['সেশন', ps.session || '—'],
+                    ['রক্তের গ্রুপ', (ps as { bloodGroup?: string }).bloodGroup || '—'],
+                  ].map(([label, value]) => (
+                    <div key={label} style={{ display: 'flex', alignItems: 'baseline', marginBottom: '1.5mm', borderBottom: '0.5px solid #f3f4f6', paddingBottom: '1mm' }}>
+                      <span style={{ minWidth: '20mm', color: '#6b7280', flexShrink: 0 }}>{label}:</span>
+                      <span style={{ fontWeight: 700, color: '#111827', flex: 1 }}>{value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{ borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', padding: '3mm 6mm 3mm', background: '#fafafa' }}>
+                <div style={{ textAlign: 'center', fontSize: '5.5pt', color: '#6b7280' }}>
+                  <div style={{ height: '8mm' }} />
+                  <div style={{ borderTop: '0.8px solid #9ca3af', paddingTop: '1mm', minWidth: '20mm' }}>শিক্ষার্থীর স্বাক্ষর</div>
+                </div>
+                <div style={{ textAlign: 'center', fontSize: '5pt', color: '#9ca3af' }}>
+                  <div>EIIN: 110590</div>
+                  <div>01973519857</div>
+                </div>
+                <div style={{ textAlign: 'center', fontSize: '5.5pt', color: '#6b7280' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/principal-sign.png" alt="" style={{ height: '8mm', maxWidth: '24mm', objectFit: 'contain', display: 'block', margin: '0 auto' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                  <div style={{ borderTop: '0.8px solid #9ca3af', paddingTop: '1mm', minWidth: '20mm' }}>অধ্যক্ষের স্বাক্ষর</div>
+                </div>
+              </div>
+            </div>
+          </>
+        );
+      })()}
+
       {/* ---- Student detail view modal ---- */}
       {viewStudentId && (() => {
         const vs = students.find(s => s.id === viewStudentId);
@@ -827,11 +912,15 @@ export default function AdminStudentsPage() {
                 <div className="flex gap-2 mt-5">
                   <button onClick={() => { setViewStudentId(null); openEdit(vs); }}
                     className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
-                    <Edit size={14} /> সম্পাদনা করুন
+                    <Edit size={14} /> সম্পাদনা
+                  </button>
+                  <button onClick={() => { setPrintIdStudent(vs); setTimeout(() => window.print(), 100); }}
+                    className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+                    <Printer size={14} /> পরিচয়পত্র
                   </button>
                   <button onClick={() => setViewStudentId(null)}
-                    className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm hover:bg-gray-50">
-                    বন্ধ করুন
+                    className="py-2.5 px-4 border border-gray-200 rounded-xl text-sm hover:bg-gray-50">
+                    বন্ধ
                   </button>
                 </div>
               </div>
