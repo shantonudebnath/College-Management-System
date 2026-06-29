@@ -1,7 +1,7 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import { STUDENTS, MADRASHA_CLASSES } from '@/lib/data';
+import { STUDENTS, MADRASHA_CLASSES, COLLEGE_INFO } from '@/lib/data';
 import {
   Users, Plus, Search, Edit, Trash2, Eye, Download, Camera, X, Save,
   ChevronDown, ArrowUpCircle, AlertTriangle, CheckCircle, IdCard, Key, Copy, EyeOff, Printer,
@@ -30,11 +30,80 @@ const STATUS_COLOR: Record<string, string> = {
   partial: 'bg-amber-100 text-amber-700',
 };
 
+function IdCardContent({ ps, psClass }: { ps: Student; psClass: string }) {
+  return (
+    <>
+      <div style={{ background: '#1e1b4b', color: '#fff', padding: '5px 8px 4px', textAlign: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="" style={{ width: '22px', height: '22px', objectFit: 'contain', borderRadius: '4px', background: '#fff', padding: '1px' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          <div>
+            <div style={{ fontSize: '8.5pt', fontWeight: 900, lineHeight: 1.2 }}>{COLLEGE_INFO.nameBn}</div>
+            <div style={{ fontSize: '5pt', color: '#a5b4fc', marginTop: '1px' }}>{COLLEGE_INFO.address}</div>
+          </div>
+        </div>
+        <div style={{ marginTop: '3px', background: 'rgba(255,255,255,0.15)', borderRadius: '4px', padding: '1.5px 0', fontSize: '7pt', fontWeight: 700, letterSpacing: '1px' }}>শিক্ষার্থী পরিচয়পত্র</div>
+      </div>
+      <div style={{ display: 'flex', gap: 0, padding: '5px 6px', minHeight: '38mm' }}>
+        <div style={{ width: '20mm', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
+          <div style={{ width: '18mm', height: '22mm', border: '1.5px solid #1e1b4b', borderRadius: '4px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f3f4f6' }}>
+            {ps.image
+              // eslint-disable-next-line @next/next/no-img-element
+              ? <img src={ps.image} alt={ps.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              : <div style={{ textAlign: 'center', color: '#9ca3af', fontSize: '6pt' }}><div style={{ fontSize: '18pt', color: '#d1d5db' }}>☐</div>ছবি</div>}
+          </div>
+          <div style={{ fontSize: '5pt', color: '#6b7280', textAlign: 'center' }}>সত্যায়িত ছবি</div>
+        </div>
+        <div style={{ width: '1px', background: '#e5e7eb', margin: '0 5px', flexShrink: 0 }} />
+        <div style={{ flex: 1, fontSize: '6.5pt' }}>
+          {[
+            ['নাম', ps.name],
+            ['বাংলা নাম', ps.nameBn || '—'],
+            ['পিতার নাম', ps.fatherName || '—'],
+            ['মাতার নাম', ps.motherName || '—'],
+            ['শ্রেণি', `${psClass} | শাখা: ${ps.section || '—'}`],
+            ['রোল নং', String(ps.roll ?? '—')],
+            ['শিক্ষার্থী আইডি', ps.studentId],
+            ['সেশন', ps.session || '—'],
+            ['রক্তের গ্রুপ', (ps as { bloodGroup?: string }).bloodGroup || '—'],
+          ].map(([label, value]) => (
+            <div key={label} style={{ display: 'flex', alignItems: 'baseline', marginBottom: '1.5mm', borderBottom: '0.5px solid #f3f4f6', paddingBottom: '1mm' }}>
+              <span style={{ minWidth: '20mm', color: '#6b7280', flexShrink: 0 }}>{label}:</span>
+              <span style={{ fontWeight: 700, color: '#111827', flex: 1 }}>{value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div style={{ borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', padding: '3mm 6mm 3mm', background: '#fafafa' }}>
+        <div style={{ textAlign: 'center', fontSize: '5.5pt', color: '#6b7280' }}>
+          <div style={{ height: '8mm' }} />
+          <div style={{ borderTop: '0.8px solid #9ca3af', paddingTop: '1mm', minWidth: '20mm' }}>শিক্ষার্থীর স্বাক্ষর</div>
+        </div>
+        <div style={{ textAlign: 'center', fontSize: '5pt', color: '#9ca3af' }}>
+          <div>EIIN: {COLLEGE_INFO.eiin}</div>
+          <div>{COLLEGE_INFO.phone.split(',')[0]}</div>
+        </div>
+        <div style={{ textAlign: 'center', fontSize: '5.5pt', color: '#6b7280' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/principal-sign.png" alt="" style={{ height: '8mm', maxWidth: '24mm', objectFit: 'contain', display: 'block', margin: '0 auto' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          <div style={{ borderTop: '0.8px solid #9ca3af', paddingTop: '1mm', minWidth: '20mm' }}>অধ্যক্ষের স্বাক্ষর</div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 function makeCred(studentId: string, roll: number): Credential {
   return {
     username: studentId,
     password: `NIM@${roll.toString().padStart(3, '0')}`,
   };
+}
+
+function incrementSession(session: string): string {
+  const match = session?.match(/^(\d{4})-(\d{2})$/);
+  if (!match) return session ?? '';
+  return `${parseInt(match[1]) + 1}-${(parseInt(match[2]) + 1).toString().padStart(2, '0')}`;
 }
 
 async function createSupabaseUser(displayId: string, password: string, role: string) {
@@ -70,6 +139,7 @@ export default function AdminStudentsPage() {
   const [creating, setCreating] = useState(false);
   const [viewStudentId, setViewStudentId] = useState<string | null>(null);
   const [printIdStudent, setPrintIdStudent] = useState<Student | null>(null);
+  const [bulkIdPrint, setBulkIdPrint] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const selectAllRef = useRef<HTMLInputElement>(null);
 
@@ -176,7 +246,9 @@ export default function AdminStudentsPage() {
   const confirmPromote = () => {
     if (!promoteClass || !promoteNextClassId) return;
     const updated = students.map(s =>
-      s.class === promoteClass && promoteSelected.has(s.id) ? { ...s, class: promoteNextClassId } : s
+      s.class === promoteClass && promoteSelected.has(s.id)
+        ? { ...s, class: promoteNextClassId, session: incrementSession(s.session ?? '') }
+        : s
     );
     setStudents(updated);
     const msg = `${promoteCount}জন শিক্ষার্থী ${getClassName(promoteClass)} থেকে ${getClassName(promoteNextClassId)} তে উন্নীত হয়েছে।`;
@@ -261,6 +333,11 @@ export default function AdminStudentsPage() {
 
   const handleCancel = () => { setShowForm(false); setForm({ ...emptyForm }); setEditId(null); };
 
+  const handleBulkPrint = () => {
+    setBulkIdPrint(true);
+    setTimeout(() => { window.print(); setTimeout(() => setBulkIdPrint(false), 500); }, 200);
+  };
+
   const exportToExcel = () => {
     const headers = ['শিক্ষার্থী আইডি', 'নাম', 'বাংলা নাম', 'পিতার নাম', 'মাতার নাম', 'শ্রেণি', 'শাখা', 'রোল', 'সেশন', 'মোবাইল', 'ফি অবস্থা'];
     const rows = filtered.map(s => [
@@ -310,6 +387,9 @@ export default function AdminStudentsPage() {
           </select>
           <button onClick={exportToExcel} className="flex items-center gap-2 border border-gray-200 bg-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 hover:border-green-300 hover:text-green-700 transition-colors">
             <Download size={14} /> Excel
+          </button>
+          <button onClick={handleBulkPrint} title={`${filtered.filter(s => selectedIds.has(s.id)).length}টি নির্বাচিত শিক্ষার্থীর পরিচয়পত্র PDF`} className="flex items-center gap-2 border border-gray-200 bg-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 hover:border-blue-300 hover:text-blue-700 transition-colors">
+            <Printer size={14} /> পরিচয়পত্র PDF
           </button>
           <button onClick={openPromote} className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors">
             <ArrowUpCircle size={16} /> বর্ষ পরিবর্তন
@@ -756,13 +836,14 @@ export default function AdminStudentsPage() {
         />
       )}
 
-      {/* ---- Print-only ID card ---- */}
+      {/* ---- Print-only ID card (single student) ---- */}
       {printIdStudent && (() => {
         const ps = printIdStudent;
         const psClass = MADRASHA_CLASSES.find(c => c.id === ps.class)?.nameBn ?? ps.class;
         return (
           <>
             <style>{`
+              @media screen { #admin-id-print { display: none; } }
               @media print {
                 body * { visibility: hidden !important; }
                 #admin-id-print, #admin-id-print * { visibility: visible !important; }
@@ -775,70 +856,49 @@ export default function AdminStudentsPage() {
               }
             `}</style>
             <div id="admin-id-print" style={{
-              display: 'none',
               width: '85.6mm', border: '2px solid #1e1b4b', borderRadius: '8px',
               fontFamily: "'Noto Serif Bengali','Vrinda',serif", overflow: 'hidden', background: '#fff',
             }}>
-              <div style={{ background: '#1e1b4b', color: '#fff', padding: '5px 8px 4px', textAlign: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/logo.png" alt="" style={{ width: '22px', height: '22px', objectFit: 'contain', borderRadius: '4px', background: '#fff', padding: '1px' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                  <div>
-                    <div style={{ fontSize: '8.5pt', fontWeight: 900, lineHeight: 1.2 }}>এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা</div>
-                    <div style={{ fontSize: '5pt', color: '#a5b4fc', marginTop: '1px' }}>এগারসিন্দুর, পাকুন্দিয়া, কিশোরগঞ্জ</div>
-                  </div>
-                </div>
-                <div style={{ marginTop: '3px', background: 'rgba(255,255,255,0.15)', borderRadius: '4px', padding: '1.5px 0', fontSize: '7pt', fontWeight: 700, letterSpacing: '1px' }}>শিক্ষার্থী পরিচয়পত্র</div>
-              </div>
-              <div style={{ display: 'flex', gap: 0, padding: '5px 6px', minHeight: '38mm' }}>
-                <div style={{ width: '20mm', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
-                  <div style={{ width: '18mm', height: '22mm', border: '1.5px solid #1e1b4b', borderRadius: '4px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f3f4f6' }}>
-                    {ps.image
-                      // eslint-disable-next-line @next/next/no-img-element
-                      ? <img src={ps.image} alt={ps.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      : <div style={{ textAlign: 'center', color: '#9ca3af', fontSize: '6pt' }}><div style={{ fontSize: '18pt', color: '#d1d5db' }}>☐</div>ছবি</div>}
-                  </div>
-                  <div style={{ fontSize: '5pt', color: '#6b7280', textAlign: 'center' }}>সত্যায়িত ছবি</div>
-                </div>
-                <div style={{ width: '1px', background: '#e5e7eb', margin: '0 5px', flexShrink: 0 }} />
-                <div style={{ flex: 1, fontSize: '6.5pt' }}>
-                  {[
-                    ['নাম', ps.name],
-                    ['বাংলা নাম', ps.nameBn || '—'],
-                    ['পিতার নাম', ps.fatherName || '—'],
-                    ['মাতার নাম', ps.motherName || '—'],
-                    ['শ্রেণি', `${psClass} | শাখা: ${ps.section || '—'}`],
-                    ['রোল নং', String(ps.roll ?? '—')],
-                    ['শিক্ষার্থী আইডি', ps.studentId],
-                    ['সেশন', ps.session || '—'],
-                    ['রক্তের গ্রুপ', (ps as { bloodGroup?: string }).bloodGroup || '—'],
-                  ].map(([label, value]) => (
-                    <div key={label} style={{ display: 'flex', alignItems: 'baseline', marginBottom: '1.5mm', borderBottom: '0.5px solid #f3f4f6', paddingBottom: '1mm' }}>
-                      <span style={{ minWidth: '20mm', color: '#6b7280', flexShrink: 0 }}>{label}:</span>
-                      <span style={{ fontWeight: 700, color: '#111827', flex: 1 }}>{value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div style={{ borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', padding: '3mm 6mm 3mm', background: '#fafafa' }}>
-                <div style={{ textAlign: 'center', fontSize: '5.5pt', color: '#6b7280' }}>
-                  <div style={{ height: '8mm' }} />
-                  <div style={{ borderTop: '0.8px solid #9ca3af', paddingTop: '1mm', minWidth: '20mm' }}>শিক্ষার্থীর স্বাক্ষর</div>
-                </div>
-                <div style={{ textAlign: 'center', fontSize: '5pt', color: '#9ca3af' }}>
-                  <div>EIIN: 110590</div>
-                  <div>01973519857</div>
-                </div>
-                <div style={{ textAlign: 'center', fontSize: '5.5pt', color: '#6b7280' }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/principal-sign.png" alt="" style={{ height: '8mm', maxWidth: '24mm', objectFit: 'contain', display: 'block', margin: '0 auto' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                  <div style={{ borderTop: '0.8px solid #9ca3af', paddingTop: '1mm', minWidth: '20mm' }}>অধ্যক্ষের স্বাক্ষর</div>
-                </div>
-              </div>
+              <IdCardContent ps={ps} psClass={psClass} />
             </div>
           </>
         );
       })()}
+
+      {/* ---- Bulk print: all selected students ---- */}
+      {bulkIdPrint && (
+        <>
+          <style>{`
+            @media screen { #bulk-id-print { display: none; } }
+            @media print {
+              body * { visibility: hidden !important; }
+              #bulk-id-print, #bulk-id-print * { visibility: visible !important; }
+              #bulk-id-print {
+                position: fixed !important;
+                top: 0 !important; left: 0 !important;
+                width: 100% !important; margin: 0 !important; padding: 0 !important;
+              }
+              .bulk-card-wrap { page-break-after: always; display: flex !important; justify-content: center; padding-top: 20mm; }
+              .bulk-card-wrap:last-child { page-break-after: auto; }
+            }
+          `}</style>
+          <div id="bulk-id-print">
+            {filtered.filter(s => selectedIds.has(s.id)).map((ps) => {
+              const psClass = MADRASHA_CLASSES.find(c => c.id === ps.class)?.nameBn ?? ps.class;
+              return (
+                <div key={ps.id} className="bulk-card-wrap">
+                  <div style={{
+                    width: '85.6mm', border: '2px solid #1e1b4b', borderRadius: '8px',
+                    fontFamily: "'Noto Serif Bengali','Vrinda',serif", overflow: 'hidden', background: '#fff',
+                  }}>
+                    <IdCardContent ps={ps} psClass={psClass} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
 
       {/* ---- Student detail view modal ---- */}
       {viewStudentId && (() => {
