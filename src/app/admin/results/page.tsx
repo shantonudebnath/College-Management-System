@@ -283,7 +283,7 @@ function ClassGroup({ classId, results }: { classId: string; results: ExamResult
 export default function AdminResultsPage() {
   const { addNotice } = useNotices();
   const { results: storedResults, publishedExams, publishExam, unpublishExam, setResults } = useResults();
-  const { students } = useStudents();
+  const { students, setStudents } = useStudents();
   const [yearFilter, setYearFilter]         = useState('');
   const [examFilter, setExamFilter]         = useState('');
   const [classFilter, setClassFilter]       = useState('');
@@ -390,7 +390,7 @@ export default function AdminResultsPage() {
   };
 
   // ── Auto-assign rolls based on year final result ────────────────────────────
-  const doAssignRolls = () => {
+  const doAssignRolls = async () => {
     if (!yearFilter) return;
     const finals = allResults.filter(r => r.examName === FINAL_EXAM && r.year === yearFilter);
     if (finals.length === 0) {
@@ -417,6 +417,7 @@ export default function AdminResultsPage() {
       });
     }
 
+    await setStudents(updated);
     alert(`${finals.length} জন শিক্ষার্থীর নতুন রোল বণ্টন সম্পন্ন হয়েছে।`);
   };
 

@@ -17,10 +17,10 @@ export default function WebsiteSettingsPage() {
   const [tab, setTab] = useState<Tab>('hero');
   const [saved, setSaved] = useState(false);
 
-  useEffect(() => { setContent(loadWebsiteContent()); }, []);
+  useEffect(() => { loadWebsiteContent().then(setContent); }, []);
 
-  const handleSave = () => {
-    saveWebsiteContent(content);
+  const handleSave = async () => {
+    await saveWebsiteContent(content);
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
   };

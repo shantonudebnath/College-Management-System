@@ -65,7 +65,7 @@ export default function AdminDashboard() {
         {/* KPI cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { icon: Users, label: 'মোট শিক্ষার্থী', value: students.length.toString(), sub: `${students.filter(s => s.gender === 'male').length}জন ছাত্র, ${students.filter(s => s.gender === 'female').length}জন ছাত্রী`, color: 'bg-purple-50 text-purple-600', href: '/admin/students' },
+            { icon: Users, label: 'মোট শিক্ষার্থী', value: students.length.toString(), sub: `${students.filter(s => s.gender?.toLowerCase() === 'male').length}জন ছাত্র, ${students.filter(s => s.gender?.toLowerCase() === 'female').length}জন ছাত্রী`, color: 'bg-purple-50 text-purple-600', href: '/admin/students' },
             { icon: GraduationCap, label: 'মোট শিক্ষক', value: TEACHERS.length.toString(), sub: `${TEACHERS.length} সক্রিয়`, color: 'bg-blue-50 text-blue-600', href: '/admin/teachers' },
             { icon: CreditCard, label: 'ফি সংগৃহীত', value: `৳${(paidFees/1000).toFixed(0)}K`, sub: `${totalFees > 0 ? Math.round((paidFees/totalFees)*100) : 0}% সংগৃহীত`, color: 'bg-green-50 text-green-600', href: '/admin/fees' },
             { icon: Bell, label: 'সক্রিয় নোটিশ', value: NOTICES.length.toString(), sub: `${NOTICES.filter(n=>n.isImportant).length}টি জরুরি`, color: 'bg-amber-50 text-amber-600', href: '/admin/notices' },

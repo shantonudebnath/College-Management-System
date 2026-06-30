@@ -9,8 +9,7 @@ export default function NoticeTicker() {
   const [extraTicker, setExtraTicker] = useState<string[]>([]);
 
   useEffect(() => {
-    const c = loadWebsiteContent();
-    setExtraTicker(c.noticeTicker.map(n => n.text));
+    loadWebsiteContent().then(c => setExtraTicker(c.noticeTicker.map(n => n.text)));
   }, []);
 
   const urgent = notices.filter(n => n.isImportant).map(n => n.title);

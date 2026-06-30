@@ -1,31 +1,39 @@
 ﻿'use client';
 import { useState, useRef, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import { TEACHERS } from '@/lib/data';
+import { useTeachers } from '@/context/TeachersContext';
+import { useCurrentTeacher } from '@/context/CurrentTeacherContext';
 import { User, Phone, BookOpen, Edit3, Save, X, Camera, Award, Hash } from 'lucide-react';
 import { kvGet, kvSet } from '@/lib/supabase/kv';
 
-const teacher = TEACHERS[0];
-const STORAGE_KEY = `teacher_profile_${teacher.id}`;
+type ProfileForm = { phone: string; email: string; address: string; bio: string; };
 
 export default function TeacherProfilePage() {
+  const { teachers } = useTeachers();
+  const { currentTeacherId } = useCurrentTeacher();
+  const teacher = teachers.find(t => t.teacherId === currentTeacherId) ?? teachers[0];
+  const STORAGE_KEY = `teacher_profile_${teacher?.id ?? 'default'}`;
+
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({
-    phone: '01712-987654',
-    email: 'karim.sir@noorislammadrasha.edu.bd',
-    address: 'বাসা: ২৩, মধুপুর সড়ক, কুমিল্লা সদর',
-    bio: 'আরবি ও ইসলামিক স্টাডিজ বিভাগের সিনিয়র শিক্ষক। ১৫ বছরের শিক্ষকতার অভিজ্ঞতা।',
+  const [form, setForm] = useState<ProfileForm>({
+    phone: teacher?.phone ?? '',
+    email: teacher?.email ?? '',
+    address: teacher?.address ?? '',
+    bio: '',
   });
   const [saved, setSaved] = useState(false);
   const [profileImg, setProfileImg] = useState<string | undefined>(undefined);
   const photoRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    kvGet<{ form: typeof form; image?: string }>(STORAGE_KEY).then(data => {
+    if (!teacher?.id) return;
+    kvGet<{ form: ProfileForm; image?: string }>(STORAGE_KEY).then(data => {
       if (data?.form) setForm(data.form);
+      else setForm({ phone: teacher.phone ?? '', email: teacher.email ?? '', address: teacher.address ?? '', bio: '' });
       if (data?.image) setProfileImg(data.image);
     });
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [teacher?.id]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -41,6 +49,8 @@ export default function TeacherProfilePage() {
     setEditing(false);
     setTimeout(() => setSaved(false), 3000);
   };
+
+  if (!teacher) return <div className="p-6 text-gray-400">শিক্ষকের তথ্য পাওয়া যাচ্ছে না।</div>;
 
   return (
     <div>
@@ -77,7 +87,7 @@ export default function TeacherProfilePage() {
                 <span>|</span>
                 <span className="flex items-center gap-1"><Award size={11} /> {teacher.designation}</span>
                 <span>|</span>
-                <span className="flex items-center gap-1"><Hash size={11} /> {teacher.id}</span>
+                <span className="flex items-center gap-1"><Hash size={11} /> {teacher.teacherId}</span>
               </div>
             </div>
             <button
@@ -98,8 +108,8 @@ export default function TeacherProfilePage() {
             </h3>
             <div className="space-y-3">
               {[
-                ['শিক্ষক আইডি', teacher.id],
-                ['বিষয়', teacher.subject],
+                ['শিক্ষক আইডি', teacher.teacherId],
+                ['বিষয়', Array.isArray(teacher.subject) ? teacher.subject.join(', ') : teacher.subject],
                 ['পদবি', teacher.designation],
                 ['বিভাগ', teacher.department],
                 ['যোগদানের তারিখ', teacher.joinDate],

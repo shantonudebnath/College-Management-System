@@ -8,7 +8,7 @@ export default function FaqSection() {
   const [open, setOpen] = useState<string | null>(null);
 
   useEffect(() => {
-    setFaqs(loadWebsiteContent().faq);
+    loadWebsiteContent().then(c => setFaqs(c.faq));
   }, []);
 
   return (

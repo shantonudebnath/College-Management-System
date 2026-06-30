@@ -10,8 +10,7 @@ export default function SliderSection() {
   const [animating, setAnimating] = useState(false);
 
   useEffect(() => {
-    const loaded = loadWebsiteContent().slides;
-    if (loaded?.length) setSlides(loaded);
+    loadWebsiteContent().then(c => { if (c.slides?.length) setSlides(c.slides); });
   }, []);
 
   const go = useCallback((idx: number) => {

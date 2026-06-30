@@ -9,7 +9,7 @@ export default function GallerySection() {
   const [selected, setSelected] = useState<GalleryItem | null>(null);
 
   useEffect(() => {
-    setGallery(loadWebsiteContent().gallery);
+    loadWebsiteContent().then(c => setGallery(c.gallery));
   }, []);
 
   return (

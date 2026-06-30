@@ -18,7 +18,7 @@ export default function StatsSection() {
   const [stats, setStats] = useState(DEFAULT_CONTENT.stats);
 
   useEffect(() => {
-    setStats(loadWebsiteContent().stats);
+    loadWebsiteContent().then(c => setStats(c.stats));
   }, []);
 
   return (

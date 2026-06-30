@@ -11,9 +11,7 @@ export default function HeroSection() {
   const [stats, setStats] = useState(DEFAULT_CONTENT.stats);
 
   useEffect(() => {
-    const c = loadWebsiteContent();
-    setSubtitle(c.heroSubtitle);
-    setStats(c.stats);
+    loadWebsiteContent().then(c => { setSubtitle(c.heroSubtitle); setStats(c.stats); });
   }, []);
 
   const icons = [BookOpen, Award, Users, GraduationCap];

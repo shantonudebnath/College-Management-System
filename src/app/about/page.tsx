@@ -78,7 +78,7 @@ function AboutContent() {
   const active = SECTIONS.some(s => s.id === raw) ? raw : 'about';
 
   useEffect(() => {
-    setAbout(loadWebsiteContent().aboutPage);
+    loadWebsiteContent().then(c => setAbout(c.aboutPage));
   }, []);
 
   const navigate = (id: string) => {

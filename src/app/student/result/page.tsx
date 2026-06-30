@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import { EXAM_RESULTS } from '@/lib/data';
+import { EXAM_RESULTS, COLLEGE_INFO } from '@/lib/data';
 import type { ExamResult } from '@/lib/types';
 import { Award, CheckCircle, Download, Printer, Lock } from 'lucide-react';
 import { useStudentSession } from '@/hooks/useStudentSession';
@@ -22,12 +22,12 @@ async function downloadMarksheetPDF(result: ExamResult) {
   doc.setFontSize(20);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(60, 30, 120);
-  doc.text('Noor-E-Islam Madrasha', pageW / 2, 18, { align: 'center' });
+  doc.text(COLLEGE_INFO.name, pageW / 2, 18, { align: 'center' });
 
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(120, 120, 120);
-  doc.text('Dhaka, Bangladesh | noorislammadrasha.edu.bd', pageW / 2, 24, { align: 'center' });
+  doc.text(`${COLLEGE_INFO.address} | EIIN: ${COLLEGE_INFO.eiin}`, pageW / 2, 24, { align: 'center' });
 
   doc.setFillColor(245, 240, 255);
   doc.roundedRect(14, 28, pageW - 28, 10, 2, 2, 'F');

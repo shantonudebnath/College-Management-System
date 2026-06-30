@@ -86,7 +86,7 @@ export function StudentsProvider({ children }: { children: ReactNode }) {
     const { data, error } = await supabase
       .from('students')
       .select('*')
-      .order('created_ts', { ascending: true });
+      .order('created_at', { ascending: true });
     if (!error && data && data.length > 0) {
       setStudentsState(data.map(fromRow));
     } else if (!error && data && data.length === 0) {

@@ -15,7 +15,7 @@ export default function AdmissionPage() {
 
   const set = (k: keyof typeof EMPTY, v: string) => setForm(p => ({ ...p, [k]: v }));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     const app: AdmissionApplication = {
@@ -24,8 +24,9 @@ export default function AdmissionPage() {
       status: 'pending',
       appliedAt: new Date().toISOString(),
     };
-    saveAdmission(app);
-    setTimeout(() => { setLoading(false); setSubmitted(true); }, 600);
+    await saveAdmission(app);
+    setLoading(false);
+    setSubmitted(true);
   };
 
   if (submitted) {

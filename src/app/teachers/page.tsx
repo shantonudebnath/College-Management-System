@@ -17,7 +17,7 @@ const SECTIONS = [
 
 function PrincipalSection() {
   const [about, setAbout] = useState(DEFAULT_ABOUT);
-  useEffect(() => { setAbout(loadWebsiteContent().aboutPage); }, []);
+  useEffect(() => { loadWebsiteContent().then(c => setAbout(c.aboutPage)); }, []);
 
   const initials = about.principalName
     .replace(/^(মো\.|মোঃ|জনাব|আলহাজ্ব)\s*/i, '')
@@ -125,7 +125,7 @@ function TeacherSection() {
 
 function StaffSection() {
   const [staffList, setStaffList] = useState<StaffMember[]>(DEFAULT_ABOUT.staffList);
-  useEffect(() => { setStaffList(loadWebsiteContent().aboutPage.staffList); }, []);
+  useEffect(() => { loadWebsiteContent().then(c => setStaffList(c.aboutPage.staffList)); }, []);
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -153,7 +153,7 @@ function StaffSection() {
 
 function FoundersSection() {
   const [foundersList, setFoundersList] = useState<FounderMember[]>(DEFAULT_ABOUT.foundersList);
-  useEffect(() => { setFoundersList(loadWebsiteContent().aboutPage.foundersList); }, []);
+  useEffect(() => { loadWebsiteContent().then(c => setFoundersList(c.aboutPage.foundersList)); }, []);
 
   return (
     <div className="max-w-3xl mx-auto space-y-5">

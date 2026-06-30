@@ -18,12 +18,12 @@ export default function AdminAdmissionsPage() {
   const [filter, setFilter] = useState<'all' | 'pending' | 'accepted' | 'rejected'>('all');
   const [selected, setSelected] = useState<AdmissionApplication | null>(null);
 
-  useEffect(() => { setApps(loadAdmissions().sort((a, b) => b.appliedAt.localeCompare(a.appliedAt))); }, []);
+  useEffect(() => { loadAdmissions().then(list => setApps(list.sort((a, b) => b.appliedAt.localeCompare(a.appliedAt)))); }, []);
 
-  const refresh = () => setApps(loadAdmissions().sort((a, b) => b.appliedAt.localeCompare(a.appliedAt)));
+  const refresh = () => loadAdmissions().then(list => setApps(list.sort((a, b) => b.appliedAt.localeCompare(a.appliedAt))));
 
   const handleAccept = async (id: string) => {
-    const app = updateAdmissionStatus(id, 'accepted');
+    const app = await updateAdmissionStatus(id, 'accepted');
     if (!app) return;
     // Auto-add to Supabase students
     const cls = MADRASHA_CLASSES.find(c => c.id === app.applyingClass);
@@ -38,7 +38,7 @@ export default function AdminAdmissionsPage() {
       phone: app.phone,
       address: app.address,
       fatherName: app.fatherName,
-      motherName: '',
+      motherName: app.motherName,
       dob: app.dob,
       studentId: `STD-${new Date().getFullYear()}-${String(Date.now()).slice(-3)}`,
       session: `${new Date().getFullYear()}`,
@@ -51,8 +51,8 @@ export default function AdminAdmissionsPage() {
     setSelected(null);
   };
 
-  const handleReject = (id: string) => {
-    updateAdmissionStatus(id, 'rejected');
+  const handleReject = async (id: string) => {
+    await updateAdmissionStatus(id, 'rejected');
     refresh();
     setSelected(null);
   };

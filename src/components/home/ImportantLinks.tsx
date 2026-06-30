@@ -7,7 +7,7 @@ export default function ImportantLinks() {
   const [links, setLinks] = useState<LinkItem[]>(DEFAULT_CONTENT.importantLinks);
 
   useEffect(() => {
-    setLinks(loadWebsiteContent().importantLinks);
+    loadWebsiteContent().then(c => setLinks(c.importantLinks));
   }, []);
 
   return (

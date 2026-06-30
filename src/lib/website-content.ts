@@ -339,12 +339,10 @@ export const DEFAULT_CONTENT: WebsiteContent = {
   aboutPage: DEFAULT_ABOUT,
 };
 
-export function loadWebsiteContent(): WebsiteContent {
-  if (typeof window === 'undefined') return DEFAULT_CONTENT;
+export async function loadWebsiteContent(): Promise<WebsiteContent> {
   try {
-    const raw = localStorage.getItem(WEBSITE_CONTENT_KEY);
-    if (!raw) return DEFAULT_CONTENT;
-    const stored = JSON.parse(raw) as Partial<WebsiteContent>;
+    const stored = await kvGet<Partial<WebsiteContent>>(WEBSITE_CONTENT_KEY);
+    if (!stored) return DEFAULT_CONTENT;
     return {
       ...DEFAULT_CONTENT,
       ...stored,
@@ -358,8 +356,8 @@ export function loadWebsiteContent(): WebsiteContent {
   } catch { return DEFAULT_CONTENT; }
 }
 
-export function saveWebsiteContent(content: WebsiteContent): void {
-  try { localStorage.setItem(WEBSITE_CONTENT_KEY, JSON.stringify(content)); } catch {}
+export async function saveWebsiteContent(content: WebsiteContent): Promise<void> {
+  await kvSet(WEBSITE_CONTENT_KEY, content);
 }
 
 export interface AdmissionApplication {
@@ -378,21 +376,26 @@ export interface AdmissionApplication {
   appliedAt: string;
 }
 
-export function loadAdmissions(): AdmissionApplication[] {
-  if (typeof window === 'undefined') return [];
-  try { return JSON.parse(localStorage.getItem(ADMISSIONS_KEY) ?? '[]'); } catch { return []; }
+// --- Admissions: Supabase kv_store ---
+import { kvGet, kvSet } from './supabase/kv';
+
+export async function loadAdmissions(): Promise<AdmissionApplication[]> {
+  return (await kvGet<AdmissionApplication[]>(ADMISSIONS_KEY)) ?? [];
 }
 
-export function saveAdmission(app: AdmissionApplication): void {
-  const existing = loadAdmissions().filter(a => a.id !== app.id);
-  localStorage.setItem(ADMISSIONS_KEY, JSON.stringify([...existing, app]));
+export async function saveAdmission(app: AdmissionApplication): Promise<void> {
+  const existing = (await loadAdmissions()).filter(a => a.id !== app.id);
+  await kvSet(ADMISSIONS_KEY, [...existing, app]);
 }
 
-export function updateAdmissionStatus(id: string, status: 'accepted' | 'rejected'): AdmissionApplication | null {
-  const all = loadAdmissions();
+export async function updateAdmissionStatus(
+  id: string,
+  status: 'accepted' | 'rejected'
+): Promise<AdmissionApplication | null> {
+  const all = await loadAdmissions();
   const app = all.find(a => a.id === id);
   if (!app) return null;
   const updated = { ...app, status };
-  localStorage.setItem(ADMISSIONS_KEY, JSON.stringify(all.map(a => a.id === id ? updated : a)));
+  await kvSet(ADMISSIONS_KEY, all.map(a => a.id === id ? updated : a));
   return updated;
 }
