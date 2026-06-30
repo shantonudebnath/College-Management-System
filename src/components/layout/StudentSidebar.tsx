@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Award, CreditCard, IdCard, Calendar, BookOpen, FileDown, Bell, ChevronLeft, ChevronRight, LogOut, ClipboardList, User, CheckSquare, X, LayoutGrid } from 'lucide-react';
+import { LayoutDashboard, Award, CreditCard, IdCard, Calendar, BookOpen, FileDown, Bell, ChevronLeft, ChevronRight, GraduationCap, LogOut, ClipboardList, User, CheckSquare, X, LayoutGrid } from 'lucide-react';
 import Image from 'next/image';
 
 async function localLogout() {
