@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Award, CreditCard, IdCard, Calendar, BookOpen, FileDown, Bell, ChevronLeft, ChevronRight, GraduationCap, LogOut, ClipboardList, User, CheckSquare, X, LayoutGrid } from 'lucide-react';
+import { LayoutDashboard, Award, CreditCard, IdCard, Calendar, BookOpen, FileDown, Bell, ChevronLeft, ChevronRight, LogOut, ClipboardList, User, CheckSquare, X, LayoutGrid } from 'lucide-react';
+import Image from 'next/image';
 
 async function localLogout() {
   await fetch('/api/local-logout', { method: 'POST' });
@@ -32,8 +33,8 @@ function SidebarContent({ collapsed, setCollapsed, onClose }: { collapsed: boole
       <div className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'} p-4 border-b border-gray-100`}>
         {!collapsed && (
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center">
-              <GraduationCap size={16} className="text-white" />
+            <div className="w-8 h-8 rounded-lg overflow-hidden bg-white shrink-0">
+              <Image src="/logo.png" alt="Logo" width={32} height={32} className="object-contain w-full h-full" />
             </div>
             <div>
               <p className="font-bold text-xs text-gray-900 leading-tight">ছাত্র পোর্টাল</p>
@@ -90,9 +91,9 @@ export default function StudentSidebar() {
       {/* Mobile: floating button */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed bottom-5 right-5 z-40 w-13 h-13 gradient-primary rounded-2xl flex items-center justify-center shadow-xl text-white hover:scale-105 transition-transform p-3"
+        className="lg:hidden fixed bottom-5 right-5 z-40 w-12 h-12 rounded-2xl overflow-hidden shadow-xl hover:scale-105 transition-transform bg-white"
       >
-        <GraduationCap size={22} />
+        <Image src="/logo.png" alt="Logo" width={48} height={48} className="object-contain w-full h-full" />
       </button>
 
       {/* Mobile drawer */}

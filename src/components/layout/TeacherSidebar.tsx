@@ -7,7 +7,8 @@ async function localLogout() {
   await fetch('/api/local-logout', { method: 'POST' });
   window.location.href = '/login';
 }
-import { LayoutDashboard, ClipboardList, BarChart2, BookOpen, FileText, HelpCircle, Upload, CreditCard, Bell, UserCheck, ChevronLeft, ChevronRight, GraduationCap, LogOut, User, X, LayoutGrid } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, BarChart2, BookOpen, FileText, HelpCircle, Upload, CreditCard, Bell, UserCheck, ChevronLeft, ChevronRight, LogOut, User, X, LayoutGrid } from 'lucide-react';
+import Image from 'next/image';
 import { useTeachers } from '@/context/TeachersContext';
 import { useCurrentTeacher } from '@/context/CurrentTeacherContext';
 import { MADRASHA_CLASSES } from '@/lib/data';
@@ -80,8 +81,8 @@ function SidebarContent({ collapsed, setCollapsed, onClose }: { collapsed: boole
       <div className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'} p-4 border-b border-gray-100`}>
         {!collapsed && (
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center">
-              <GraduationCap size={16} className="text-white" />
+            <div className="w-8 h-8 rounded-lg overflow-hidden bg-white shrink-0">
+              <Image src="/logo.png" alt="Logo" width={32} height={32} className="object-contain w-full h-full" />
             </div>
             <div>
               <p className="font-bold text-xs text-gray-900 leading-tight">শিক্ষক পোর্টাল</p>
@@ -138,9 +139,9 @@ export default function TeacherSidebar() {
 
       <button
         onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed bottom-5 right-5 z-40 gradient-primary rounded-2xl flex items-center justify-center shadow-xl text-white hover:scale-105 transition-transform p-3"
+        className="lg:hidden fixed bottom-5 right-5 z-40 w-12 h-12 rounded-2xl overflow-hidden shadow-xl hover:scale-105 transition-transform bg-white"
       >
-        <GraduationCap size={22} />
+        <Image src="/logo.png" alt="Logo" width={48} height={48} className="object-contain w-full h-full" />
       </button>
 
       {mobileOpen && (

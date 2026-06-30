@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { GraduationCap, Eye, EyeOff, User, Lock, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, User, Lock, ArrowRight } from 'lucide-react';
+import Image from 'next/image';
 import { COLLEGE_INFO } from '@/lib/data';
 import { createClient } from '@/lib/supabase/client';
 
@@ -70,8 +71,8 @@ export default function LoginPage() {
       <div className="relative z-10 w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-2xl">
-            <GraduationCap size={30} className="text-white" />
+          <div className="w-16 h-16 rounded-2xl overflow-hidden mx-auto mb-4 shadow-2xl bg-white">
+            <Image src="/logo.png" alt="Logo" width={64} height={64} className="object-contain w-full h-full" />
           </div>
           <h1 className="text-white text-2xl font-bold">{COLLEGE_INFO.nameBn}</h1>
           <p className="text-purple-300 text-sm mt-1">{COLLEGE_INFO.name}</p>
