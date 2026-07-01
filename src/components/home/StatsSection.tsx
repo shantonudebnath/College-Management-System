@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { loadWebsiteContent, DEFAULT_CONTENT } from '@/lib/website-content';
-import { Users, BookOpen, Award, Calendar, GraduationCap, Landmark } from 'lucide-react';
+import { Users, GraduationCap, Calendar, Award, BookOpen, Landmark } from 'lucide-react';
 import type { ElementType } from 'react';
 
 function getIcon(label: string): ElementType {
@@ -13,13 +13,13 @@ function getIcon(label: string): ElementType {
   return Landmark;
 }
 
-const PALETTES = [
-  { bg: 'bg-emerald-50', text: 'text-emerald-700', num: 'text-emerald-900' },
-  { bg: 'bg-blue-50', text: 'text-blue-600', num: 'text-blue-900' },
-  { bg: 'bg-amber-50', text: 'text-amber-600', num: 'text-amber-900' },
-  { bg: 'bg-violet-50', text: 'text-violet-600', num: 'text-violet-900' },
-  { bg: 'bg-rose-50', text: 'text-rose-600', num: 'text-rose-900' },
-  { bg: 'bg-cyan-50', text: 'text-cyan-700', num: 'text-cyan-900' },
+const ICON_COLORS = [
+  'text-emerald-300',
+  'text-sky-300',
+  'text-amber-300',
+  'text-violet-300',
+  'text-rose-300',
+  'text-cyan-300',
 ];
 
 export default function StatsSection() {
@@ -27,19 +27,34 @@ export default function StatsSection() {
   useEffect(() => { loadWebsiteContent().then(c => setStats(c.stats)); }, []);
 
   return (
-    <section className="py-16 bg-white">
-      <div className="max-w-7xl mx-auto px-6 lg:px-12">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 lg:gap-8">
+    <section className="bg-gradient-to-r from-[#005528] via-[#006633] to-[#004d26] relative overflow-hidden">
+      {/* dot pattern */}
+      <div
+        className="absolute inset-0 opacity-[0.06]"
+        style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '20px 20px' }}
+      />
+
+      <div className="relative max-w-7xl mx-auto px-4 lg:px-12">
+        <div className="flex flex-wrap sm:flex-nowrap sm:divide-x sm:divide-white/10">
           {stats.map(({ value, label }, i) => {
             const Icon = getIcon(label);
-            const p = PALETTES[i % PALETTES.length];
             return (
-              <div key={label} className="flex flex-col items-center text-center group">
-                <div className={`w-16 h-16 rounded-2xl ${p.bg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200`}>
-                  <Icon size={26} className={p.text} />
-                </div>
-                <span className={`text-3xl md:text-4xl font-black tracking-tight leading-none ${p.num}`}>{value}</span>
-                <span className="text-xs text-gray-500 mt-2 leading-tight font-medium">{label}</span>
+              <div
+                key={label}
+                className={[
+                  'flex flex-col items-center justify-center text-center py-7 px-4 group hover:bg-white/5 transition-colors duration-200 w-1/2 sm:flex-1',
+                  i >= 2 ? 'border-t border-white/10 sm:border-t-0' : '',
+                  i % 2 === 1 ? 'border-l border-white/10' : '',
+                ].filter(Boolean).join(' ')}
+              >
+                <Icon
+                  size={20}
+                  className={`${ICON_COLORS[i % ICON_COLORS.length]} mb-2.5 group-hover:scale-110 transition-transform duration-200`}
+                />
+                <span className="text-3xl md:text-[2.25rem] font-black text-white tracking-tight leading-none">
+                  {value}
+                </span>
+                <span className="text-[11px] text-white/55 mt-1.5 font-medium">{label}</span>
               </div>
             );
           })}
