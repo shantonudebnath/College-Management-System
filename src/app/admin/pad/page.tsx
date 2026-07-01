@@ -18,7 +18,7 @@ const BN_TEMPLATE = `<p style="text-align:center"><strong><u>বিষয়ঃ<
 <p><br></p>
 <p>অতএব, উপরোক্ত বিষয়ে প্রয়োজনীয় ব্যবস্থা গ্রহণের জন্য বিনীত অনুরোধ জানাচ্ছি।</p>
 <p><br></p>
-<p style="text-align:right">বিনীত নিবেদক<br><br><br>________________________<br>অধ্যক্ষ<br>${COLLEGE_INFO.nameBn}</p>`;
+<p style="text-align:right">বিনীত নিবেদক<br><img src="/principal-sign.jpg" style="height:36px;max-width:130px;object-fit:contain;display:inline-block;margin-top:6px;margin-bottom:2px"><br>________________________<br>অধ্যক্ষ<br>${COLLEGE_INFO.nameBn}</p>`;
 
 function fmtDate(iso: string): string {
   if (!iso) return '................................';

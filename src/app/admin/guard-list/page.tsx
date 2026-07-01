@@ -234,7 +234,7 @@ export default function AdminGuardListPage() {
 </table>
 <div class="sig-row">
   <div class="sig-col"><div class="sig-line">পরীক্ষা নিয়ন্ত্রক</div><div class="sig-sub">এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা</div></div>
-  <div class="sig-col"><div class="sig-line">অধ্যক্ষ</div><div class="sig-sub">এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা</div></div>
+  <div class="sig-col"><img src="/principal-sign.jpg" style="height:28px;max-width:120px;object-fit:contain;display:block;margin:0 auto 3px"><div class="sig-line">অধ্যক্ষ</div><div class="sig-sub">এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা</div></div>
 </div>
 <div class="issue">প্রকাশের তারিখ: ${todayBn()}</div>
 </div>
