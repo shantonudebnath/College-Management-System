@@ -16,13 +16,23 @@ export default function WebsiteSettingsPage() {
   const [content, setContent] = useState<WebsiteContent>(DEFAULT_CONTENT);
   const [tab, setTab] = useState<Tab>('hero');
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saveError, setSaveError] = useState('');
 
-  useEffect(() => { loadWebsiteContent().then(setContent); }, []);
+  useEffect(() => {
+    loadWebsiteContent().then(data => { setContent(data); setLoading(false); });
+  }, []);
 
   const handleSave = async () => {
-    await saveWebsiteContent(content);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+    if (loading) return;
+    setSaveError('');
+    try {
+      await saveWebsiteContent(content);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch {
+      setSaveError('সংরক্ষণ ব্যর্থ হয়েছে। ছবি বড় হলে URL ব্যবহার করুন।');
+    }
   };
 
   const set = <K extends keyof WebsiteContent>(k: K, v: WebsiteContent[K]) =>
@@ -69,10 +79,13 @@ export default function WebsiteSettingsPage() {
               </button>
             ))}
           </div>
-          <button onClick={handleSave}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${saved ? 'bg-green-100 text-green-700' : 'btn-primary'}`}>
-            {saved ? <><CheckCircle size={14} /> সংরক্ষিত!</> : <><Save size={14} /> সংরক্ষণ করুন</>}
-          </button>
+          <div className="flex flex-col items-end gap-1">
+            <button onClick={handleSave} disabled={loading}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${saved ? 'bg-green-100 text-green-700' : 'btn-primary'}`}>
+              {loading ? 'লোড হচ্ছে...' : saved ? <><CheckCircle size={14} /> সংরক্ষিত!</> : <><Save size={14} /> সংরক্ষণ করুন</>}
+            </button>
+            {saveError && <p className="text-xs text-red-500">{saveError}</p>}
+          </div>
         </div>
 
         {/* Hero tab */}

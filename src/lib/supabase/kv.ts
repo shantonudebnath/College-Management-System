@@ -13,5 +13,6 @@ export async function kvGet<T>(key: string): Promise<T | null> {
 }
 
 export async function kvSet(key: string, value: unknown): Promise<void> {
-  await supabase.from('kv_store').upsert({ key, value, updated_at: new Date().toISOString() });
+  const { error } = await supabase.from('kv_store').upsert({ key, value, updated_at: new Date().toISOString() });
+  if (error) throw new Error(error.message);
 }
