@@ -1,6 +1,5 @@
 ﻿'use client';
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import { loadWebsiteContent, DEFAULT_CONTENT, type GalleryItem } from '@/lib/website-content';
 import { X, ZoomIn } from 'lucide-react';
 
@@ -42,11 +41,10 @@ export default function GallerySection() {
                     ${isWide ? 'col-span-2 aspect-[16/9]' : isTall ? 'row-span-2 aspect-[4/5]' : 'aspect-square'}
                   `}
                 >
-                  <Image
+                  <img
                     src={item.url}
                     alt={item.caption}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   {/* Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
@@ -74,7 +72,7 @@ export default function GallerySection() {
             className="relative max-w-4xl w-full aspect-video rounded-3xl overflow-hidden shadow-2xl"
             onClick={e => e.stopPropagation()}
           >
-            <Image src={selected.url} alt={selected.caption} fill className="object-cover" />
+            <img src={selected.url} alt={selected.caption} className="absolute inset-0 w-full h-full object-cover" />
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-6 py-5">
               <p className="text-white font-semibold text-sm">{selected.caption}</p>
             </div>
