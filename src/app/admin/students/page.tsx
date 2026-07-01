@@ -99,7 +99,7 @@ export default function AdminStudentsPage() {
       students.forEach(st => {
         if (!existing[st.id]) { existing[st.id] = makeCred(st.studentId, st.roll); updated = true; }
       });
-      if (updated) kvSet('student_credentials', existing);
+      if (updated) kvSet('student_credentials', existing).catch(console.error);
       setCredsMap(existing);
     });
   }, [students]);

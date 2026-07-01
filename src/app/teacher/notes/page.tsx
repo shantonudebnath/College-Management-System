@@ -27,7 +27,7 @@ export default function TeacherNotesPage() {
   }, []);
 
   useEffect(() => {
-    if (notes.length > 0) kvSet('notes_store', notes);
+    if (notes.length > 0) kvSet('notes_store', notes).catch(console.error);
   }, [notes]);
 
   const subjects = (SUBJECTS_BY_CLASS[DEFAULT_CLASS as keyof typeof SUBJECTS_BY_CLASS] ?? []).map((s: { name: string }) => s.name);

@@ -123,14 +123,14 @@ export default function AdminGuardListPage() {
 
   const saveGuards = (data: GuardAssignment[]) => {
     setGuards(data);
-    kvSet(GUARDS_KEY, data);
+    kvSet(GUARDS_KEY, data).catch(console.error);
   };
 
   const saveAvail = (avail: AvailMap) => {
     if (!selectedExamId) return;
     const updated = { ...allAvail, [selectedExamId]: avail };
     setAllAvail(updated);
-    kvSet(AVAIL_KEY, updated);
+    kvSet(AVAIL_KEY, updated).catch(console.error);
   };
 
   const selectedExam = exams.find(e => e.id === selectedExamId);

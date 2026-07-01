@@ -7,6 +7,7 @@ import { Plus, Trash2, Download, X, Calendar, Edit2, Bell, CheckCircle, Lock, Un
 import { useNotices } from '@/context/NoticesContext';
 import { kvGet, kvSet } from '@/lib/supabase/kv';
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
+import { useToast } from '@/components/ui/Toast';
 import { printHtml } from '@/lib/print-utils';
 
 const EXAMS_KEY = 'nim_exams_v1';
@@ -161,6 +162,7 @@ function openPrintWindow(_title: string, html: string) {
 
 export default function AdminExamSchedulePage() {
   const { addNotice } = useNotices();
+  const { toast, ToastEl } = useToast();
   const [exams, setExams] = useState<Exam[]>([]);
   const [entries, setEntries] = useState<ExamEntry[]>([]);
   const [selectedExamId, setSelectedExamId] = useState<string | null>(null);
@@ -190,8 +192,14 @@ export default function AdminExamSchedulePage() {
     });
   }, []);
 
-  const saveExams = (data: Exam[]) => { setExams(data); kvSet(EXAMS_KEY, data); };
-  const saveEntries = (data: ExamEntry[]) => { setEntries(data); kvSet(ENTRIES_KEY, data); };
+  const saveExams = (data: Exam[]) => {
+    setExams(data);
+    kvSet(EXAMS_KEY, data).catch(() => toast('পরীক্ষার তালিকা সংরক্ষণ হয়নি — ইন্টারনেট সংযোগ পরীক্ষা করুন', 'error'));
+  };
+  const saveEntries = (data: ExamEntry[]) => {
+    setEntries(data);
+    kvSet(ENTRIES_KEY, data).catch(() => toast('সময়সূচী সংরক্ষণ হয়নি — ইন্টারনেট সংযোগ পরীক্ষা করুন', 'error'));
+  };
 
   const addExam = () => {
     if (!examForm.name.trim()) return;
@@ -200,7 +208,7 @@ export default function AdminExamSchedulePage() {
     saveExams(next);
     setSelectedExamId(exam.id);
     setShowExamForm(false);
-    setExamForm({ name: '', year: '২০২৪-২৫' });
+    setExamForm({ name: 'অর্ধবার্ষিক পরীক্ষা', year: '২০২৪-২৫' });
     // Auto-notice for new exam
     addNotice({
       id: `n${Date.now()}`,
@@ -223,8 +231,8 @@ export default function AdminExamSchedulePage() {
         createdAt: today,
         specialRecommendations: [],
       }));
-      kvSet('admit_cards_store', [...newCards, ...(existing ?? [])]);
-    });
+      kvSet('admit_cards_store', [...newCards, ...(existing ?? [])]).catch(console.error);
+    }).catch(console.error);
   };
 
   const deleteExam = (id: string) => {
@@ -310,12 +318,12 @@ export default function AdminExamSchedulePage() {
 
   const openMarkSubmission = (exam: Exam) => {
     const val: MarkSubmission = { examId: exam.id, examName: exam.name, year: exam.year };
-    kvSet(MARK_SUBMISSION_KEY, val);
+    kvSet(MARK_SUBMISSION_KEY, val).catch(console.error);
     setMarkSubmission(val);
   };
 
   const closeMarkSubmission = () => {
-    kvSet(MARK_SUBMISSION_KEY, null);
+    kvSet(MARK_SUBMISSION_KEY, null).catch(console.error);
     setMarkSubmission(null);
   };
 
@@ -380,6 +388,7 @@ export default function AdminExamSchedulePage() {
 
   return (
     <div>
+      {ToastEl}
       <DashboardHeader title="পরীক্ষার সময়সূচী" subtitle="পরীক্ষা তৈরি ও সময়সূচী নির্ধারণ" userName="Admin" role="Super Admin" />
       <div className="p-6 space-y-5">
 

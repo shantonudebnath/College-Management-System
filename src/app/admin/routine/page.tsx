@@ -156,7 +156,7 @@ export default function AdminRoutinePage() {
 
   const persist = useCallback((next: MasterRoutine) => {
     setRoutine(next);
-    kvSet(LS_KEY, next);
+    kvSet(LS_KEY, next).catch(console.error);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }, []);

@@ -31,7 +31,7 @@ export default function ClassTeachersPage() {
     const updated = assignments.filter(a => a.classId !== classId);
     if (teacherId) updated.push({ classId, teacherId });
     setAssignments(updated);
-    kvSet(CLASS_TEACHERS_KEY, updated);
+    kvSet(CLASS_TEACHERS_KEY, updated).catch(console.error);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };

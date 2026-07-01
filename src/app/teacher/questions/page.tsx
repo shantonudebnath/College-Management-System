@@ -46,7 +46,7 @@ export default function TeacherQuestionsPage() {
   }, []);
 
   useEffect(() => {
-    if (questions.length > 0) kvSet('question_papers_store', questions);
+    if (questions.length > 0) kvSet('question_papers_store', questions).catch(console.error);
   }, [questions]);
 
   const subjects = (SUBJECTS_BY_CLASS[form.class as keyof typeof SUBJECTS_BY_CLASS] ?? []).map((s: { name: string }) => s.name);

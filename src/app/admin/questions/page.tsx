@@ -37,7 +37,7 @@ export default function AdminQuestionsPage() {
 
   const saveQuestions = (updated: QuestionPaper[]) => {
     setQuestions(updated);
-    kvSet('question_papers_store', updated);
+    kvSet('question_papers_store', updated).catch(console.error);
   };
 
   const getClassName = (id: string) => MADRASHA_CLASSES.find(c => c.id === id)?.nameBn ?? id;

@@ -36,7 +36,7 @@ export default function TeacherSyllabusPage() {
   }, []);
 
   useEffect(() => {
-    if (syllabus.length > 0) kvSet('syllabus_store', syllabus);
+    if (syllabus.length > 0) kvSet('syllabus_store', syllabus).catch(console.error);
   }, [syllabus]);
 
   const subjectsForClass = (classId: string): string[] => {

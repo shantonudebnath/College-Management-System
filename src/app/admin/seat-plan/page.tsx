@@ -387,8 +387,8 @@ export default function SeatPlanPage() {
     });
   }, []);
 
-  const saveHalls = (data: Hall[]) => { setHalls(data); kvSet(HALLS_KEY, data); };
-  const saveSeats = (data: SeatAssignment[]) => { setSeats(data); kvSet(SEATS_KEY, data); };
+  const saveHalls = (data: Hall[]) => { setHalls(data); kvSet(HALLS_KEY, data).catch(console.error); };
+  const saveSeats = (data: SeatAssignment[]) => { setSeats(data); kvSet(SEATS_KEY, data).catch(console.error); };
 
   const selectedExam = exams.find(e => e.id === selectedExamId);
   const examHalls = halls.filter(h => h.examId === selectedExamId);

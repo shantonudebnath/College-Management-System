@@ -73,7 +73,7 @@ export default function AdminAttendancePage() {
 
   const saveHolidays = useCallback((h: Set<string>) => {
     setHolidays(h);
-    kvSet(HOLIDAYS_KEY, [...h]);
+    kvSet(HOLIDAYS_KEY, [...h]).catch(console.error);
   }, []);
 
   const isHoliday = useCallback((day: number, month = selectedMonth, year = selectedYear): boolean => {

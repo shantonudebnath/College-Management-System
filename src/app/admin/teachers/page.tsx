@@ -63,7 +63,7 @@ export default function AdminTeachersPage() {
       for (const t of teachers) {
         updated[t.id] = makeTchCred(t.teacherId);
       }
-      kvSet('teacher_credentials', updated);
+      kvSet('teacher_credentials', updated).catch(console.error);
       setCredsMap(updated);
     });
   }, [teachers]);
@@ -163,7 +163,7 @@ export default function AdminTeachersPage() {
       const newCreds = { ...credsMap, [t.id]: cred };
       setTeachers([...teachers, t]);
       setCredsMap(newCreds);
-      kvSet('teacher_credentials', newCreds);
+      kvSet('teacher_credentials', newCreds).catch(console.error);
       await createSupabaseUser(t.teacherId, cred.password, 'teacher');
       setCreating(false);
       setShowForm(false); setForm({ ...emptyForm }); setEditId(null);

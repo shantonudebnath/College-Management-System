@@ -61,7 +61,7 @@ export default function AdminAdmitCardsPage() {
 
   useEffect(() => {
     if (!cardsLoaded.current) { cardsLoaded.current = true; return; }
-    kvSet('admit_cards_store', cards);
+    kvSet('admit_cards_store', cards).catch(console.error);
   }, [cards]);
 
   useEffect(() => {
