@@ -194,11 +194,19 @@ export default function AdminExamSchedulePage() {
 
   const saveExams = (data: Exam[]) => {
     setExams(data);
-    kvSet(EXAMS_KEY, data).catch(() => toast('পরীক্ষার তালিকা সংরক্ষণ হয়নি — ইন্টারনেট সংযোগ পরীক্ষা করুন', 'error'));
+    kvSet(EXAMS_KEY, data).catch((err: unknown) => {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error('[saveExams] Supabase error:', msg);
+      toast(`সংরক্ষণ ব্যর্থ: ${msg}`, 'error');
+    });
   };
   const saveEntries = (data: ExamEntry[]) => {
     setEntries(data);
-    kvSet(ENTRIES_KEY, data).catch(() => toast('সময়সূচী সংরক্ষণ হয়নি — ইন্টারনেট সংযোগ পরীক্ষা করুন', 'error'));
+    kvSet(ENTRIES_KEY, data).catch((err: unknown) => {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error('[saveEntries] Supabase error:', msg);
+      toast(`সংরক্ষণ ব্যর্থ: ${msg}`, 'error');
+    });
   };
 
   const addExam = () => {
