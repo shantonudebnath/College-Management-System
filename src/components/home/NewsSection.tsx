@@ -2,10 +2,7 @@
 import Link from 'next/link';
 import { NOTICES, COLLEGE_INFO } from '@/lib/data';
 import { useNotices } from '@/context/NoticesContext';
-import {
-  Bell, BookOpen, FileText, Users, ChevronRight,
-  AlertCircle, Phone, MapPin, Mail,
-} from 'lucide-react';
+import { Bell, BookOpen, FileText, Users, ChevronRight, AlertCircle, Phone, MapPin, Mail } from 'lucide-react';
 
 const QUICK_LINKS = [
   {
@@ -13,55 +10,37 @@ const QUICK_LINKS = [
     desc: 'রোল নম্বর দিয়ে ফলাফল দেখুন',
     href: '/result',
     icon: BookOpen,
-    accent: 'border-t-4 border-[#006633]',
-    iconBg: 'bg-[#e8f5ee]',
-    iconColor: 'text-[#006633]',
+    color: 'from-[#006633] to-[#004d26]',
   },
   {
     label: 'ভর্তি আবেদন',
     desc: 'অনলাইনে ভর্তির আবেদন করুন',
     href: '/admission',
     icon: FileText,
-    accent: 'border-t-4 border-[#c8102e]',
-    iconBg: 'bg-red-50',
-    iconColor: 'text-[#c8102e]',
+    color: 'from-[#c8102e] to-[#9e0a22]',
   },
   {
     label: 'শিক্ষক পরিচিতি',
     desc: 'শিক্ষক মণ্ডলীর তালিকা দেখুন',
     href: '/teachers',
     icon: Users,
-    accent: 'border-t-4 border-[#005522]',
-    iconBg: 'bg-[#e8f5ee]',
-    iconColor: 'text-[#005522]',
+    color: 'from-[#1d4ed8] to-[#1e3a8a]',
   },
   {
     label: 'সকল নোটিশ',
     desc: 'সব ধরনের বিজ্ঞপ্তি দেখুন',
     href: '/notice',
     icon: Bell,
-    accent: 'border-t-4 border-amber-600',
-    iconBg: 'bg-amber-50',
-    iconColor: 'text-amber-700',
+    color: 'from-[#b45309] to-[#78350f]',
   },
 ];
 
-const TYPE_BORDER: Record<string, string> = {
-  exam:    'border-l-[#006633]   bg-green-50/40',
-  fee:     'border-l-amber-500   bg-amber-50/40',
-  result:  'border-l-emerald-600 bg-emerald-50/40',
-  holiday: 'border-l-[#c8102e]   bg-red-50/40',
-  general: 'border-l-gray-400    bg-gray-50/40',
-};
-const TYPE_BADGE: Record<string, string> = {
-  exam:    'bg-[#e8f5ee] text-[#005522]',
-  fee:     'bg-amber-100 text-amber-700',
-  result:  'bg-emerald-100 text-emerald-700',
-  holiday: 'bg-red-50 text-[#c8102e]',
-  general: 'bg-gray-100 text-gray-600',
-};
-const TYPE_LABELS: Record<string, string> = {
-  exam: 'পরীক্ষা', fee: 'ফি', result: 'ফলাফল', holiday: 'ছুটি', general: 'সাধারণ',
+const TYPE_CONFIG: Record<string, { border: string; badge: string; dot: string; label: string }> = {
+  exam:    { border: 'border-l-[#006633]', badge: 'bg-green-50 text-[#005522]', dot: 'bg-[#006633]', label: 'পরীক্ষা' },
+  fee:     { border: 'border-l-amber-500', badge: 'bg-amber-50 text-amber-700', dot: 'bg-amber-500', label: 'ফি' },
+  result:  { border: 'border-l-blue-500',  badge: 'bg-blue-50 text-blue-700',   dot: 'bg-blue-500',  label: 'ফলাফল' },
+  holiday: { border: 'border-l-[#c8102e]', badge: 'bg-red-50 text-[#c8102e]',  dot: 'bg-[#c8102e]', label: 'ছুটি' },
+  general: { border: 'border-l-gray-300',  badge: 'bg-gray-50 text-gray-600',   dot: 'bg-gray-400',  label: 'সাধারণ' },
 };
 
 export default function NewsSection() {
@@ -69,117 +48,134 @@ export default function NewsSection() {
   const notices = (liveNotices.length > 0 ? liveNotices : NOTICES).slice(0, 6);
 
   return (
-    <section className="py-16 bg-white">
-      <div className="max-w-7xl mx-auto px-4">
+    <section className="py-16 bg-[#f8faf8]">
+      <div className="max-w-7xl mx-auto px-6 lg:px-12">
 
-        {/* ── Quick Links ── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-14">
-          {QUICK_LINKS.map(({ label, desc, href, icon: Icon, accent, iconBg, iconColor }) => (
-            <Link
-              key={href}
-              href={href}
-              className={`group bg-white rounded-xl p-6 shadow-sm border border-gray-100 ${accent} hover:shadow-md transition-all flex flex-col gap-4`}
-            >
-              <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${iconBg} group-hover:scale-110 transition-transform`}>
-                <Icon size={22} className={iconColor} />
+        {/* Quick Links */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-14">
+          {QUICK_LINKS.map(({ label, desc, href, icon: Icon, color }) => (
+            <Link key={href} href={href}
+              className="group relative overflow-hidden rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+              <div className={`bg-gradient-to-br ${color} p-6 h-full flex flex-col gap-3`}>
+                <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Icon size={20} className="text-white" />
+                </div>
+                <div>
+                  <p className="font-bold text-white text-sm leading-tight">{label}</p>
+                  <p className="text-white/65 text-xs mt-1 leading-snug">{desc}</p>
+                </div>
+                <ChevronRight size={14} className="text-white/40 group-hover:text-white group-hover:translate-x-1 transition-all self-end mt-auto" />
               </div>
-              <div>
-                <p className="font-bold text-gray-900 text-[15px] leading-tight">{label}</p>
-                <p className="text-xs text-gray-500 mt-1 leading-snug">{desc}</p>
-              </div>
-              <ChevronRight size={15} className="text-gray-300 group-hover:text-[#006633] transition-colors self-end" />
             </Link>
           ))}
         </div>
 
-        {/* ── Notice Board + Sidebar ── */}
+        {/* Notice Board + Sidebar */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
           {/* Notice List */}
           <div className="lg:col-span-2">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <span className="w-1 h-6 bg-[#006633] rounded-full inline-block" />
+              <h2 className="text-xl font-black text-gray-900 flex items-center gap-3">
+                <span className="w-1.5 h-7 bg-[#006633] rounded-full inline-block" />
                 নোটিশ বোর্ড
               </h2>
-              <Link href="/notice" className="text-xs font-semibold text-[#006633] hover:underline flex items-center gap-1">
+              <Link href="/notice"
+                className="text-xs font-semibold text-[#006633] hover:underline flex items-center gap-1">
                 সব নোটিশ <ChevronRight size={13} />
               </Link>
             </div>
 
-            <div className="divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden">
-              {notices.map(notice => (
-                <div
-                  key={notice.id}
-                  className={`flex items-start gap-4 px-5 py-4 border-l-4 ${TYPE_BORDER[notice.type] ?? TYPE_BORDER.general} hover:brightness-95 transition-all group`}
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      {notice.isImportant && <AlertCircle size={11} className="text-[#c8102e] shrink-0" />}
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${TYPE_BADGE[notice.type] ?? TYPE_BADGE.general}`}>
-                        {TYPE_LABELS[notice.type]}
-                      </span>
-                      <span className="text-[10px] text-gray-400">{notice.date}</span>
+            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+              {notices.map((notice, i) => {
+                const cfg = TYPE_CONFIG[notice.type] ?? TYPE_CONFIG.general;
+                return (
+                  <div key={notice.id}
+                    className={`flex items-start gap-4 px-5 py-4 border-l-4 ${cfg.border} ${i < notices.length - 1 ? 'border-b border-gray-50' : ''} hover:bg-gray-50/80 transition-colors group`}>
+                    <div className={`w-2 h-2 rounded-full ${cfg.dot} mt-2 shrink-0`} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        {notice.isImportant && <AlertCircle size={11} className="text-[#c8102e] shrink-0" />}
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${cfg.badge}`}>{cfg.label}</span>
+                        <span className="text-[10px] text-gray-400">{notice.date}</span>
+                      </div>
+                      <h3 className="text-sm font-semibold text-gray-900 group-hover:text-[#006633] transition-colors line-clamp-1">
+                        {notice.title}
+                      </h3>
+                      <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{notice.content}</p>
                     </div>
-                    <h3 className="text-sm font-semibold text-gray-900 group-hover:text-[#006633] transition-colors line-clamp-1">
-                      {notice.title}
-                    </h3>
-                    <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{notice.content}</p>
+                    <ChevronRight size={14} className="text-gray-200 group-hover:text-[#006633] transition-colors shrink-0 mt-1.5" />
                   </div>
-                  <ChevronRight size={14} className="text-gray-300 group-hover:text-[#006633] transition-colors shrink-0 mt-1" />
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="mt-4 text-center">
-              <Link
-                href="/notice"
-                className="inline-flex items-center gap-2 text-sm font-semibold text-[#006633] border border-[#006633]/30 px-5 py-2 rounded-lg hover:bg-[#e8f5ee] transition-colors"
-              >
+              <Link href="/notice"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-[#006633] border border-[#006633]/30 px-6 py-2.5 rounded-xl hover:bg-[#e8f5ee] transition-colors">
                 <Bell size={14} /> সকল নোটিশ দেখুন
               </Link>
             </div>
           </div>
 
           {/* Sidebar */}
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-4">
 
-            {/* Contact Card */}
-            <div className="bg-[#006633] rounded-xl p-6 text-white">
-              <p className="text-[11px] font-semibold text-green-200 uppercase tracking-widest mb-3">যোগাযোগ করুন</p>
-              <p className="font-bold text-base leading-snug mb-4">{COLLEGE_INFO.nameBn}</p>
-              <div className="space-y-3 text-sm">
-                <div className="flex items-start gap-2.5 text-white/75">
-                  <Phone size={13} className="text-green-300 mt-0.5 shrink-0" />
-                  <span className="text-xs leading-snug">{COLLEGE_INFO.phone}</span>
-                </div>
-                <div className="flex items-start gap-2.5 text-white/75">
-                  <Mail size={13} className="text-green-300 mt-0.5 shrink-0" />
-                  <span className="text-xs leading-snug break-all">{COLLEGE_INFO.email}</span>
-                </div>
-                <div className="flex items-start gap-2.5 text-white/75">
-                  <MapPin size={13} className="text-green-300 mt-0.5 shrink-0" />
-                  <span className="text-xs leading-snug">{COLLEGE_INFO.address}</span>
+            {/* Contact */}
+            <div className="bg-[#006633] rounded-2xl p-6 text-white">
+              <p className="text-[11px] font-bold text-green-300 uppercase tracking-widest mb-3">যোগাযোগ করুন</p>
+              <p className="font-bold text-base leading-snug mb-5">{COLLEGE_INFO.nameBn}</p>
+              <div className="space-y-3.5">
+                <a href={`tel:${COLLEGE_INFO.phone}`} className="flex items-center gap-3 group">
+                  <div className="w-8 h-8 bg-white/15 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-white/25 transition-colors">
+                    <Phone size={13} className="text-green-300" />
+                  </div>
+                  <span className="text-xs text-white/80 group-hover:text-white transition-colors">{COLLEGE_INFO.phone}</span>
+                </a>
+                <a href={`mailto:${COLLEGE_INFO.email}`} className="flex items-center gap-3 group">
+                  <div className="w-8 h-8 bg-white/15 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-white/25 transition-colors">
+                    <Mail size={13} className="text-green-300" />
+                  </div>
+                  <span className="text-xs text-white/80 group-hover:text-white transition-colors break-all">{COLLEGE_INFO.email}</span>
+                </a>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-white/15 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                    <MapPin size={13} className="text-green-300" />
+                  </div>
+                  <span className="text-xs text-white/80 leading-relaxed">{COLLEGE_INFO.address}</span>
                 </div>
               </div>
             </div>
 
-            {/* EIIN Info */}
-            <div className="bg-[#e8f5ee] border border-[#006633]/20 rounded-xl p-5">
-              <p className="text-xs font-semibold text-[#005522] uppercase tracking-widest mb-3">প্রতিষ্ঠান তথ্য</p>
-              <div className="space-y-2.5">
+            {/* Institution Info */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+              <p className="text-xs font-bold text-[#006633] uppercase tracking-widest mb-4">প্রতিষ্ঠান তথ্য</p>
+              <div className="space-y-3">
                 {[
-                  { label: 'EIIN নম্বর',      value: COLLEGE_INFO.eiin },
-                  { label: 'প্রতিষ্ঠা সাল',   value: COLLEGE_INFO.established },
-                  { label: 'শিক্ষা বোর্ড',    value: COLLEGE_INFO.board },
+                  { label: 'EIIN নম্বর', value: COLLEGE_INFO.eiin },
+                  { label: 'প্রতিষ্ঠা সাল', value: COLLEGE_INFO.established },
+                  { label: 'শিক্ষা বোর্ড', value: COLLEGE_INFO.board },
                 ].map(({ label, value }) => (
-                  <div key={label} className="flex justify-between items-start gap-2">
-                    <span className="text-[11px] text-gray-600">{label}</span>
-                    <span className="text-[11px] font-semibold text-[#005522] text-right">{value}</span>
+                  <div key={label} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                    <span className="text-xs text-gray-500">{label}</span>
+                    <span className="text-xs font-bold text-[#004d26] bg-green-50 px-2.5 py-0.5 rounded-full">{value}</span>
                   </div>
                 ))}
               </div>
             </div>
+
+            {/* Result Quick Action */}
+            <Link href="/result"
+              className="group flex items-center gap-4 bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:border-[#006633]/30 hover:shadow-md transition-all">
+              <div className="w-12 h-12 bg-[#e8f5ee] rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                <BookOpen size={20} className="text-[#006633]" />
+              </div>
+              <div className="flex-1">
+                <p className="font-bold text-gray-900 text-sm">পরীক্ষার ফলাফল</p>
+                <p className="text-xs text-gray-500 mt-0.5">রোল নম্বর দিয়ে দেখুন</p>
+              </div>
+              <ChevronRight size={16} className="text-gray-300 group-hover:text-[#006633] transition-colors" />
+            </Link>
 
           </div>
         </div>

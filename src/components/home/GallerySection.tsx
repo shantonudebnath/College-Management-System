@@ -28,6 +28,14 @@ export default function GallerySection() {
         </div>
 
         {/* Staggered Grid */}
+        {gallery.length === 0 && (
+          <div className="text-center py-16 text-gray-400">
+            <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+              <ZoomIn size={24} className="text-gray-300" />
+            </div>
+            <p className="text-sm">Admin → Website Settings → গ্যালারি থেকে ছবি যোগ করুন</p>
+          </div>
+        )}
         {gallery.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {gallery.map((item, i) => {
