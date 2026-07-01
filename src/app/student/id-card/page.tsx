@@ -208,7 +208,7 @@ export default function StudentIdCardPage() {
               <div style={{ textAlign: 'center', fontSize: '5.5pt', color: '#6b7280' }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/principal-sign.png"
+                  src="/principal-sign.jpg"
                   alt=""
                   style={{ height: '8mm', maxWidth: '24mm', objectFit: 'contain', display: 'block', margin: '0 auto' }}
                   onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}

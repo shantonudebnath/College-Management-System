@@ -205,7 +205,7 @@ html,body{width:210mm;background:#fff;font-family:'Noto Serif Bengali','Vrinda',
           তারিখ: ${f.issueDate}
         </div>
         <div class="sig-wrap">
-          <div class="sig-space"></div>
+          <img src="/principal-sign.jpg" style="height:18mm;max-width:55mm;object-fit:contain;display:block;margin:0 auto">
           <div class="sig-line">অধ্যক্ষ / প্রধান শিক্ষক</div>
           <div class="sig-sub">${COLLEGE_INFO.nameBn}</div>
         </div>
@@ -281,7 +281,8 @@ function CertPreview({ f }: { f: CertForm }) {
               তারিখ: {f.issueDate}
             </div>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ height: '48px' }} />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/principal-sign.jpg" alt="" style={{ height: '48px', maxWidth: '160px', objectFit: 'contain', display: 'block', margin: '0 auto' }} />
               <div style={{ borderTop: '1.5px solid #0d47a1', paddingTop: '6px', fontWeight: 700, fontSize: '12px', minWidth: '160px' }}>অধ্যক্ষ / প্রধান শিক্ষক</div>
               <div style={{ fontSize: '10px', color: '#555', marginTop: '3px' }}>{COLLEGE_INFO.nameBn}</div>
             </div>

@@ -157,7 +157,7 @@ function printResultSheet(results: ExamResult[], examName: string, classLabel: s
 </table>
 <div class="footer">
   <div class="sig"><div class="sig-line">পরীক্ষা নিয়ন্ত্রক</div><div class="sig-sub">${COLLEGE_INFO.nameBn}</div></div>
-  <div class="sig"><div class="sig-line">প্রধান শিক্ষক / অধ্যক্ষ</div><div class="sig-sub">${COLLEGE_INFO.nameBn}</div></div>
+  <div class="sig"><img src="/principal-sign.jpg" style="height:30px;max-width:120px;object-fit:contain;display:block;margin:0 auto 3px"><div class="sig-line">প্রধান শিক্ষক / অধ্যক্ষ</div><div class="sig-sub">${COLLEGE_INFO.nameBn}</div></div>
 </div>
 <div class="watermark">${COLLEGE_INFO.name} | এই ফলাফল শুধুমাত্র অভ্যন্তরীণ ব্যবহারের জন্য</div>
 </body></html>`;

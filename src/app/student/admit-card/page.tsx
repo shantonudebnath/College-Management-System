@@ -290,6 +290,8 @@ export default function AdmitCardPage() {
                     <div className="w-28 border-t border-gray-400 pt-1">শিক্ষার্থীর স্বাক্ষর</div>
                   </div>
                   <div className="text-center text-xs text-gray-400">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/principal-sign.jpg" alt="" style={{ height: '28px', maxWidth: '112px', objectFit: 'contain', display: 'block', margin: '0 auto 2px' }} />
                     <div className="w-28 border-t border-gray-400 pt-1">প্রধান শিক্ষকের স্বাক্ষর</div>
                   </div>
                 </div>
