@@ -116,8 +116,26 @@ export default function WebsiteSettingsPage() {
                     <input value={slide.tag} onChange={e => updateSlide(i, { tag: e.target.value })} className={inp} placeholder="যেমন: ভর্তি চলছে — ২০২৬" />
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">ছবির URL</label>
-                    <input value={slide.photo} onChange={e => updateSlide(i, { photo: e.target.value })} className={inp} placeholder="/hero-1.jpg বা https://..." />
+                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">ব্যাকগ্রাউন্ড ছবি</label>
+                    <div className="flex gap-2">
+                      <input value={slide.photo} onChange={e => updateSlide(i, { photo: e.target.value })} className={`flex-1 ${inp}`} placeholder="/hero-1.jpg বা https://..." />
+                      <label className="flex items-center gap-1 px-3 py-2 bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-xl text-xs font-semibold cursor-pointer border border-purple-200 shrink-0">
+                        <Upload size={12} /> আপলোড
+                        <input type="file" accept="image/*" className="sr-only"
+                          onChange={e => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const reader = new FileReader();
+                            reader.onload = ev => updateSlide(i, { photo: ev.target?.result as string });
+                            reader.readAsDataURL(file);
+                          }} />
+                      </label>
+                    </div>
+                    {slide.photo && (
+                      <div className="mt-2 relative w-full h-24 rounded-xl overflow-hidden border border-gray-200 bg-gray-100">
+                        <img src={slide.photo} alt="preview" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div>
