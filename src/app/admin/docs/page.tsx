@@ -3,6 +3,7 @@ import { useState, useRef } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { FolderOpen, FileText, Upload, Trash2, Download, X } from 'lucide-react';
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
+import { useToast } from '@/components/ui/Toast';
 
 interface Doc { id: string; name: string; type: string; size: string; date: string; category: string; fileData?: string; fileName?: string; }
 
@@ -27,6 +28,7 @@ export default function AdminDocsPage() {
   const [pickedFile, setPickedFile] = useState<{ name: string; data: string; size: string; type: string } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const { toast, ToastEl } = useToast();
 
   const handleFilePick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -60,7 +62,7 @@ export default function AdminDocsPage() {
 
   const handleDownload = (doc: Doc) => {
     if (!doc.fileData) {
-      alert('এই ডকুমেন্টে কোনো ফাইল সংযুক্ত নেই।');
+      toast('এই ডকুমেন্টে কোনো ফাইল সংযুক্ত নেই।', 'error');
       return;
     }
     const a = document.createElement('a');
@@ -71,6 +73,7 @@ export default function AdminDocsPage() {
 
   return (
     <div>
+      {ToastEl}
       <DashboardHeader title="ডকুমেন্ট স্টোর" subtitle="গুরুত্বপূর্ণ নথিপত্র সংরক্ষণ ও পরিচালনা" userName="Admin" role="Super Admin" />
       <div className="p-6 space-y-5">
         <button onClick={() => setShowUpload(!showUpload)} className="flex items-center gap-2 btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold">

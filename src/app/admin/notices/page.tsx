@@ -5,9 +5,11 @@ import { useNotices } from '@/context/NoticesContext';
 import { Bell, Plus, Trash2, Edit, AlertCircle, Send, Paperclip, X } from 'lucide-react';
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
 import type { Notice } from '@/lib/types';
+import { useToast } from '@/components/ui/Toast';
 
 export default function AdminNoticesPage() {
   const { notices, addNotice, updateNotice, deleteNotice } = useNotices();
+  const { toast, ToastEl } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [editTarget, setEditTarget] = useState<Notice | null>(null);
   const [form, setForm] = useState({ title: '', content: '', type: 'general', target: 'all', isImportant: false });
@@ -18,7 +20,7 @@ export default function AdminNoticesPage() {
     const file = e.target.files?.[0];
     if (!file) { setAttachFile(null); return; }
     if (file.size > 512 * 1024) {
-      alert('ফাইল সাইজ ৫০০KB এর বেশি হতে পারবে না।');
+      toast('ফাইল সাইজ ৫০০KB এর বেশি হতে পারবে না।', 'error');
       e.target.value = '';
       return;
     }
@@ -75,6 +77,7 @@ export default function AdminNoticesPage() {
 
   return (
     <div>
+      {ToastEl}
       <DashboardHeader title="নোটিশ ব্যবস্থাপনা" subtitle="নোটিশ তৈরি ও পরিচালনা করুন" userName="Admin" role="Super Admin" />
       <div className="p-6 space-y-5">
         <button onClick={openAdd} className="flex items-center gap-2 btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold">

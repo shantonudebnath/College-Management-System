@@ -5,6 +5,7 @@ import { EXAM_RESULTS, MADRASHA_CLASSES, COLLEGE_INFO, STUDENTS } from '@/lib/da
 import { getGradeInfo } from '@/lib/result-utils';
 import type { ExamResult, SubjectResult, Student } from '@/lib/types';
 import { Award, CheckCircle, Download, Printer, Search, EyeOff, Lock, Unlock, ChevronDown, BarChart3, Shuffle, Users } from 'lucide-react';
+import { useToast } from '@/components/ui/Toast';
 import { useNotices } from '@/context/NoticesContext';
 import { useResults } from '@/context/ResultsContext';
 import { useStudents } from '@/context/StudentsContext';
@@ -284,6 +285,7 @@ export default function AdminResultsPage() {
   const { addNotice } = useNotices();
   const { results: storedResults, publishedExams, publishExam, unpublishExam, setResults } = useResults();
   const { students, setStudents } = useStudents();
+  const { toast, ToastEl } = useToast();
   const [yearFilter, setYearFilter]         = useState('');
   const [examFilter, setExamFilter]         = useState('');
   const [classFilter, setClassFilter]       = useState('');
@@ -374,7 +376,7 @@ export default function AdminResultsPage() {
     if (!yearFilter) return;
     const barCount = allResults.filter(r => r.examName === BAR_EXAM && r.year === yearFilter).length;
     if (barCount === 0) {
-      alert(`${yearFilter} সালের বার্ষিক পরীক্ষার কোনো ফলাফল পাওয়া যায়নি।`);
+      toast(`${yearFilter} সালের বার্ষিক পরীক্ষার কোনো ফলাফল পাওয়া যায়নি।`, 'error');
       return;
     }
     const odbCount = allResults.filter(r => r.examName === ODB_EXAM && r.year === yearFilter).length;
@@ -386,7 +388,7 @@ export default function AdminResultsPage() {
     const cleaned = storedResults.filter(r => !(r.examName === FINAL_EXAM && r.year === yearFilter));
     await setResults([...cleaned, ...finals]);
     setExamFilter(FINAL_EXAM);
-    alert(`${finals.length} জনের চূড়ান্ত বার্ষিক ফলাফল তৈরি হয়েছে (অর্ধবার্ষিক + বার্ষিক গড়)।`);
+    toast(`${finals.length} জনের চূড়ান্ত বার্ষিক ফলাফল তৈরি হয়েছে (অর্ধবার্ষিক + বার্ষিক গড়)।`, 'success');
   };
 
   // ── Auto-assign rolls based on year final result ────────────────────────────
@@ -394,7 +396,7 @@ export default function AdminResultsPage() {
     if (!yearFilter) return;
     const finals = allResults.filter(r => r.examName === FINAL_EXAM && r.year === yearFilter);
     if (finals.length === 0) {
-      alert('চূড়ান্ত ফলাফল নেই। আগে চূড়ান্ত ফলাফল তৈরি করুন।');
+      toast('চূড়ান্ত ফলাফল নেই। আগে চূড়ান্ত ফলাফল তৈরি করুন।', 'error');
       return;
     }
     const go = confirm(`${yearFilter} সালের চূড়ান্ত ফলাফল অনুযায়ী ${finals.length} জনের রোল নম্বর পুনর্বণ্টন করবেন?\n\n(GPA → শতকরা → পুরনো রোল অনুযায়ী ক্রম, সর্বোচ্চ থেকে সর্বনিম্ন)`);
@@ -418,7 +420,7 @@ export default function AdminResultsPage() {
     }
 
     await setStudents(updated);
-    alert(`${finals.length} জন শিক্ষার্থীর নতুন রোল বণ্টন সম্পন্ন হয়েছে।`);
+    toast(`${finals.length} জন শিক্ষার্থীর নতুন রোল বণ্টন সম্পন্ন হয়েছে।`, 'success');
   };
 
   const classLabel = classFilter
@@ -438,6 +440,7 @@ export default function AdminResultsPage() {
 
   return (
     <div>
+      {ToastEl}
       <DashboardHeader
         title="ফলাফল ব্যবস্থাপনা"
         subtitle="পরীক্ষার ফলাফল পর্যালোচনা, প্রকাশ ও প্রিন্ট"

@@ -5,6 +5,7 @@ import { MADRASHA_CLASSES, SUBJECTS_BY_CLASS } from '@/lib/data';
 import { HelpCircle, Plus, Send, Trash2, Lock, FileText, Upload, Eye, X, Download, ChevronDown } from 'lucide-react';
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
 import { kvGet, kvSet } from '@/lib/supabase/kv';
+import { useToast } from '@/components/ui/Toast';
 
 interface QuestionPaper {
   id: string;
@@ -36,6 +37,7 @@ export default function TeacherQuestionsPage() {
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const { toast, ToastEl } = useToast();
 
   useEffect(() => {
     kvGet<QuestionPaper[]>('question_papers_store').then(data => {
@@ -53,7 +55,7 @@ export default function TeacherQuestionsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.type !== 'application/pdf') {
-      alert('শুধুমাত্র PDF ফাইল আপলোড করুন।');
+      toast('শুধুমাত্র PDF ফাইল আপলোড করুন।', 'error');
       return;
     }
     setUploading(true);
@@ -102,6 +104,7 @@ export default function TeacherQuestionsPage() {
 
   return (
     <div>
+      {ToastEl}
       <DashboardHeader title="প্রশ্নপত্র দাখিল" subtitle="পরীক্ষার প্রশ্নপত্র PDF আপলোড করুন" userName="Md. Shafiqul Islam" role="শিক্ষক" />
       <div className="p-6 space-y-5">
 
