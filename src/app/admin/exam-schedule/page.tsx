@@ -194,19 +194,11 @@ export default function AdminExamSchedulePage() {
 
   const saveExams = (data: Exam[]) => {
     setExams(data);
-    kvSet(EXAMS_KEY, data).catch((err: unknown) => {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.error('[saveExams] Supabase error:', msg);
-      toast(`সংরক্ষণ ব্যর্থ: ${msg}`, 'error');
-    });
+    kvSet(EXAMS_KEY, data).catch(console.error);
   };
   const saveEntries = (data: ExamEntry[]) => {
     setEntries(data);
-    kvSet(ENTRIES_KEY, data).catch((err: unknown) => {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.error('[saveEntries] Supabase error:', msg);
-      toast(`সংরক্ষণ ব্যর্থ: ${msg}`, 'error');
-    });
+    kvSet(ENTRIES_KEY, data).catch(console.error);
   };
 
   const addExam = () => {

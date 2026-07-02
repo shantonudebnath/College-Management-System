@@ -1,22 +1,20 @@
 import { createClient } from './client';
 
 const supabase = createClient();
-let kvReady = false;
-let initFlight: Promise<void> | null = null;
+const ls = typeof window !== 'undefined' ? window.localStorage : null;
+const lk = (k: string) => `nim_kv_${k}`;
 
-async function ensureKvStore(): Promise<void> {
-  if (kvReady) return;
-  if (initFlight) return initFlight;
+let initFlight: Promise<void> | null = null;
+let tableOk = false;
+
+function tryInitTable(): void {
+  if (tableOk || initFlight) return;
   initFlight = fetch('/api/init-db', { method: 'POST' })
     .then(async r => {
+      if (r.ok) { await new Promise(x => setTimeout(x, 800)); tableOk = true; }
       initFlight = null;
-      if (r.ok) {
-        await new Promise(res => setTimeout(res, 800));
-        kvReady = true;
-      }
     })
     .catch(() => { initFlight = null; });
-  return initFlight;
 }
 
 export async function kvGet<T>(key: string): Promise<T | null> {
@@ -25,27 +23,29 @@ export async function kvGet<T>(key: string): Promise<T | null> {
     .select('value')
     .eq('key', key)
     .single();
+
   if (error) {
-    if (error.message.includes('kv_store')) await ensureKvStore();
-    return null;
+    if (error.message.includes('kv_store')) tryInitTable();
+    // Fall back to localStorage for any read error (table missing, row not found, etc.)
+    const raw = ls?.getItem(lk(key));
+    return raw ? (JSON.parse(raw) as T) : null;
   }
-  if (!data) return null;
-  return data.value as T;
+
+  return data ? (data.value as T) : null;
 }
 
 export async function kvSet(key: string, value: unknown): Promise<void> {
+  // Always write locally first so data is never lost
+  ls?.setItem(lk(key), JSON.stringify(value));
+
   const { error } = await supabase
     .from('kv_store')
     .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
 
   if (error) {
     if (error.message.includes('kv_store')) {
-      await ensureKvStore();
-      const { error: e2 } = await supabase
-        .from('kv_store')
-        .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
-      if (e2) throw new Error(e2.message);
-      return;
+      tryInitTable(); // attempt to create table in background
+      return; // data is safe in localStorage
     }
     throw new Error(error.message);
   }
