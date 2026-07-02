@@ -54,7 +54,7 @@ export default function LoginPage() {
       return;
     }
 
-    window.location.href = window.innerWidth >= 1024 ? '/admin/dashboard' : '/app/admin';
+    window.location.href = '/admin/dashboard';
   };
 
   const ROLE_LABELS = { student: 'ছাত্র', teacher: 'শিক্ষক', admin: 'অ্যাডমিন' };
