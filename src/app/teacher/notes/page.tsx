@@ -26,10 +26,6 @@ export default function TeacherNotesPage() {
     });
   }, []);
 
-  useEffect(() => {
-    if (notes.length > 0) kvSet('notes_store', notes).catch(console.error);
-  }, [notes]);
-
   const subjects = (SUBJECTS_BY_CLASS[DEFAULT_CLASS as keyof typeof SUBJECTS_BY_CLASS] ?? []).map((s: { name: string }) => s.name);
 
   const addNote = () => {
@@ -45,12 +41,18 @@ export default function TeacherNotesPage() {
       createdAt: new Date().toISOString().split('T')[0],
       type: newNote.type,
     };
-    setNotes(prev => [note, ...prev]);
+    const updated = [note, ...notes];
+    setNotes(updated);
+    kvSet('notes_store', updated).catch(console.error);
     setNewNote({ ...emptyNote });
     setShowNew(false);
   };
 
-  const deleteNote = (id: string) => setNotes(prev => prev.filter(n => n.id !== id));
+  const deleteNote = (id: string) => {
+    const updated = notes.filter(n => n.id !== id);
+    setNotes(updated);
+    kvSet('notes_store', updated).catch(console.error);
+  };
 
   const startEdit = (note: Note) => {
     setEditId(note.id);
@@ -58,7 +60,9 @@ export default function TeacherNotesPage() {
   };
 
   const saveEdit = (id: string) => {
-    setNotes(prev => prev.map(n => n.id === id ? { ...n, content: editContent } : n));
+    const updated = notes.map(n => n.id === id ? { ...n, content: editContent } : n);
+    setNotes(updated);
+    kvSet('notes_store', updated).catch(console.error);
     setEditId(null);
     setEditContent('');
   };

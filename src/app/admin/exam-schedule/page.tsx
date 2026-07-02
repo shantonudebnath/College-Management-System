@@ -247,11 +247,11 @@ export default function AdminExamSchedulePage() {
       kvGet<{ examId: string }[]>('nim_seats_v1'),
       kvGet<{ examId: string }[]>('nim_guard_assignments_v1'),
     ]).then(([cards, halls, seats, guards]) => {
-      kvSet('admit_cards_store', (cards ?? []).filter(c => c.examId !== id));
-      kvSet('nim_halls_v1', (halls ?? []).filter(h => h.examId !== id));
-      kvSet('nim_seats_v1', (seats ?? []).filter(s => s.examId !== id));
-      kvSet('nim_guard_assignments_v1', (guards ?? []).filter(g => g.examId !== id));
-    });
+      kvSet('admit_cards_store', (cards ?? []).filter(c => c.examId !== id)).catch(console.error);
+      kvSet('nim_halls_v1', (halls ?? []).filter(h => h.examId !== id)).catch(console.error);
+      kvSet('nim_seats_v1', (seats ?? []).filter(s => s.examId !== id)).catch(console.error);
+      kvSet('nim_guard_assignments_v1', (guards ?? []).filter(g => g.examId !== id)).catch(console.error);
+    }).catch(console.error);
   };
 
   const openAddEntry = () => {

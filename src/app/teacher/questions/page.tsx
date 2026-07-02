@@ -45,10 +45,6 @@ export default function TeacherQuestionsPage() {
     });
   }, []);
 
-  useEffect(() => {
-    if (questions.length > 0) kvSet('question_papers_store', questions).catch(console.error);
-  }, [questions]);
-
   const subjects = (SUBJECTS_BY_CLASS[form.class as keyof typeof SUBJECTS_BY_CLASS] ?? []).map((s: { name: string }) => s.name);
 
   const handlePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,7 +83,9 @@ export default function TeacherQuestionsPage() {
       fileSize: pdfFile.size,
       teacherName: 'Md. Shafiqul Islam',
     };
-    setQuestions(prev => [q, ...prev]);
+    const updated = [q, ...questions];
+    setQuestions(updated);
+    kvSet('question_papers_store', updated).catch(console.error);
     setPdfFile(null);
     setForm({ ...emptyForm });
     setShowForm(false);
@@ -271,7 +269,7 @@ export default function TeacherQuestionsPage() {
       {deleteTarget && (
         <ConfirmDeleteModal
           itemName={deleteTarget.name}
-          onConfirm={() => { setQuestions(prev => prev.filter(q => q.id !== deleteTarget.id)); setDeleteTarget(null); }}
+          onConfirm={() => { const updated = questions.filter(q => q.id !== deleteTarget.id); setQuestions(updated); kvSet('question_papers_store', updated).catch(console.error); setDeleteTarget(null); }}
           onCancel={() => setDeleteTarget(null)}
         />
       )}

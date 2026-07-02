@@ -35,10 +35,6 @@ export default function TeacherSyllabusPage() {
     });
   }, []);
 
-  useEffect(() => {
-    if (syllabus.length > 0) kvSet('syllabus_store', syllabus).catch(console.error);
-  }, [syllabus]);
-
   const subjectsForClass = (classId: string): string[] => {
     const list = SUBJECTS_BY_CLASS[classId as keyof typeof SUBJECTS_BY_CLASS];
     if (!list) return [];
@@ -51,6 +47,7 @@ export default function TeacherSyllabusPage() {
   const updateStatus = (idx: number, status: string) => {
     const updated = syllabus.map((s, i) => i === idx ? { ...s, status: status as 'completed' | 'ongoing' | 'pending' } : s);
     setSyllabus(updated);
+    kvSet('syllabus_store', updated).catch(console.error);
   };
 
   const openAdd = () => {
@@ -83,18 +80,23 @@ export default function TeacherSyllabusPage() {
       topics: form.topics.split(',').map(t => t.trim()).filter(Boolean),
       status: form.status as 'completed' | 'ongoing' | 'pending',
     };
+    let updated: typeof syllabus;
     if (editIdx !== null) {
-      setSyllabus(prev => prev.map((s, i) => i === editIdx ? entry : s));
+      updated = syllabus.map((s, i) => i === editIdx ? entry : s);
     } else {
-      setSyllabus(prev => [...prev, entry]);
+      updated = [...syllabus, entry];
     }
+    setSyllabus(updated);
+    kvSet('syllabus_store', updated).catch(console.error);
     setForm({ ...emptyForm, class: filterClass });
     setEditIdx(null);
     setShowForm(false);
   };
 
   const deleteEntry = (idx: number) => {
-    setSyllabus(prev => prev.filter((_, i) => i !== idx));
+    const updated = syllabus.filter((_, i) => i !== idx);
+    setSyllabus(updated);
+    kvSet('syllabus_store', updated).catch(console.error);
   };
 
   const filtered = syllabus.filter(s => s.class === filterClass);
