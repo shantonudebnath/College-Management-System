@@ -356,8 +356,9 @@ export async function loadWebsiteContent(): Promise<WebsiteContent> {
   } catch { return DEFAULT_CONTENT; }
 }
 
-export async function saveWebsiteContent(content: WebsiteContent): Promise<void> {
-  await kvSet(WEBSITE_CONTENT_KEY, content);
+// Returns true if saved to Supabase, false if only saved locally
+export async function saveWebsiteContent(content: WebsiteContent): Promise<boolean> {
+  return kvSet(WEBSITE_CONTENT_KEY, content);
 }
 
 export interface AdmissionApplication {

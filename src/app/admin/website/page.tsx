@@ -18,6 +18,7 @@ export default function WebsiteSettingsPage() {
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saveError, setSaveError] = useState('');
+  const [remoteWarning, setRemoteWarning] = useState(false);
 
   useEffect(() => {
     loadWebsiteContent().then(data => { setContent(data); setLoading(false); });
@@ -26,10 +27,16 @@ export default function WebsiteSettingsPage() {
   const handleSave = async () => {
     if (loading) return;
     setSaveError('');
+    setRemoteWarning(false);
     try {
-      await saveWebsiteContent(content);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2500);
+      const remoteOk = await saveWebsiteContent(content);
+      if (remoteOk) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+      } else {
+        setRemoteWarning(true);
+        setTimeout(() => setRemoteWarning(false), 8000);
+      }
     } catch {
       setSaveError('সংরক্ষণ ব্যর্থ হয়েছে। ছবি বড় হলে URL ব্যবহার করুন।');
     }
@@ -85,6 +92,11 @@ export default function WebsiteSettingsPage() {
               {loading ? 'লোড হচ্ছে...' : saved ? <><CheckCircle size={14} /> সংরক্ষিত!</> : <><Save size={14} /> সংরক্ষণ করুন</>}
             </button>
             {saveError && <p className="text-xs text-red-500">{saveError}</p>}
+            {remoteWarning && (
+              <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5 max-w-xs text-right">
+                ⚠️ শুধু এই ব্রাউজারে সেভ হয়েছে। Supabase-এ যায়নি — GRANT SQL চালান।
+              </p>
+            )}
           </div>
         </div>
 

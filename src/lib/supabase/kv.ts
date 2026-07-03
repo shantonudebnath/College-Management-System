@@ -36,8 +36,8 @@ export async function kvGet<T>(key: string): Promise<T | null> {
   return raw ? (JSON.parse(raw) as T) : null;
 }
 
-export async function kvSet(key: string, value: unknown): Promise<void> {
-  // Always write locally first so data is never lost
+// Returns true if Supabase write succeeded, false if only localStorage saved
+export async function kvSet(key: string, value: unknown): Promise<boolean> {
   ls?.setItem(lk(key), JSON.stringify(value));
 
   const { error } = await supabase
@@ -45,10 +45,11 @@ export async function kvSet(key: string, value: unknown): Promise<void> {
     .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
 
   if (error) {
-    if (error.message.includes('kv_store') || error.message.includes('permission')) {
+    if (error.message.includes('kv_store') || error.message.includes('permission') || error.message.includes('42501') || error.message.includes('policy')) {
       tryInitTable();
-      return; // data is safe in localStorage
+      return false;
     }
     throw new Error(error.message);
   }
+  return true;
 }
