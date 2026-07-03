@@ -34,6 +34,21 @@ async function ensureTable() {
   });
 }
 
+// GET: fetch all teachers
+export async function GET() {
+  const admin = makeAdmin();
+  let { data, error } = await admin.from('teachers').select('*').order('created_at', { ascending: true });
+
+  if (error && (error.message.includes('does not exist') || error.message.includes('42P01'))) {
+    await ensureTable();
+    await new Promise(r => setTimeout(r, 600));
+    ({ data, error } = await admin.from('teachers').select('*').order('created_at', { ascending: true }));
+  }
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ data: data ?? [] });
+}
+
 // POST: upsert one or many teachers
 export async function POST(req: NextRequest) {
   const body = await req.json();

@@ -2,7 +2,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { TEACHERS } from '@/lib/data';
 import type { Teacher } from '@/lib/types';
-import { createClient } from '@/lib/supabase/client';
 
 const defaultDepts = [...new Set(TEACHERS.map(t => t.department))];
 
@@ -44,22 +43,19 @@ export function TeachersProvider({ children }: { children: ReactNode }) {
   const [teachers, setTeachersState] = useState<Teacher[]>(TEACHERS);
   const [departmentOrder, setDeptOrderState] = useState<string[]>(defaultDepts);
   const [ready, setReady] = useState(false);
-  const supabase = createClient();
 
   useEffect(() => {
-    supabase
-      .from('teachers')
-      .select('*')
-      .order('created_at', { ascending: true })
-      .then(({ data, error }) => {
-        if (!error && data && data.length > 0) {
+    fetch('/api/teachers')
+      .then(r => r.json())
+      .then(({ data }) => {
+        if (Array.isArray(data) && data.length > 0) {
           const mapped = data.map(mapRow);
           setTeachersState(mapped);
-          setDeptOrderState([...new Set(mapped.map(t => t.department))]);
+          setDeptOrderState([...new Set(mapped.map((t: Teacher) => t.department))]);
         }
         setReady(true);
-      });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+      })
+      .catch(() => setReady(true));
   }, []);
 
   const setTeachers = async (t: Teacher[]) => {
