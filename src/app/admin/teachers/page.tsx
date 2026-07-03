@@ -55,6 +55,7 @@ export default function AdminTeachersPage() {
   const [showPass, setShowPass] = useState(false);
   const [copied, setCopied] = useState('');
   const [creating, setCreating] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -138,6 +139,7 @@ export default function AdminTeachersPage() {
 
   const handleSave = async () => {
     if (!form.name) return;
+    setSaveError('');
     if (editId) {
       const existing = teachers.find(t => t.id === editId)!;
       const updated: Teacher = {
@@ -149,13 +151,19 @@ export default function AdminTeachersPage() {
         joinDate: form.joinDate || existing.joinDate,
         image: form.image || undefined,
       };
-      await updateTeacher(updated);
-      setShowForm(false); setForm({ ...emptyForm }); setEditId(null);
-      setSaved(true); setTimeout(() => setSaved(false), 3000);
+      try {
+        await updateTeacher(updated);
+        setShowForm(false); setForm({ ...emptyForm }); setEditId(null);
+        setSaved(true); setTimeout(() => setSaved(false), 3000);
+      } catch (err) {
+        setSaveError(err instanceof Error ? err.message : 'সংরক্ষণ ব্যর্থ হয়েছে।');
+      }
     } else {
       setCreating(true);
+      const ts = Date.now();
       const t: Teacher = {
-        id: `t${Date.now()}`, teacherId: `TCH-${(teachers.length + 1).toString().padStart(3, '0')}`,
+        id: `t${ts}`,
+        teacherId: `TCH-${ts.toString().slice(-6)}`,
         name: form.name, nameBn: form.nameBn, designation: finalDesignation,
         department: form.department, subject: form.subject.split(',').map(s => s.trim()),
         classes: form.classes, phone: form.phone, email: form.email, address: '',
@@ -163,15 +171,20 @@ export default function AdminTeachersPage() {
         joinDate: form.joinDate || new Date().toISOString().split('T')[0],
         image: form.image || undefined,
       };
-      const cred = makeTchCred(t.teacherId);
-      const newCreds = { ...credsMap, [t.id]: cred };
-      await addTeacher(t);
-      setCredsMap(newCreds);
-      kvSet('teacher_credentials', newCreds).catch(console.error);
-      await createSupabaseUser(t.teacherId, cred.password, 'teacher');
-      setCreating(false);
-      setShowForm(false); setForm({ ...emptyForm }); setEditId(null);
-      setCredModal({ ...cred, name: t.name });
+      try {
+        const cred = makeTchCred(t.teacherId);
+        const newCreds = { ...credsMap, [t.id]: cred };
+        await addTeacher(t);
+        setCredsMap(newCreds);
+        kvSet('teacher_credentials', newCreds).catch(console.error);
+        await createSupabaseUser(t.teacherId, cred.password, 'teacher');
+        setCreating(false);
+        setShowForm(false); setForm({ ...emptyForm }); setEditId(null);
+        setCredModal({ ...cred, name: t.name });
+      } catch (err) {
+        setCreating(false);
+        setSaveError(err instanceof Error ? err.message : 'শিক্ষক যোগ করা ব্যর্থ হয়েছে।');
+      }
     }
   };
 
@@ -189,6 +202,12 @@ export default function AdminTeachersPage() {
         {saved && (
           <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3 text-sm">
             <Save size={14} /> তথ্য সফলভাবে সংরক্ষিত হয়েছে!
+          </div>
+        )}
+        {saveError && (
+          <div className="flex items-center justify-between gap-2 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
+            <span>⚠️ {saveError}</span>
+            <button onClick={() => setSaveError('')} className="text-red-400 hover:text-red-600"><X size={14} /></button>
           </div>
         )}
 

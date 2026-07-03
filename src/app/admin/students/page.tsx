@@ -78,6 +78,7 @@ export default function AdminStudentsPage() {
   const [showPass, setShowPass] = useState(false);
   const [copied, setCopied] = useState('');
   const [creating, setCreating] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const [viewStudentId, setViewStudentId] = useState<string | null>(null);
   const [idCardPreview, setIdCardPreview] = useState<Student | null>(null);
   const [printIdStudent, setPrintIdStudent] = useState<Student | null>(null);
@@ -207,23 +208,31 @@ export default function AdminStudentsPage() {
 
   const handleSave = async () => {
     if (!form.name) return;
+    setSaveError('');
     if (editId) {
       const existing = students.find(s => s.id === editId);
-      if (existing) await upsertStudent({
-        ...existing, name: form.name, nameBn: form.nameBn, fatherName: form.fatherName,
-        motherName: form.motherName, class: finalClass, section: form.section,
-        session: form.session, phone: form.phone, guardianPhone: form.guardianPhone,
-        dob: form.dob, birthCertNo: form.birthCertNo, bloodGroup: form.bloodGroup,
-        gender: form.gender, address: form.address, image: form.image || undefined,
-      });
-      setShowForm(false); setForm({ ...emptyForm }); setEditId(null);
-      setSaved(true); setTimeout(() => setSaved(false), 3000);
+      if (existing) {
+        try {
+          await upsertStudent({
+            ...existing, name: form.name, nameBn: form.nameBn, fatherName: form.fatherName,
+            motherName: form.motherName, class: finalClass, section: form.section,
+            session: form.session, phone: form.phone, guardianPhone: form.guardianPhone,
+            dob: form.dob, birthCertNo: form.birthCertNo, bloodGroup: form.bloodGroup,
+            gender: form.gender, address: form.address, image: form.image || undefined,
+          });
+          setShowForm(false); setForm({ ...emptyForm }); setEditId(null);
+          setSaved(true); setTimeout(() => setSaved(false), 3000);
+        } catch (err) {
+          setSaveError(err instanceof Error ? err.message : 'সংরক্ষণ ব্যর্থ হয়েছে।');
+        }
+      }
     } else {
       setCreating(true);
+      const ts = Date.now();
       const roll = students.length + 1;
       const newSt: Student = {
-        id: `s${Date.now()}`,
-        studentId: `STD-2025-${roll.toString().padStart(3, '0')}`,
+        id: `s${ts}`,
+        studentId: `STD-${new Date().getFullYear()}-${ts.toString().slice(-6)}`,
         name: form.name, nameBn: form.nameBn,
         fatherName: form.fatherName, motherName: form.motherName,
         class: finalClass, section: form.section,
@@ -236,20 +245,24 @@ export default function AdminStudentsPage() {
         registrationStatus: 'approved', feeStatus: 'due',
         createdAt: new Date().toISOString().split('T')[0],
       };
-      const cred = makeCred(newSt.studentId, roll);
-      const newCreds = { ...credsMap, [newSt.id]: cred };
+      try {
+        const cred = makeCred(newSt.studentId, roll);
+        const newCreds = { ...credsMap, [newSt.id]: cred };
 
-      await upsertStudent(newSt);
-      setCredsMap(newCreds);
-      await kvSet('student_credentials', newCreds);
+        await upsertStudent(newSt);
+        setCredsMap(newCreds);
+        await kvSet('student_credentials', newCreds);
+        await createSupabaseUser(newSt.studentId, cred.password, 'student');
 
-      await createSupabaseUser(newSt.studentId, cred.password, 'student');
-
-      setCreating(false);
-      setShowForm(false);
-      setForm({ ...emptyForm });
-      setEditId(null);
-      setCredModal({ ...cred, name: newSt.name });
+        setCreating(false);
+        setShowForm(false);
+        setForm({ ...emptyForm });
+        setEditId(null);
+        setCredModal({ ...cred, name: newSt.name });
+      } catch (err) {
+        setCreating(false);
+        setSaveError(err instanceof Error ? err.message : 'শিক্ষার্থী যোগ করা ব্যর্থ হয়েছে।');
+      }
     }
   };
 
@@ -306,6 +319,12 @@ export default function AdminStudentsPage() {
         {saved && (
           <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3 text-sm">
             <Save size={14} /> তথ্য সফলভাবে সংরক্ষিত হয়েছে!
+          </div>
+        )}
+        {saveError && (
+          <div className="flex items-center justify-between gap-2 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
+            <span>⚠️ {saveError}</span>
+            <button onClick={() => setSaveError('')} className="text-red-400 hover:text-red-600"><X size={14} /></button>
           </div>
         )}
         {promoteSuccess && (

@@ -2,7 +2,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { STUDENTS } from '@/lib/data';
 import type { Student } from '@/lib/types';
-import { createClient } from '@/lib/supabase/client';
 
 interface StudentsCtx {
   students: Student[];
@@ -79,34 +78,32 @@ function fromRow(row: Record<string, unknown>): Student {
 export function StudentsProvider({ children }: { children: ReactNode }) {
   const [students, setStudentsState] = useState<Student[]>(STUDENTS);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
 
   const refetch = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('students')
-      .select('*')
-      .order('created_at', { ascending: true });
-    if (!error && data && data.length > 0) {
-      setStudentsState(data.map(fromRow));
-    } else if (!error && data && data.length === 0) {
-      // Seed hardcoded students on first run
-      const rows = STUDENTS.map(toRow);
-      const { error: insertErr } = await supabase.from('students').upsert(rows);
-      if (!insertErr) setStudentsState(STUDENTS);
+    try {
+      const res = await fetch('/api/students');
+      const { data } = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        setStudentsState(data.map(fromRow));
+      }
+    } catch {
+      // fallback: keep existing state
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  }, [supabase]);
+  }, []);
 
   useEffect(() => { refetch(); }, [refetch]);
 
   const setStudents = async (updated: Student[]) => {
     setStudentsState(updated);
-    await fetch('/api/students', {
+    const res = await fetch('/api/students', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updated.map(toRow)),
     });
+    if (!res.ok) throw new Error(await res.text());
   };
 
   const upsertStudent = async (student: Student) => {
@@ -114,11 +111,12 @@ export function StudentsProvider({ children }: { children: ReactNode }) {
       const exists = prev.find(s => s.id === student.id);
       return exists ? prev.map(s => s.id === student.id ? student : s) : [...prev, student];
     });
-    await fetch('/api/students', {
+    const res = await fetch('/api/students', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(toRow(student)),
     });
+    if (!res.ok) throw new Error(await res.text());
   };
 
   const deleteStudent = async (id: string) => {
