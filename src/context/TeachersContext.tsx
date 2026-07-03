@@ -64,7 +64,6 @@ export function TeachersProvider({ children }: { children: ReactNode }) {
 
   const setTeachers = async (t: Teacher[]) => {
     setTeachersState(t);
-    // Upsert all teachers to Supabase
     const rows = t.map(tc => ({
       id: tc.id,
       teacher_id: tc.teacherId,
@@ -82,7 +81,11 @@ export function TeachersProvider({ children }: { children: ReactNode }) {
       join_date: tc.joinDate,
       image: tc.image ?? null,
     }));
-    await supabase.from('teachers').upsert(rows);
+    await fetch('/api/teachers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(rows),
+    });
   };
 
   const setDepartmentOrder = (d: string[]) => {

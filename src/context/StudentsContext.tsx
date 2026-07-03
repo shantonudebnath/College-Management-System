@@ -102,8 +102,11 @@ export function StudentsProvider({ children }: { children: ReactNode }) {
 
   const setStudents = async (updated: Student[]) => {
     setStudentsState(updated);
-    const rows = updated.map(toRow);
-    await supabase.from('students').upsert(rows);
+    await fetch('/api/students', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updated.map(toRow)),
+    });
   };
 
   const upsertStudent = async (student: Student) => {
@@ -111,12 +114,20 @@ export function StudentsProvider({ children }: { children: ReactNode }) {
       const exists = prev.find(s => s.id === student.id);
       return exists ? prev.map(s => s.id === student.id ? student : s) : [...prev, student];
     });
-    await supabase.from('students').upsert(toRow(student));
+    await fetch('/api/students', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(toRow(student)),
+    });
   };
 
   const deleteStudent = async (id: string) => {
     setStudentsState(prev => prev.filter(s => s.id !== id));
-    await supabase.from('students').delete().eq('id', id);
+    await fetch('/api/students', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
   };
 
   return (

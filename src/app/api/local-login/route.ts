@@ -29,12 +29,14 @@ export async function POST(req: NextRequest) {
   const cleanId = id.trim();
 
   if (role === 'student') {
-    const rollNum = parseInt(cleanId) || 0;
-    const { data: student } = await supabase
-      .from('students')
-      .select('id, student_id, roll')
-      .or(`student_id.eq.${cleanId},roll.eq.${rollNum}`)
-      .single();
+    const isNumeric = /^\d+$/.test(cleanId);
+    let studentQuery = supabase.from('students').select('id, student_id, roll');
+    if (isNumeric) {
+      studentQuery = studentQuery.or(`student_id.eq.${cleanId},roll.eq.${cleanId}`);
+    } else {
+      studentQuery = studentQuery.eq('student_id', cleanId);
+    }
+    const { data: student } = await studentQuery.maybeSingle();
 
     let stuId: string | undefined;
     let stuRoll: number | undefined;
@@ -43,6 +45,7 @@ export async function POST(req: NextRequest) {
       stuRoll = student.roll;
     } else {
       // Fallback to hardcoded data
+      const rollNum = parseInt(cleanId) || 0;
       const found = STATIC_STUDENTS.find(s => s.studentId === cleanId || s.roll === rollNum);
       if (found) { stuId = found.studentId; stuRoll = found.roll; }
     }
@@ -70,7 +73,7 @@ export async function POST(req: NextRequest) {
       .from('teachers')
       .select('id, teacher_id')
       .eq('teacher_id', cleanId)
-      .single();
+      .maybeSingle();
 
     let tchId: string | undefined;
     if (teacher) {
