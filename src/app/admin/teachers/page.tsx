@@ -41,7 +41,7 @@ const emptyForm = {
 };
 
 export default function AdminTeachersPage() {
-  const { teachers, setTeachers, departmentOrder, setDepartmentOrder } = useTeachers();
+  const { teachers, addTeacher, updateTeacher, deleteTeacher, departmentOrder, setDepartmentOrder } = useTeachers();
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [showDeptSort, setShowDeptSort] = useState(false);
@@ -139,14 +139,17 @@ export default function AdminTeachersPage() {
   const handleSave = async () => {
     if (!form.name) return;
     if (editId) {
-      setTeachers(teachers.map(t => t.id === editId ? {
-        ...t, name: form.name, nameBn: form.nameBn, designation: finalDesignation,
+      const existing = teachers.find(t => t.id === editId)!;
+      const updated: Teacher = {
+        ...existing,
+        name: form.name, nameBn: form.nameBn, designation: finalDesignation,
         department: form.department, subject: form.subject.split(',').map(s => s.trim()),
         classes: form.classes,
         phone: form.phone, email: form.email, qualification: form.qualification,
-        joinDate: form.joinDate || t.joinDate,
+        joinDate: form.joinDate || existing.joinDate,
         image: form.image || undefined,
-      } : t));
+      };
+      await updateTeacher(updated);
       setShowForm(false); setForm({ ...emptyForm }); setEditId(null);
       setSaved(true); setTimeout(() => setSaved(false), 3000);
     } else {
@@ -162,7 +165,7 @@ export default function AdminTeachersPage() {
       };
       const cred = makeTchCred(t.teacherId);
       const newCreds = { ...credsMap, [t.id]: cred };
-      setTeachers([...teachers, t]);
+      await addTeacher(t);
       setCredsMap(newCreds);
       kvSet('teacher_credentials', newCreds).catch(console.error);
       await createSupabaseUser(t.teacherId, cred.password, 'teacher');
@@ -450,7 +453,7 @@ export default function AdminTeachersPage() {
       {deleteTarget && (
         <ConfirmDeleteModal
           itemName={deleteTarget.name}
-          onConfirm={() => { setTeachers(teachers.filter(t => t.id !== deleteTarget.id)); setDeleteTarget(null); }}
+          onConfirm={() => { deleteTeacher(deleteTarget.id); setDeleteTarget(null); }}
           onCancel={() => setDeleteTarget(null)}
         />
       )}

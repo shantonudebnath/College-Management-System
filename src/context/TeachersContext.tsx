@@ -7,14 +7,20 @@ const defaultDepts = [...new Set(TEACHERS.map(t => t.department))];
 
 interface TeachersCtx {
   teachers: Teacher[];
-  setTeachers: (t: Teacher[]) => void;
+  addTeacher: (t: Teacher) => Promise<void>;
+  updateTeacher: (t: Teacher) => Promise<void>;
+  deleteTeacher: (id: string) => Promise<void>;
+  setTeachers: (t: Teacher[]) => Promise<void>;
   departmentOrder: string[];
   setDepartmentOrder: (d: string[]) => void;
 }
 
 const Ctx = createContext<TeachersCtx>({
   teachers: TEACHERS,
-  setTeachers: () => {},
+  addTeacher: async () => {},
+  updateTeacher: async () => {},
+  deleteTeacher: async () => {},
+  setTeachers: async () => {},
   departmentOrder: defaultDepts,
   setDepartmentOrder: () => {},
 });
@@ -39,6 +45,26 @@ function mapRow(row: Record<string, unknown>): Teacher {
   };
 }
 
+function toRow(tc: Teacher) {
+  return {
+    id: tc.id,
+    teacher_id: tc.teacherId,
+    name: tc.name,
+    name_bn: tc.nameBn,
+    designation: tc.designation,
+    department: tc.department,
+    subject: tc.subject,
+    classes: tc.classes,
+    class_subjects: tc.classSubjects ?? {},
+    phone: tc.phone,
+    email: tc.email,
+    address: tc.address,
+    qualification: tc.qualification,
+    join_date: tc.joinDate,
+    image: tc.image ?? null,
+  };
+}
+
 export function TeachersProvider({ children }: { children: ReactNode }) {
   const [teachers, setTeachersState] = useState<Teacher[]>(TEACHERS);
   const [departmentOrder, setDeptOrderState] = useState<string[]>(defaultDepts);
@@ -58,30 +84,38 @@ export function TeachersProvider({ children }: { children: ReactNode }) {
       .catch(() => setReady(true));
   }, []);
 
-  const setTeachers = async (t: Teacher[]) => {
-    setTeachersState(t);
-    const rows = t.map(tc => ({
-      id: tc.id,
-      teacher_id: tc.teacherId,
-      name: tc.name,
-      name_bn: tc.nameBn,
-      designation: tc.designation,
-      department: tc.department,
-      subject: tc.subject,
-      classes: tc.classes,
-      class_subjects: tc.classSubjects ?? {},
-      phone: tc.phone,
-      email: tc.email,
-      address: tc.address,
-      qualification: tc.qualification,
-      join_date: tc.joinDate,
-      image: tc.image ?? null,
-    }));
-    await fetch('/api/teachers', {
+  const upsertToApi = async (rows: object | object[]) => {
+    const res = await fetch('/api/teachers', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(rows),
     });
+    if (!res.ok) throw new Error(await res.text());
+  };
+
+  const addTeacher = async (t: Teacher) => {
+    setTeachersState(prev => [...prev, t]);
+    await upsertToApi(toRow(t));
+  };
+
+  const updateTeacher = async (t: Teacher) => {
+    setTeachersState(prev => prev.map(x => x.id === t.id ? t : x));
+    await upsertToApi(toRow(t));
+  };
+
+  const deleteTeacher = async (id: string) => {
+    setTeachersState(prev => prev.filter(x => x.id !== id));
+    await fetch('/api/teachers', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
+  };
+
+  // Legacy bulk setter — only used for department reorder (no Supabase sync needed for order)
+  const setTeachers = async (t: Teacher[]) => {
+    setTeachersState(t);
+    await upsertToApi(t.map(toRow));
   };
 
   const setDepartmentOrder = (d: string[]) => {
@@ -91,6 +125,9 @@ export function TeachersProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider value={{
       teachers: ready ? teachers : TEACHERS,
+      addTeacher,
+      updateTeacher,
+      deleteTeacher,
       setTeachers,
       departmentOrder,
       setDepartmentOrder,
