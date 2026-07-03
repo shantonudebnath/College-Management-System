@@ -50,6 +50,18 @@ export async function POST(req: NextRequest) {
       if (found) { stuId = found.studentId; stuRoll = found.roll; }
     }
 
+    // Last resort: derive roll from student_id pattern (e.g. STD-2025-919 → roll=919)
+    if (!stuId || stuRoll === undefined) {
+      const m = cleanId.match(/-(\d+)$/);
+      if (m) {
+        const derivedRoll = parseInt(m[1]);
+        if (password === makeStudentPassword(derivedRoll)) {
+          stuId = cleanId;
+          stuRoll = derivedRoll;
+        }
+      }
+    }
+
     if (!stuId || stuRoll === undefined) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
@@ -82,6 +94,11 @@ export async function POST(req: NextRequest) {
       // Fallback to hardcoded data
       const found = TEACHERS.find(t => t.teacherId === cleanId);
       if (found) tchId = found.teacherId;
+    }
+
+    // Last resort: verify password formula directly from teacherId (no DB needed)
+    if (!tchId && password === makeTeacherPassword(cleanId)) {
+      tchId = cleanId;
     }
 
     if (!tchId) {
