@@ -18,38 +18,43 @@ export default function AdminAdmissionsPage() {
   const [apps, setApps] = useState<AdmissionApplication[]>([]);
   const [filter, setFilter] = useState<'all' | 'pending' | 'accepted' | 'rejected'>('all');
   const [selected, setSelected] = useState<AdmissionApplication | null>(null);
+  const [acceptError, setAcceptError] = useState('');
 
   useEffect(() => { loadAdmissions().then(list => setApps(list.sort((a, b) => b.appliedAt.localeCompare(a.appliedAt)))); }, []);
 
   const refresh = () => loadAdmissions().then(list => setApps(list.sort((a, b) => b.appliedAt.localeCompare(a.appliedAt))));
 
   const handleAccept = async (id: string) => {
+    setAcceptError('');
     const app = await updateAdmissionStatus(id, 'accepted');
     if (!app) return;
-    // Auto-add to Supabase students
-    const cls = MADRASHA_CLASSES.find(c => c.id === app.applyingClass);
-    await upsertStudent({
-      id: `stu-adm-${id}`,
-      name: app.nameEn || app.nameBn,
-      nameBn: app.nameBn,
-      class: app.applyingClass,
-      roll: Date.now() % 1000,
-      section: 'A',
-      gender: 'male',
-      phone: app.phone,
-      address: app.address,
-      fatherName: app.fatherName,
-      motherName: app.motherName,
-      dob: app.dob,
-      studentId: `STD-${new Date().getFullYear()}-${String(Date.now()).slice(-3)}`,
-      session: `${new Date().getFullYear()}`,
-      religion: '',
-      registrationStatus: 'approved',
-      feeStatus: 'due',
-      createdAt: new Date().toISOString().slice(0, 10),
-    });
-    refresh();
-    setSelected(null);
+    const ts = Date.now();
+    try {
+      await upsertStudent({
+        id: `stu-adm-${id}`,
+        name: app.nameEn || app.nameBn,
+        nameBn: app.nameBn,
+        class: app.applyingClass,
+        roll: ts % 10000,
+        section: 'A',
+        gender: 'male',
+        phone: app.phone,
+        address: app.address,
+        fatherName: app.fatherName,
+        motherName: app.motherName,
+        dob: app.dob,
+        studentId: `STD-${new Date().getFullYear()}-${String(ts).slice(-6)}`,
+        session: `${new Date().getFullYear()}`,
+        religion: '',
+        registrationStatus: 'approved',
+        feeStatus: 'due',
+        createdAt: new Date().toISOString().slice(0, 10),
+      });
+      refresh();
+      setSelected(null);
+    } catch (err) {
+      setAcceptError(err instanceof Error ? err.message : 'শিক্ষার্থী সংরক্ষণ ব্যর্থ হয়েছে।');
+    }
   };
 
   const handleReject = async (id: string) => {
@@ -72,6 +77,13 @@ export default function AdminAdmissionsPage() {
             <ExternalLink size={14} /> ভর্তি পেজ দেখুন
           </Link>
         </div>
+
+        {acceptError && (
+          <div className="flex items-center justify-between gap-2 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
+            <span>⚠️ {acceptError}</span>
+            <button onClick={() => setAcceptError('')} className="text-red-400 hover:text-red-600"><X size={14} /></button>
+          </div>
+        )}
 
         {/* Summary */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

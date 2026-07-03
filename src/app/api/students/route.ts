@@ -57,12 +57,12 @@ export async function POST(req: NextRequest) {
   const rows = Array.isArray(body) ? body : [body];
   const admin = makeAdmin();
 
-  let { error } = await admin.from('students').upsert(rows);
+  let { error } = await admin.from('students').upsert(rows, { onConflict: 'id' });
 
   if (error && (error.message.includes('does not exist') || error.message.includes('42P01'))) {
     await ensureTable();
     await new Promise(r => setTimeout(r, 600));
-    ({ error } = await admin.from('students').upsert(rows));
+    ({ error } = await admin.from('students').upsert(rows, { onConflict: 'id' }));
   }
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
