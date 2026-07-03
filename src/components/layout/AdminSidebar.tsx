@@ -78,7 +78,14 @@ function SidebarContent({ collapsed, setCollapsed, onClose }: { collapsed: boole
         })}
       </nav>
 
-      <div className="p-3 border-t border-white/10">
+      <div className="p-3 border-t border-white/10 space-y-0.5">
+        <a href="/" target="_blank" rel="noopener noreferrer"
+          onClick={onClose}
+          title={collapsed ? 'সাইট দেখুন' : undefined}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-emerald-300 hover:bg-white/10 hover:text-emerald-200 transition-all">
+          <Globe size={16} className="shrink-0" />
+          {!collapsed && <span>সাইট দেখুন</span>}
+        </a>
         <button onClick={async () => { onClose?.(); await fetch('/api/local-logout', { method: 'POST' }); window.location.href = '/login'; }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:bg-white/10 hover:text-white transition-all">
           <LogOut size={16} />
           {!collapsed && <span>লগআউট</span>}

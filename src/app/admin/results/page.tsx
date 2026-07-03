@@ -4,7 +4,8 @@ import DashboardHeader from '@/components/layout/DashboardHeader';
 import { EXAM_RESULTS, MADRASHA_CLASSES, COLLEGE_INFO, STUDENTS } from '@/lib/data';
 import { getGradeInfo } from '@/lib/result-utils';
 import type { ExamResult, SubjectResult, Student } from '@/lib/types';
-import { Award, CheckCircle, Download, Printer, Search, EyeOff, Lock, Unlock, ChevronDown, BarChart3, Shuffle, Users } from 'lucide-react';
+import Link from 'next/link';
+import { Award, CheckCircle, Download, Printer, Search, EyeOff, Lock, Unlock, ChevronDown, BarChart3, Shuffle, Users, ExternalLink } from 'lucide-react';
 import { useToast } from '@/components/ui/Toast';
 import { useNotices } from '@/context/NoticesContext';
 import { useResults } from '@/context/ResultsContext';
@@ -448,6 +449,13 @@ export default function AdminResultsPage() {
         role="Super Admin"
       />
       <div className="p-6 space-y-5">
+
+        <div className="flex justify-end">
+          <Link href="/result" target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors">
+            <ExternalLink size={14} /> সাইটে দেখুন
+          </Link>
+        </div>
 
         {/* ── Filters ── */}
         <div className="bg-white rounded-2xl border border-gray-100 p-5">

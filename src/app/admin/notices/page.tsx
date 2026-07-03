@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { useNotices } from '@/context/NoticesContext';
-import { Bell, Plus, Trash2, Edit, AlertCircle, Send, Paperclip, X } from 'lucide-react';
+import Link from 'next/link';
+import { Bell, Plus, Trash2, Edit, AlertCircle, Send, Paperclip, X, ExternalLink } from 'lucide-react';
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
 import type { Notice } from '@/lib/types';
 import { useToast } from '@/components/ui/Toast';
@@ -80,9 +81,15 @@ export default function AdminNoticesPage() {
       {ToastEl}
       <DashboardHeader title="নোটিশ ব্যবস্থাপনা" subtitle="নোটিশ তৈরি ও পরিচালনা করুন" userName="Admin" role="Super Admin" />
       <div className="p-6 space-y-5">
-        <button onClick={openAdd} className="flex items-center gap-2 btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold">
-          <Plus size={16} /> নতুন নোটিশ তৈরি
-        </button>
+        <div className="flex gap-3 flex-wrap">
+          <Link href="/notice" target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors">
+            <ExternalLink size={14} /> সাইটে দেখুন
+          </Link>
+          <button onClick={openAdd} className="flex items-center gap-2 btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold">
+            <Plus size={16} /> নতুন নোটিশ তৈরি
+          </button>
+        </div>
 
         {showForm && (
           <div className="bg-white rounded-2xl border-2 border-purple-200 p-5 animate-fadeIn space-y-3">

@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { loadAdmissions, updateAdmissionStatus, type AdmissionApplication } from '@/lib/website-content';
 import { MADRASHA_CLASSES } from '@/lib/data';
-import { CheckCircle, XCircle, Clock, Users, Eye, X } from 'lucide-react';
+import Link from 'next/link';
+import { CheckCircle, XCircle, Clock, Users, Eye, X, ExternalLink } from 'lucide-react';
 import { useStudents } from '@/context/StudentsContext';
 
 function statusBadge(s: AdmissionApplication['status']) {
@@ -64,6 +65,13 @@ export default function AdminAdmissionsPage() {
     <div>
       <DashboardHeader title="ভর্তি আবেদন" subtitle="শিক্ষার্থীদের ভর্তির আবেদন পর্যালোচনা করুন" userName="Admin" role="অ্যাডমিন" />
       <div className="p-6 space-y-5">
+
+        <div className="flex justify-end">
+          <Link href="/admission" target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors">
+            <ExternalLink size={14} /> ভর্তি পেজ দেখুন
+          </Link>
+        </div>
 
         {/* Summary */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

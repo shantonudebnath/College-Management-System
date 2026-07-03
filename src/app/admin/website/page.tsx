@@ -5,7 +5,8 @@ import {
   loadWebsiteContent, saveWebsiteContent, DEFAULT_CONTENT, DEFAULT_ABOUT,
   type WebsiteContent, type GalleryItem, type FaqItem, type LinkItem, type SlideItem, type GoverningMember, type StaffMember, type FounderMember,
 } from '@/lib/website-content';
-import { Save, Plus, Trash2, Globe, Image as ImageIcon, HelpCircle, Link2, BarChart2, CheckCircle, SlidersHorizontal, Landmark, Users, Upload } from 'lucide-react';
+import NextLink from 'next/link';
+import { Save, Plus, Trash2, Globe, Image as ImageIcon, HelpCircle, Link2, BarChart2, CheckCircle, SlidersHorizontal, Landmark, Users, Upload, ExternalLink } from 'lucide-react';
 
 type Tab = 'hero' | 'slides' | 'stats' | 'gallery' | 'faq' | 'links' | 'about' | 'teachers';
 
@@ -87,6 +88,10 @@ export default function WebsiteSettingsPage() {
             ))}
           </div>
           <div className="flex flex-col items-end gap-1">
+            <NextLink href="/" target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors mb-1">
+              <ExternalLink size={12} /> হোমপেজ দেখুন
+            </NextLink>
             <button onClick={handleSave} disabled={loading}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${saved ? 'bg-green-100 text-green-700' : 'btn-primary'}`}>
               {loading ? 'লোড হচ্ছে...' : saved ? <><CheckCircle size={14} /> সংরক্ষিত!</> : <><Save size={14} /> সংরক্ষণ করুন</>}

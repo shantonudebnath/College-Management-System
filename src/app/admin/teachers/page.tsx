@@ -3,7 +3,8 @@ import { useState, useRef, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { MADRASHA_CLASSES, STUDENTS } from '@/lib/data';
 import { useTeachers } from '@/context/TeachersContext';
-import { Plus, Search, Edit, Trash2, Phone, Mail, Camera, X, Save, ChevronDown, ChevronUp, ArrowUpDown, Key, Copy, CheckCircle, Eye, EyeOff } from 'lucide-react';
+import Link from 'next/link';
+import { Plus, Search, Edit, Trash2, Phone, Mail, Camera, X, Save, ChevronDown, ChevronUp, ArrowUpDown, Key, Copy, CheckCircle, Eye, EyeOff, ExternalLink } from 'lucide-react';
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
 import type { Teacher } from '@/lib/types';
 import { kvGet, kvSet } from '@/lib/supabase/kv';
@@ -195,6 +196,10 @@ export default function AdminTeachersPage() {
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="নাম বা বিভাগ দিয়ে খুঁজুন..."
               className="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400" />
           </div>
+          <Link href="/teachers" target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors">
+            <ExternalLink size={14} /> সাইটে দেখুন
+          </Link>
           <button
             onClick={() => { setShowDeptSort(!showDeptSort); setShowForm(false); }}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${showDeptSort ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-indigo-600 border-indigo-200 hover:bg-indigo-50'}`}
