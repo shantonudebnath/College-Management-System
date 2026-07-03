@@ -22,16 +22,18 @@ export async function kvGet<T>(key: string): Promise<T | null> {
     .from('kv_store')
     .select('value')
     .eq('key', key)
-    .single();
+    .maybeSingle();
 
   if (error) {
-    if (error.message.includes('kv_store')) tryInitTable();
-    // Fall back to localStorage for any read error (table missing, row not found, etc.)
+    if (error.message.includes('kv_store') || error.message.includes('permission')) tryInitTable();
     const raw = ls?.getItem(lk(key));
     return raw ? (JSON.parse(raw) as T) : null;
   }
 
-  return data ? (data.value as T) : null;
+  if (data) return data.value as T;
+  // Table exists but no row yet — fall back to localStorage
+  const raw = ls?.getItem(lk(key));
+  return raw ? (JSON.parse(raw) as T) : null;
 }
 
 export async function kvSet(key: string, value: unknown): Promise<void> {
@@ -43,8 +45,8 @@ export async function kvSet(key: string, value: unknown): Promise<void> {
     .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
 
   if (error) {
-    if (error.message.includes('kv_store')) {
-      tryInitTable(); // attempt to create table in background
+    if (error.message.includes('kv_store') || error.message.includes('permission')) {
+      tryInitTable();
       return; // data is safe in localStorage
     }
     throw new Error(error.message);
