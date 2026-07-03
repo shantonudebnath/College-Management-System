@@ -36,7 +36,12 @@ export default function LoginPage() {
         setLoading(false);
         return;
       }
-      window.location.href = role === 'student' ? '/app/student' : '/app/teacher';
+      const isDesktop = window.innerWidth >= 1024;
+      if (role === 'student') {
+        window.location.href = isDesktop ? '/student/dashboard' : '/app/student';
+      } else {
+        window.location.href = isDesktop ? '/teacher/dashboard' : '/app/teacher';
+      }
       return;
     }
 

@@ -1,4 +1,6 @@
 'use client';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -45,6 +47,11 @@ async function handleLogout() {
 }
 
 export default function TeacherAppHome() {
+  const router = useRouter();
+  useEffect(() => {
+    if (window.innerWidth >= 1024) router.replace('/teacher/dashboard');
+  }, [router]);
+
   return (
     <div className="min-h-screen pb-10" style={{ background: '#edf7f4' }}>
       {/* Header */}
