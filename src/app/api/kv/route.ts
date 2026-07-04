@@ -1,10 +1,11 @@
-import { createClient } from '@supabase/supabase-js';
+﻿import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
 function makeAdmin() {
+  const strip = (s?: string) => (s ?? '').replace(/^﻿/, '').trim();
   return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    strip(process.env.NEXT_PUBLIC_SUPABASE_URL),
+    strip(process.env.SUPABASE_SERVICE_ROLE_KEY),
     { auth: { autoRefreshToken: false, persistSession: false } }
   );
 }
