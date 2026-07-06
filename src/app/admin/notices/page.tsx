@@ -44,10 +44,11 @@ export default function AdminNoticesPage() {
     setShowForm(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.title || !form.content) return;
+    let ok = false;
     if (editTarget) {
-      updateNotice({
+      ok = await updateNotice({
         ...editTarget,
         title: form.title, content: form.content,
         type: form.type as Notice['type'], target: form.target as Notice['target'],
@@ -61,7 +62,12 @@ export default function AdminNoticesPage() {
         target: form.target as Notice['target'], isImportant: form.isImportant, postedBy: 'Admin',
         ...(attachFile ? { attachmentName: attachFile.name, attachmentData: attachFile.data } : {}),
       };
-      addNotice(n);
+      ok = await addNotice(n);
+    }
+    if (ok) {
+      toast('নোটিশ সফলভাবে প্রকাশিত হয়েছে।', 'success');
+    } else {
+      toast('নোটিশ সংরক্ষণে সমস্যা হয়েছে। আবার চেষ্টা করুন।', 'error');
     }
     setShowForm(false);
     setEditTarget(null);
@@ -177,7 +183,7 @@ export default function AdminNoticesPage() {
       {deleteTarget && (
         <ConfirmDeleteModal
           itemName={deleteTarget.name}
-          onConfirm={() => { deleteNotice(deleteTarget.id); setDeleteTarget(null); }}
+          onConfirm={async () => { await deleteNotice(deleteTarget.id); setDeleteTarget(null); }}
           onCancel={() => setDeleteTarget(null)}
         />
       )}
