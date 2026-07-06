@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { STUDENTS } from '@/lib/data';
-import { createClient } from '@/lib/supabase/client';
 import type { Student } from '@/lib/types';
 
 export interface StudentSession {
@@ -12,11 +11,11 @@ export interface StudentSession {
 function fromRow(row: Record<string, unknown>): Student {
   return {
     id: row.id as string,
-    studentId: (row.student_id as string) ?? '',
+    studentId: ((row.student_id ?? row.studentId) as string) ?? '',
     name: row.name as string,
-    nameBn: (row.name_bn as string) ?? '',
-    fatherName: (row.father_name as string) ?? '',
-    motherName: (row.mother_name as string) ?? '',
+    nameBn: ((row.name_bn ?? row.nameBn) as string) ?? '',
+    fatherName: ((row.father_name ?? row.fatherName) as string) ?? '',
+    motherName: ((row.mother_name ?? row.motherName) as string) ?? '',
     class: (row.class as string) ?? '',
     section: (row.section as string) ?? '',
     roll: (row.roll as number) ?? 0,
@@ -25,14 +24,14 @@ function fromRow(row: Record<string, unknown>): Student {
     gender: (row.gender as string) ?? '',
     religion: (row.religion as string) ?? '',
     phone: (row.phone as string) ?? '',
-    guardianPhone: (row.guardian_phone as string) ?? undefined,
+    guardianPhone: ((row.guardian_phone ?? row.guardianPhone) as string) ?? undefined,
     address: (row.address as string) ?? '',
-    bloodGroup: (row.blood_group as string) ?? undefined,
-    birthCertNo: (row.birth_cert_no as string) ?? undefined,
+    bloodGroup: ((row.blood_group ?? row.bloodGroup) as string) ?? undefined,
+    birthCertNo: ((row.birth_cert_no ?? row.birthCertNo) as string) ?? undefined,
     image: (row.image as string) ?? undefined,
-    registrationStatus: (row.registration_status as Student['registrationStatus']) ?? 'approved',
-    feeStatus: (row.fee_status as Student['feeStatus']) ?? 'due',
-    createdAt: (row.created_at as string) ?? '',
+    registrationStatus: ((row.registration_status ?? row.registrationStatus) as Student['registrationStatus']) ?? 'approved',
+    feeStatus: ((row.fee_status ?? row.feeStatus) as Student['feeStatus']) ?? 'due',
+    createdAt: ((row.created_at ?? row.createdAt) as string) ?? '',
   };
 }
 
@@ -40,7 +39,6 @@ export function useStudentSession(): StudentSession {
   const [state, setState] = useState<StudentSession>({ student: null, loading: true });
 
   useEffect(() => {
-    const supabase = createClient();
     fetch('/api/session')
       .then(r => r.ok ? r.json() : null)
       .then(async (session: { id: string; role: string } | null) => {
@@ -48,17 +46,21 @@ export function useStudentSession(): StudentSession {
           setState({ student: null, loading: false });
           return;
         }
-        // Try Supabase first
-        const { data } = await supabase
-          .from('students')
-          .select('*')
-          .eq('student_id', session.id)
-          .single();
-        if (data) {
-          setState({ student: fromRow(data as Record<string, unknown>), loading: false });
-          return;
+        // Fetch all students from KV store and find the logged-in one
+        const res = await fetch('/api/students');
+        if (res.ok) {
+          const { data } = await res.json();
+          if (Array.isArray(data)) {
+            const found = data.find((s: Record<string, unknown>) =>
+              s.student_id === session.id || s.studentId === session.id
+            );
+            if (found) {
+              setState({ student: fromRow(found as Record<string, unknown>), loading: false });
+              return;
+            }
+          }
         }
-        // Fallback to hardcoded data
+        // Fallback to hardcoded data (for demo students)
         const found = STUDENTS.find(s => s.studentId === session.id) ?? null;
         setState({ student: found, loading: false });
       })
