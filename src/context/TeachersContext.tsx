@@ -1,12 +1,10 @@
 'use client';
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { TEACHERS } from '@/lib/data';
 import type { Teacher } from '@/lib/types';
-
-const defaultDepts = [...new Set(TEACHERS.map(t => t.department))];
 
 interface TeachersCtx {
   teachers: Teacher[];
+  loading: boolean;
   addTeacher: (t: Teacher) => Promise<void>;
   updateTeacher: (t: Teacher) => Promise<void>;
   deleteTeacher: (id: string) => Promise<void>;
@@ -16,12 +14,13 @@ interface TeachersCtx {
 }
 
 const Ctx = createContext<TeachersCtx>({
-  teachers: TEACHERS,
+  teachers: [],
+  loading: true,
   addTeacher: async () => {},
   updateTeacher: async () => {},
   deleteTeacher: async () => {},
   setTeachers: async () => {},
-  departmentOrder: defaultDepts,
+  departmentOrder: [],
   setDepartmentOrder: () => {},
 });
 
@@ -68,8 +67,8 @@ function toRow(tc: Teacher) {
 }
 
 export function TeachersProvider({ children }: { children: ReactNode }) {
-  const [teachers, setTeachersState] = useState<Teacher[]>(TEACHERS);
-  const [departmentOrder, setDeptOrderState] = useState<string[]>(defaultDepts);
+  const [teachers, setTeachersState] = useState<Teacher[]>([]);
+  const [departmentOrder, setDeptOrderState] = useState<string[]>([]);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -126,7 +125,8 @@ export function TeachersProvider({ children }: { children: ReactNode }) {
 
   return (
     <Ctx.Provider value={{
-      teachers: ready ? teachers : TEACHERS,
+      teachers,
+      loading: !ready,
       addTeacher,
       updateTeacher,
       deleteTeacher,

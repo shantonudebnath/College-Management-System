@@ -1,6 +1,5 @@
 'use client';
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import { STUDENTS } from '@/lib/data';
 import type { Student } from '@/lib/types';
 
 interface StudentsCtx {
@@ -13,7 +12,7 @@ interface StudentsCtx {
 }
 
 const Ctx = createContext<StudentsCtx>({
-  students: STUDENTS,
+  students: [],
   loading: true,
   setStudents: async () => {},
   upsertStudent: async () => {},
@@ -76,7 +75,7 @@ function fromRow(row: Record<string, unknown>): Student {
 }
 
 export function StudentsProvider({ children }: { children: ReactNode }) {
-  const [students, setStudentsState] = useState<Student[]>(STUDENTS);
+  const [students, setStudentsState] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
 
   const refetch = useCallback(async () => {

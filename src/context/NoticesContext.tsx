@@ -14,14 +14,14 @@ interface NoticesCtx {
 }
 
 const Ctx = createContext<NoticesCtx>({
-  notices: NOTICES,
+  notices: [],
   addNotice: async () => false,
   updateNotice: async () => false,
   deleteNotice: async () => false,
 });
 
 export function NoticesProvider({ children }: { children: ReactNode }) {
-  const [notices, setNotices] = useState<Notice[]>(NOTICES);
+  const [notices, setNotices] = useState<Notice[]>([]);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -30,6 +30,7 @@ export function NoticesProvider({ children }: { children: ReactNode }) {
         setNotices(data);
       } else {
         // Seed KV with hardcoded notices on first run
+        setNotices(NOTICES);
         kvSet(NOTICES_KEY, NOTICES);
       }
       setReady(true);
@@ -55,7 +56,7 @@ export function NoticesProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <Ctx.Provider value={{ notices: ready ? notices : NOTICES, addNotice, updateNotice, deleteNotice }}>
+    <Ctx.Provider value={{ notices, addNotice, updateNotice, deleteNotice }}>
       {children}
     </Ctx.Provider>
   );

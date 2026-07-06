@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import { STUDENTS, MADRASHA_CLASSES } from '@/lib/data';
+import { MADRASHA_CLASSES } from '@/lib/data';
 import { useTeachers } from '@/context/TeachersContext';
 import { useNotices } from '@/context/NoticesContext';
 import { useCurrentTeacher } from '@/context/CurrentTeacherContext';
@@ -14,8 +14,7 @@ export default function TeacherDashboard() {
   const { teachers } = useTeachers();
   const { notices } = useNotices();
   const { currentTeacherId, setCurrentTeacher } = useCurrentTeacher();
-  const { students: ctxStudents } = useStudents();
-  const allStudents = ctxStudents.length > 0 ? ctxStudents : STUDENTS;
+  const { students: allStudents } = useStudents();
   const [resolvedTeacher, setResolvedTeacher] = useState<Teacher | null>(null);
 
   // Fetch session → match teacher by teacherId → update context
