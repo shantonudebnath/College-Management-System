@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { kvGet, kvSet } from '@/lib/mysql';
+import { kvGet, kvSet } from '@/lib/supabase/kv-server';
 
 export async function GET(req: NextRequest) {
   const key = req.nextUrl.searchParams.get('key');
