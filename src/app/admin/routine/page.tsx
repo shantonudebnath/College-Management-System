@@ -7,6 +7,12 @@ import { kvGet, kvSet } from '@/lib/supabase/kv';
 import { Plus, X, Edit2, Save, Download, BookOpen, Bell, CheckCircle } from 'lucide-react';
 import { useNotices } from '@/context/NoticesContext';
 import { printHtml } from '@/lib/print-utils';
+import { COLLEGE_INFO } from '@/lib/data';
+
+function academicYear(): string {
+  const y = new Date().getFullYear();
+  return `${y}-${(y + 1).toString().slice(2)}`;
+}
 
 const LS_KEY = 'master_routine_v2';
 
@@ -124,9 +130,9 @@ function openPrintWindow(title: string, bodyHtml: string, extraCss = '') {
 </head>
 <body>
 <div class="inst-hdr">
-  <div class="inst-name">এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা</div>
-  <div class="inst-name-en">Noor-e-Islam Madrasha</div>
-  <div class="inst-addr">ঢাকা, বাংলাদেশ</div>
+  <div class="inst-name">${COLLEGE_INFO.nameBn}</div>
+  <div class="inst-name-en">${COLLEGE_INFO.name}</div>
+  <div class="inst-addr">${COLLEGE_INFO.address}</div>
 </div>
 ${bodyHtml}
 </body>
@@ -244,7 +250,7 @@ export default function AdminRoutinePage() {
     addNotice({
       id: `n${Date.now()}`,
       title: 'নতুন ক্লাস রুটিন প্রকাশিত',
-      content: `এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসার ২০২৪-২৫ শিক্ষাবর্ষের ক্লাস রুটিন চূড়ান্তভাবে প্রকাশিত হয়েছে।${periodCount > 0 ? ` সপ্তাহে ${periodCount}টি ক্লাস পিরিয়ড নির্ধারিত।` : ''} সকল শিক্ষার্থী ও শিক্ষককে রুটিন অনুযায়ী উপস্থিত থাকার অনুরোধ করা হচ্ছে।`,
+      content: `${COLLEGE_INFO.nameBn}-এর ${academicYear()} শিক্ষাবর্ষের ক্লাস রুটিন চূড়ান্তভাবে প্রকাশিত হয়েছে।${periodCount > 0 ? ` সপ্তাহে ${periodCount}টি ক্লাস পিরিয়ড নির্ধারিত।` : ''} সকল শিক্ষার্থী ও শিক্ষককে রুটিন অনুযায়ী উপস্থিত থাকার অনুরোধ করা হচ্ছে।`,
       date: new Date().toISOString().split('T')[0],
       type: 'general', target: 'all', isImportant: false, postedBy: 'Admin',
     });
@@ -273,7 +279,7 @@ export default function AdminRoutinePage() {
     }).join('');
 
     openPrintWindow(`মাস্টার রুটিন — ${dayLabel}`, `
-      <div class="page-sub-wrap"><span class="page-sub">মাস্টার ক্লাস রুটিন — ${dayLabel} | ২০২৪-২৫</span></div>
+      <div class="page-sub-wrap"><span class="page-sub">মাস্টার ক্লাস রুটিন — ${dayLabel} | ${academicYear()}</span></div>
       <table>
         <thead><tr><th class="serial-col">ক্র.</th><th>শিক্ষকের নাম ও পদবী</th>${headCols}</tr></thead>
         <tbody>${rows}</tbody>
@@ -306,7 +312,7 @@ export default function AdminRoutinePage() {
     }).join('');
 
     openPrintWindow(`${classInfo?.nameBn} রুটিন`, `
-      <div class="page-sub-wrap"><span class="page-sub">${classInfo?.nameBn} — সাপ্তাহিক ক্লাস রুটিন | ২০২৪-২৫</span></div>
+      <div class="page-sub-wrap"><span class="page-sub">${classInfo?.nameBn} — সাপ্তাহিক ক্লাস রুটিন | ${academicYear()}</span></div>
       <table>
         <thead><tr><th style="min-width:90px">পিরিয়ড / সময়</th>${dayCols}</tr></thead>
         <tbody>${rows}</tbody>
@@ -365,7 +371,7 @@ export default function AdminRoutinePage() {
             <div className="bg-[#1e1b4b] text-white px-5 py-4 flex items-center justify-between">
               <div>
                 <h2 className="font-bold text-base">মাস্টার ক্লাস রুটিন</h2>
-                <p className="text-purple-300 text-xs mt-0.5">এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা | ২০২৪-২৫</p>
+                <p className="text-purple-300 text-xs mt-0.5">{COLLEGE_INFO.nameBn} | {academicYear()}</p>
               </div>
               <button onClick={printMaster}
                 className="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white text-xs px-3 py-2 rounded-lg font-medium transition-colors">

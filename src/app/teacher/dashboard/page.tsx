@@ -33,8 +33,7 @@ export default function TeacherDashboard() {
       .catch(() => {});
   }, [teachers]);
 
-  // Fallback: use context if session fetch hasn't resolved yet
-  const teacher = resolvedTeacher ?? teachers.find(t => t.id === currentTeacherId) ?? null;
+  const teacher = resolvedTeacher;
 
   const myClasses = teacher?.classes ?? [];
   const myStudents = allStudents.filter(s => myClasses.includes(s.class));

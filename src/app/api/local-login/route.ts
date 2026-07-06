@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { TEACHERS, STUDENTS as STATIC_STUDENTS } from '@/lib/data';
+import { kvGet } from '@/lib/mysql';
 
 const COOKIE = 'nim_session';
-const MAX_AGE = 60 * 60 * 24 * 7;
+const MAX_AGE_DEFAULT = 60 * 60 * 24 * 7;   // 7 days
+const MAX_AGE_REMEMBER = 60 * 60 * 24 * 30;  // 30 days
 
 function makeStudentPassword(roll: number): string {
   return `NIM@${roll.toString().padStart(3, '0')}`;
@@ -14,43 +14,39 @@ function makeTeacherPassword(teacherId: string): string {
   return `NIM@Teacher#${num}`;
 }
 
+interface KVStudent { id: string; student_id: string; roll: number; }
+interface KVTeacher { id: string; teacher_id: string; }
+
 export async function POST(req: NextRequest) {
-  const { id, password, role } = await req.json();
+  const { id, password, role, rememberMe } = await req.json();
   if (!id || !password || !role) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-  const supabase = createClient(supabaseUrl, serviceKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-
+  const maxAge = rememberMe ? MAX_AGE_REMEMBER : MAX_AGE_DEFAULT;
   const cleanId = id.trim();
 
   if (role === 'student') {
-    const isNumeric = /^\d+$/.test(cleanId);
-    let studentQuery = supabase.from('students').select('id, student_id, roll');
-    if (isNumeric) {
-      studentQuery = studentQuery.or(`student_id.eq.${cleanId},roll.eq.${cleanId}`);
-    } else {
-      studentQuery = studentQuery.eq('student_id', cleanId);
-    }
-    const { data: student } = await studentQuery.maybeSingle();
-
     let stuId: string | undefined;
     let stuRoll: number | undefined;
-    if (student) {
-      stuId = student.student_id;
-      stuRoll = student.roll;
-    } else {
-      // Fallback to hardcoded data
-      const rollNum = parseInt(cleanId) || 0;
-      const found = STATIC_STUDENTS.find(s => s.studentId === cleanId || s.roll === rollNum);
-      if (found) { stuId = found.studentId; stuRoll = found.roll; }
-    }
 
-    // Last resort: derive roll from student_id pattern (e.g. STD-2025-919 → roll=919)
+    // 1. Check MySQL KV store (primary source for dynamically added students)
+    try {
+      const kvStudents = (await kvGet('students_data')) as KVStudent[] | null;
+      if (Array.isArray(kvStudents)) {
+        const isNumeric = /^\d+$/.test(cleanId);
+        const found = kvStudents.find(s =>
+          s.student_id === cleanId ||
+          (isNumeric && Number(s.roll) === parseInt(cleanId))
+        );
+        if (found) {
+          stuId = found.student_id;
+          stuRoll = Number(found.roll);
+        }
+      }
+    } catch { /* KV unavailable, continue */ }
+
+    // 2. Last resort: derive roll from student_id pattern (e.g. STD-2025-919 → roll=919)
     if (!stuId || stuRoll === undefined) {
       const m = cleanId.match(/-(\d+)$/);
       if (m) {
@@ -74,29 +70,27 @@ export async function POST(req: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       path: '/',
-      maxAge: MAX_AGE,
+      maxAge,
       sameSite: 'lax',
     });
     return res;
   }
 
   if (role === 'teacher') {
-    const { data: teacher } = await supabase
-      .from('teachers')
-      .select('id, teacher_id')
-      .eq('teacher_id', cleanId)
-      .maybeSingle();
-
     let tchId: string | undefined;
-    if (teacher) {
-      tchId = teacher.teacher_id;
-    } else {
-      // Fallback to hardcoded data
-      const found = TEACHERS.find(t => t.teacherId === cleanId);
-      if (found) tchId = found.teacherId;
-    }
 
-    // Last resort: verify password formula directly from teacherId (no DB needed)
+    // 1. Check MySQL KV store (primary source for dynamically added teachers)
+    try {
+      const kvTeachers = (await kvGet('teachers_data')) as KVTeacher[] | null;
+      if (Array.isArray(kvTeachers)) {
+        const found = kvTeachers.find(t =>
+          t.teacher_id === cleanId || t.id === cleanId
+        );
+        if (found) tchId = found.teacher_id;
+      }
+    } catch { /* KV unavailable, continue */ }
+
+    // 2. Last resort: verify password formula directly from teacherId
     if (!tchId && password === makeTeacherPassword(cleanId)) {
       tchId = cleanId;
     }
@@ -113,7 +107,7 @@ export async function POST(req: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       path: '/',
-      maxAge: MAX_AGE,
+      maxAge,
       sameSite: 'lax',
     });
     return res;

@@ -13,6 +13,11 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 export const metadata: Metadata = {
   title: "এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা | Egaro Sendur Ishakhan Senior Madrasha",
   description: "EIIN: 110590 | বাংলাদেশ মাদ্রাসা শিক্ষা বোর্ড অনুমোদিত | স্থাপিত ১৯৫৮ | পাকুন্দিয়া, কিশোরগঞ্জ",
+  icons: {
+    icon: [{ url: '/logo.png', type: 'image/png' }],
+    apple: [{ url: '/logo.png', type: 'image/png' }],
+    shortcut: [{ url: '/logo.png', type: 'image/png' }],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -21,7 +26,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="manifest" href="/manifest.json" />
-        <link rel="icon" href="/logo.png" type="image/png" />
         <meta name="theme-color" content="#7c3aed" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />

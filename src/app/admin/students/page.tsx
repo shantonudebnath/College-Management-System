@@ -18,10 +18,15 @@ interface Credential { username: string; password: string; }
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
+function currentSession(): string {
+  const y = new Date().getFullYear();
+  return `${y}-${(y + 1).toString().slice(2)}`;
+}
+
 const emptyForm = {
   name: '', nameBn: '', fatherName: '', motherName: '',
   class: 'class-10', classCustom: '',
-  section: 'A', session: '2024-25',
+  section: 'A', session: currentSession(),
   phone: '', guardianPhone: '',
   dob: '', birthCertNo: '',
   bloodGroup: '', gender: 'পুরুষ',
@@ -197,7 +202,7 @@ export default function AdminStudentsPage() {
     setForm({
       name: s.name, nameBn: s.nameBn, fatherName: s.fatherName, motherName: s.motherName,
       class: isFixed ? s.class : '__custom__', classCustom: isFixed ? '' : s.class,
-      section: s.section, session: s.session ?? '2024-25',
+      section: s.section, session: s.session ?? currentSession(),
       phone: s.phone, guardianPhone: s.guardianPhone ?? '',
       dob: s.dob, birthCertNo: s.birthCertNo ?? '',
       bloodGroup: s.bloodGroup ?? '', gender: s.gender,

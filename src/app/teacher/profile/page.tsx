@@ -10,8 +10,22 @@ type ProfileForm = { phone: string; email: string; address: string; bio: string;
 
 export default function TeacherProfilePage() {
   const { teachers } = useTeachers();
-  const { currentTeacherId } = useCurrentTeacher();
-  const teacher = teachers.find(t => t.teacherId === currentTeacherId) ?? teachers[0];
+  const { currentTeacherId, setCurrentTeacher } = useCurrentTeacher();
+
+  // Resolve session → match teacher
+  useEffect(() => {
+    if (teachers.length === 0) return;
+    fetch('/api/session')
+      .then(r => r.ok ? r.json() : null)
+      .then((s: { id: string; role: string } | null) => {
+        if (!s || s.role !== 'teacher') return;
+        const matched = teachers.find(t => t.teacherId === s.id);
+        if (matched && matched.id !== currentTeacherId) setCurrentTeacher(matched.id);
+      })
+      .catch(() => {});
+  }, [teachers]);
+
+  const teacher = teachers.find(t => t.id === currentTeacherId) ?? null;
   const STORAGE_KEY = `teacher_profile_${teacher?.id ?? 'default'}`;
 
   const [editing, setEditing] = useState(false);
@@ -83,7 +97,7 @@ export default function TeacherProfilePage() {
               <h2 className="text-2xl font-bold">{teacher.name}</h2>
               <p className="text-purple-200 text-sm">{teacher.nameBn}</p>
               <div className="flex flex-wrap gap-3 mt-2 text-xs text-white/80">
-                <span className="flex items-center gap-1"><BookOpen size={11} /> {teacher.subject}</span>
+                <span className="flex items-center gap-1"><BookOpen size={11} /> {Array.isArray(teacher.subject) ? teacher.subject.join(', ') : teacher.subject}</span>
                 <span>|</span>
                 <span className="flex items-center gap-1"><Award size={11} /> {teacher.designation}</span>
                 <span>|</span>

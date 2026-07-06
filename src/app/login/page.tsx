@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({ id: '', password: '' });
+  const [rememberMe, setRememberMe] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +30,7 @@ export default function LoginPage() {
       const res = await fetch('/api/local-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: cleanId, password: form.password, role }),
+        body: JSON.stringify({ id: cleanId, password: form.password, role, rememberMe }),
       });
       if (!res.ok) {
         setError('আইডি বা পাসওয়ার্ড ভুল হয়েছে। আবার চেষ্টা করুন।');
@@ -130,7 +131,7 @@ export default function LoginPage() {
 
             <div className="flex items-center justify-between text-xs">
               <label className="flex items-center gap-2 text-gray-600 cursor-pointer">
-                <input type="checkbox" className="accent-purple-600" /> মনে রাখুন
+                <input type="checkbox" className="accent-purple-600" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} /> মনে রাখুন
               </label>
               <a href="#" className="text-purple-600 hover:underline">পাসওয়ার্ড ভুলে গেছেন?</a>
             </div>

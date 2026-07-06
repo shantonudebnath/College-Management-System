@@ -161,7 +161,6 @@ export default function AdminPadPage() {
         .lh-cell { overflow:hidden; }
         #pad-ed { border:none !important; outline:none !important; box-shadow:none !important; }
         #pad-ed:focus { border:none !important; outline:none !important; box-shadow:none !important; }
-        input[type="date"]::-webkit-calendar-picker-indicator { display:none; }
       `}</style>
 
       {/* ── Full-screen Preview Modal ── */}
@@ -306,13 +305,8 @@ export default function AdminPadPage() {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ fontWeight: 700 }}>তারিখ</span>
-                <div style={{ position: 'relative' }}>
-                  <input type="date" value={tarikh} onChange={e => setTarikh(e.target.value)}
-                    style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', border: 'none', outline: 'none' }} />
-                  <span style={{ borderBottom: '1px dotted #999', minWidth: '130px', display: 'inline-block', padding: '0 4px', fontSize: '9.5pt' }}>
-                    {tarikh ? fmtDate(tarikh) : '............................'}
-                  </span>
-                </div>
+                <input type="date" value={tarikh} onChange={e => setTarikh(e.target.value)}
+                  style={{ border: 'none', borderBottom: '1px dotted #999', outline: 'none', background: 'transparent', fontSize: '9.5pt', fontFamily: "'Noto Serif Bengali','Vrinda',serif", cursor: 'pointer', minWidth: '130px', padding: '0 4px' }} />
               </div>
             </div>
           </div>

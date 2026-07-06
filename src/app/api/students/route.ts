@@ -1,40 +1,12 @@
-﻿import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
-
-function makeAdmin() {
-  const strip = (s?: string) => (s ?? '').replace(/^﻿/, '').trim();
-  return createClient(
-    strip(process.env.NEXT_PUBLIC_SUPABASE_URL),
-    strip(process.env.SUPABASE_SERVICE_ROLE_KEY),
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  );
-}
+import { kvGet, kvSet } from '@/lib/mysql';
 
 const KV_KEY = 'students_data';
 
-async function kvLoad(): Promise<Record<string, unknown>[]> {
-  const admin = makeAdmin();
-  const { data, error } = await admin
-    .from('kv_store')
-    .select('value')
-    .eq('key', KV_KEY)
-    .maybeSingle();
-  if (error || !data?.value) return [];
-  return Array.isArray(data.value) ? (data.value as Record<string, unknown>[]) : [];
-}
-
-async function kvSave(rows: Record<string, unknown>[]): Promise<void> {
-  const admin = makeAdmin();
-  const { error } = await admin
-    .from('kv_store')
-    .upsert({ key: KV_KEY, value: rows, updated_at: new Date().toISOString() }, { onConflict: 'key' });
-  if (error) throw new Error(error.message);
-}
-
 export async function GET() {
   try {
-    const rows = await kvLoad();
-    return NextResponse.json({ data: rows });
+    const data = await kvGet(KV_KEY);
+    return NextResponse.json({ data: Array.isArray(data) ? data : [] });
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 });
   }
@@ -44,7 +16,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const incoming = Array.isArray(body) ? body : [body];
-    const current = await kvLoad();
+    const current = (await kvGet(KV_KEY) as Record<string, unknown>[] | null) ?? [];
 
     for (const row of incoming) {
       const r = row as Record<string, unknown>;
@@ -53,7 +25,7 @@ export async function POST(req: NextRequest) {
       else current.push(r);
     }
 
-    await kvSave(current);
+    await kvSet(KV_KEY, current);
     return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 });
@@ -63,9 +35,8 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     const { id } = await req.json();
-    const current = await kvLoad();
-    const updated = current.filter(s => s.id !== id);
-    await kvSave(updated);
+    const current = (await kvGet(KV_KEY) as Record<string, unknown>[] | null) ?? [];
+    await kvSet(KV_KEY, current.filter(s => s.id !== id));
     return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 });

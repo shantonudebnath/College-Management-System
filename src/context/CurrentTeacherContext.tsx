@@ -2,7 +2,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { kvGet } from '@/lib/supabase/kv';
 
-const CURRENT_TEACHER_KEY = 'nim_current_teacher_id';
 const CLASS_TEACHERS_KEY = 'nim_class_teachers_v1';
 
 interface ClassTeacher { classId: string; teacherId: string; }
@@ -30,10 +29,7 @@ export function CurrentTeacherProvider({ children }: { children: ReactNode }) {
     kvGet<ClassTeacher[]>(CLASS_TEACHERS_KEY).then(ct => {
       if (ct) setClassTeachers(ct);
     });
-    try {
-      const tid = localStorage.getItem(CURRENT_TEACHER_KEY);
-      if (tid) setIdState(tid);
-    } catch {}
+    // Note: deliberately NOT reading localStorage — session cookie is the sole authority
   }, []);
 
   useEffect(() => {
@@ -47,13 +43,11 @@ export function CurrentTeacherProvider({ children }: { children: ReactNode }) {
     setIdState(id);
     const cls = classTeachers.find(a => a.teacherId === id)?.classId ?? null;
     setAssignedClassId(cls);
-    try { localStorage.setItem(CURRENT_TEACHER_KEY, id); } catch {}
   };
 
   const clearCurrentTeacher = () => {
     setIdState(null);
     setAssignedClassId(null);
-    try { localStorage.removeItem(CURRENT_TEACHER_KEY); } catch {}
   };
 
   return (

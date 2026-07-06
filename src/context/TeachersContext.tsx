@@ -26,22 +26,24 @@ const Ctx = createContext<TeachersCtx>({
 });
 
 function mapRow(row: Record<string, unknown>): Teacher {
+  // Support both snake_case (toRow output) and camelCase (legacy direct storage)
+  const subj = (row.subject ?? []) as unknown;
   return {
     id: row.id as string,
-    teacherId: row.teacher_id as string,
+    teacherId: (row.teacher_id ?? row.teacherId) as string,
     name: row.name as string,
-    nameBn: (row.name_bn as string) ?? '',
+    nameBn: ((row.name_bn ?? row.nameBn) as string) ?? '',
     designation: (row.designation as string) ?? '',
     department: (row.department as string) ?? '',
-    subject: (row.subject as string[]) ?? [],
-    classes: (row.classes as string[]) ?? [],
-    classSubjects: (row.class_subjects as Record<string, string[]>) ?? {},
+    subject: Array.isArray(subj) ? (subj as string[]) : typeof subj === 'string' ? [subj] : [],
+    classes: ((row.classes ?? []) as string[]),
+    classSubjects: ((row.class_subjects ?? row.classSubjects ?? {}) as Record<string, string[]>),
     phone: (row.phone as string) ?? '',
     email: (row.email as string) ?? '',
     address: (row.address as string) ?? '',
     qualification: (row.qualification as string) ?? '',
-    joinDate: (row.join_date as string) ?? '',
-    image: row.image as string | undefined,
+    joinDate: ((row.join_date ?? row.joinDate) as string) ?? '',
+    image: (row.image as string) || undefined,
   };
 }
 

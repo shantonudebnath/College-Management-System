@@ -31,8 +31,15 @@ async function createSupabaseUser(displayId: string, password: string, role: str
 
 const FIXED_DESIGNATIONS = ['অধ্যক্ষ (Principal)', 'সিনিয়র শিক্ষক (Senior Teacher)', 'সহকারী শিক্ষক (Assistant Teacher)'];
 
+const MADRASHA_SUBJECTS = [
+  'আরবি', 'কুরআন মজিদ', 'হাদিস', 'ফিকহ', 'আকাইদ ও ফিকহ', 'ইসলামিয়াত',
+  'বাংলা', 'ইংরেজি', 'গণিত', 'বিজ্ঞান', 'সমাজবিজ্ঞান', 'ইতিহাস',
+  'পদার্থবিজ্ঞান', 'রসায়ন', 'জীববিজ্ঞান', 'কৃষিশিক্ষা',
+  'তথ্য ও যোগাযোগ প্রযুক্তি (ICT)', 'ভূগোল', 'অর্থনীতি', 'পৌরনীতি',
+];
+
 const emptyForm = {
-  name: '', nameBn: '', department: '', subject: '',
+  name: '', nameBn: '', department: '', subjects: [] as string[], subjectCustom: '',
   phone: '', email: '', qualification: '', joinDate: '',
   designation: FIXED_DESIGNATIONS[2],
   designationCustom: '',
@@ -123,9 +130,11 @@ export default function AdminTeachersPage() {
 
   const openEdit = (t: Teacher) => {
     const isFixed = FIXED_DESIGNATIONS.includes(t.designation);
+    const existingSubjects = Array.isArray(t.subject) ? t.subject : t.subject ? [t.subject] : [];
     setForm({
       name: t.name, nameBn: t.nameBn, department: t.department,
-      subject: Array.isArray(t.subject) ? t.subject.join(', ') : t.subject,
+      subjects: existingSubjects,
+      subjectCustom: '',
       phone: t.phone, email: t.email, qualification: t.qualification,
       joinDate: t.joinDate,
       designation: isFixed ? t.designation : '__custom__',
@@ -145,7 +154,7 @@ export default function AdminTeachersPage() {
       const updated: Teacher = {
         ...existing,
         name: form.name, nameBn: form.nameBn, designation: finalDesignation,
-        department: form.department, subject: form.subject.split(',').map(s => s.trim()),
+        department: form.department, subject: form.subjects,
         classes: form.classes,
         phone: form.phone, email: form.email, qualification: form.qualification,
         joinDate: form.joinDate || existing.joinDate,
@@ -165,7 +174,7 @@ export default function AdminTeachersPage() {
         id: `t${ts}`,
         teacherId: `TCH-${ts.toString().slice(-6)}`,
         name: form.name, nameBn: form.nameBn, designation: finalDesignation,
-        department: form.department, subject: form.subject.split(',').map(s => s.trim()),
+        department: form.department, subject: form.subjects.length > 0 ? form.subjects : (form.subjectCustom ? [form.subjectCustom] : []),
         classes: form.classes, phone: form.phone, email: form.email, address: '',
         qualification: form.qualification,
         joinDate: form.joinDate || new Date().toISOString().split('T')[0],
@@ -322,7 +331,6 @@ export default function AdminTeachersPage() {
                 { label: 'পূর্ণ নাম *', key: 'name', placeholder: 'Full Name' },
                 { label: 'বাংলা নাম', key: 'nameBn', placeholder: 'বাংলায় নাম' },
                 { label: 'বিভাগ *', key: 'department', placeholder: 'Department' },
-                { label: 'বিষয় (কমা দিয়ে)', key: 'subject', placeholder: 'আরবি, ইসলামিয়াত' },
                 { label: 'মোবাইল', key: 'phone', placeholder: '01XXXXXXXXX' },
                 { label: 'ইমেইল', key: 'email', placeholder: 'email@example.com' },
                 { label: 'শিক্ষাগত যোগ্যতা', key: 'qualification', placeholder: 'কামিল, ঢাকা আলিয়া' },
@@ -337,6 +345,58 @@ export default function AdminTeachersPage() {
                   />
                 </div>
               ))}
+
+              {/* Subject multi-select */}
+              <div className="lg:col-span-3 sm:col-span-2">
+                <label className="text-xs font-semibold text-gray-600 block mb-2">
+                  বিষয় (একাধিক বেছে নিন)
+                  {form.subjects.length > 0 && (
+                    <span className="ml-2 text-purple-600 font-normal">{form.subjects.length}টি নির্বাচিত</span>
+                  )}
+                </label>
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {MADRASHA_SUBJECTS.map(s => {
+                    const sel = form.subjects.includes(s);
+                    return (
+                      <button key={s} type="button"
+                        onClick={() => setForm(p => ({ ...p, subjects: sel ? p.subjects.filter(x => x !== s) : [...p.subjects, s] }))}
+                        className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${sel ? 'bg-purple-600 border-purple-600 text-white' : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-purple-300'}`}>
+                        {s}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="flex gap-2 items-center">
+                  <input
+                    value={form.subjectCustom}
+                    onChange={e => setForm(p => ({ ...p, subjectCustom: e.target.value }))}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && form.subjectCustom.trim()) {
+                        e.preventDefault();
+                        const sub = form.subjectCustom.trim();
+                        if (!form.subjects.includes(sub)) setForm(p => ({ ...p, subjects: [...p.subjects, sub], subjectCustom: '' }));
+                        else setForm(p => ({ ...p, subjectCustom: '' }));
+                      }
+                    }}
+                    placeholder="অন্য বিষয় টাইপ করুন, Enter দিন"
+                    className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-purple-400"
+                  />
+                  <button type="button" onClick={() => {
+                    const sub = form.subjectCustom.trim();
+                    if (sub && !form.subjects.includes(sub)) setForm(p => ({ ...p, subjects: [...p.subjects, sub], subjectCustom: '' }));
+                  }} className="px-3 py-2 bg-purple-100 text-purple-700 rounded-xl text-sm font-semibold hover:bg-purple-200">যোগ</button>
+                </div>
+                {form.subjects.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {form.subjects.map(s => (
+                      <span key={s} className="flex items-center gap-1 bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-full">
+                        {s}
+                        <button type="button" onClick={() => setForm(p => ({ ...p, subjects: p.subjects.filter(x => x !== s) }))} className="hover:text-red-600">×</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               {/* Joining date */}
               <div>
