@@ -96,7 +96,7 @@ export default function TeacherRoutinePage() {
   if (routine.periods.length === 0 || teachers.length === 0) {
     return (
       <div>
-        <DashboardHeader title="ক্লাস রুটিন" subtitle="আপনার ক্লাস সূচি" userName={teacher.name} role={teacher.designation} />
+        <DashboardHeader title="ক্লাস রুটিন" subtitle="আপনার ক্লাস সূচি" userName={teacher.name} role={teacher.designation} userImage={teacher.image} />
         <div className="p-6">
           <div className="bg-white rounded-2xl border border-gray-100 py-16 text-center text-gray-400">
             <LayoutGrid size={36} className="mx-auto mb-3 opacity-20" />
@@ -110,7 +110,7 @@ export default function TeacherRoutinePage() {
 
   return (
     <div>
-      <DashboardHeader title="ক্লাস রুটিন" subtitle="আপনার ক্লাস সূচি" userName={teacher.name} role={teacher.designation} />
+      <DashboardHeader title="ক্লাস রুটিন" subtitle="আপনার ক্লাস সূচি" userName={teacher.name} role={teacher.designation} userImage={teacher.image} />
       <div className="p-6">
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
           <div className="bg-[#1e1b4b] text-white px-5 py-4 text-center">

@@ -44,7 +44,7 @@ export default function TeacherFeesPage() {
 
   return (
     <div>
-      <DashboardHeader title="ফি বিবরণ" subtitle="আপনার শ্রেণির শিক্ষার্থীদের ফি তথ্য ও আপডেট" userName={teacherName} role="শিক্ষক" />
+      <DashboardHeader title="ফি বিবরণ" subtitle="আপনার শ্রেণির শিক্ষার্থীদের ফি তথ্য ও আপডেট" userName={teacherName} role="শিক্ষক" userImage={currentTeacher?.image} />
       <div className="p-6 space-y-5">
 
         {!currentTeacherId && (

@@ -30,7 +30,7 @@ export default function TeacherSuggestionsPage() {
 
   return (
     <div>
-      <DashboardHeader title="সাজেশন আপলোড" subtitle="ছাত্রদের জন্য সাজেশন আপলোড করুন" userName={teacher?.name ?? 'শিক্ষক'} role="শিক্ষক" />
+      <DashboardHeader title="সাজেশন আপলোড" subtitle="ছাত্রদের জন্য সাজেশন আপলোড করুন" userName={teacher?.name ?? 'শিক্ষক'} role="শিক্ষক" userImage={teacher?.image} />
       <div className="p-6 space-y-5">
         {uploaded && (
           <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-2xl p-4 text-green-800 font-medium text-sm">

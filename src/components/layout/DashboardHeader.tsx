@@ -9,6 +9,7 @@ interface Props {
   subtitle?: string;
   userName?: string;
   role?: string;
+  userImage?: string;
 }
 
 const NOTIF_ICON: Record<string, React.ReactNode> = {
@@ -18,7 +19,7 @@ const NOTIF_ICON: Record<string, React.ReactNode> = {
   result: <CheckCircle size={13} className="text-green-500" />,
 };
 
-export default function DashboardHeader({ title, subtitle, userName = 'ব্যবহারকারী', role = 'Admin' }: Props) {
+export default function DashboardHeader({ title, subtitle, userName = 'ব্যবহারকারী', role = 'Admin', userImage }: Props) {
   const [notifOpen, setNotifOpen] = useState(false);
   const [read, setRead] = useState<string[]>([]);
   const notifRef = useRef<HTMLDivElement>(null);
@@ -123,8 +124,11 @@ export default function DashboardHeader({ title, subtitle, userName = 'ব্য
 
         {/* User avatar */}
         <div className="flex items-center gap-2 pl-3 border-l border-gray-200">
-          <div className="w-8 h-8 gradient-primary rounded-full flex items-center justify-center">
-            <User size={14} className="text-white" />
+          <div className="w-8 h-8 gradient-primary rounded-full flex items-center justify-center overflow-hidden shrink-0">
+            {userImage
+              ? <img src={userImage} alt={userName} className="w-full h-full object-cover" />
+              : <User size={14} className="text-white" />
+            }
           </div>
           <div className="hidden sm:block">
             <p className="text-xs font-semibold text-gray-900">{userName}</p>

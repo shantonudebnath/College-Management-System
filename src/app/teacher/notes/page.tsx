@@ -72,7 +72,7 @@ export default function TeacherNotesPage() {
 
   return (
     <div>
-      <DashboardHeader title="আমার নোটস ও সাজেশন" subtitle="নোট তৈরি, সম্পাদনা ও পরিচালনা করুন" userName={teacher?.name ?? 'শিক্ষক'} role="শিক্ষক" />
+      <DashboardHeader title="আমার নোটস ও সাজেশন" subtitle="নোট তৈরি, সম্পাদনা ও পরিচালনা করুন" userName={teacher?.name ?? 'শিক্ষক'} role="শিক্ষক" userImage={teacher?.image} />
       <div className="p-6 space-y-5">
 
         <button onClick={() => setShowNew(!showNew)} className="flex items-center gap-2 btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold">

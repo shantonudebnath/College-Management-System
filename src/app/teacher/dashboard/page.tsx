@@ -48,7 +48,7 @@ export default function TeacherDashboard() {
 
   return (
     <div>
-      <DashboardHeader title="শিক্ষক ড্যাশবোর্ড" subtitle={`স্বাগতম, ${teacher.name}`} userName={teacher.name} role={teacher.designation} />
+      <DashboardHeader title="শিক্ষক ড্যাশবোর্ড" subtitle={`স্বাগতম, ${teacher.name}`} userName={teacher.name} role={teacher.designation} userImage={teacher.image} />
 
       <div className="p-6 space-y-6">
         {/* Teacher info */}

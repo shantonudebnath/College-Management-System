@@ -54,6 +54,7 @@ export default function StudentIdCardPage() {
         subtitle="শিক্ষার্থীর পরিচয়পত্র দেখুন ও প্রিন্ট করুন"
         userName={student.nameBn ?? student.name}
         role="ছাত্র"
+        userImage={student.image}
       />
 
       <div className="p-6 space-y-5">

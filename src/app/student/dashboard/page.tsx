@@ -31,7 +31,7 @@ export default function StudentDashboard() {
 
   return (
     <div>
-      <DashboardHeader title="ছাত্র ড্যাশবোর্ড" subtitle={`স্বাগতম, ${displayName}`} userName={displayName} role="ছাত্র" />
+      <DashboardHeader title="ছাত্র ড্যাশবোর্ড" subtitle={`স্বাগতম, ${displayName}`} userName={displayName} role="ছাত্র" userImage={student?.image} />
 
       <div className="p-6 space-y-6">
         {/* Student info card */}

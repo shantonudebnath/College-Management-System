@@ -1,9 +1,10 @@
 ﻿'use client';
 import { useState, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import { STUDENTS, MADRASHA_CLASSES } from '@/lib/data';
+import { MADRASHA_CLASSES } from '@/lib/data';
 import { LayoutGrid } from 'lucide-react';
 import { kvGet } from '@/lib/supabase/kv';
+import { useStudentSession } from '@/hooks/useStudentSession';
 
 const LS_KEY = 'master_routine_v2';
 const TEACHERS_KEY = 'nim_teachers_v1';
@@ -65,13 +66,13 @@ interface TeacherBasic {
   designation: string;
 }
 
-const student = STUDENTS[0];
-
 export default function StudentRoutinePage() {
+  const { student: sessionStudent } = useStudentSession();
+  const student = sessionStudent;
   const [routine, setRoutine] = useState<MasterRoutine>({ periods: [], schedule: {} });
   const [teachers, setTeachers] = useState<TeacherBasic[]>([]);
 
-  const classInfo = MADRASHA_CLASSES.find(c => c.id === student.class);
+  const classInfo = MADRASHA_CLASSES.find(c => c.id === (student?.class ?? ''));
 
   useEffect(() => {
     Promise.all([
@@ -87,7 +88,7 @@ export default function StudentRoutinePage() {
   const getEntry = (dayId: string, periodId: string) => {
     for (const t of teachers) {
       const cell = routine.schedule[t.id]?.[dayId]?.[periodId];
-      if (cell?.classIds?.includes(student.class)) return { subject: cell.subject, teacher: t.name };
+      if (cell?.classIds?.includes(student?.class ?? '')) return { subject: cell.subject, teacher: t.name };
     }
     return null;
   };
@@ -105,7 +106,7 @@ export default function StudentRoutinePage() {
   if (!hasData) {
     return (
       <div>
-        <DashboardHeader title="ক্লাস রুটিন" subtitle="আপনার শ্রেণির সাপ্তাহিক রুটিন" userName={student.name} role="ছাত্র" />
+        <DashboardHeader title="ক্লাস রুটিন" subtitle="আপনার শ্রেণির সাপ্তাহিক রুটিন" userName={student?.name ?? 'শিক্ষার্থী'} role="ছাত্র" userImage={student?.image} />
         <div className="p-6">
           <div className="bg-white rounded-2xl border border-gray-100 py-16 text-center text-gray-400">
             <LayoutGrid size={36} className="mx-auto mb-3 opacity-20" />
@@ -119,13 +120,13 @@ export default function StudentRoutinePage() {
 
   return (
     <div>
-      <DashboardHeader title="ক্লাস রুটিন" subtitle="আপনার শ্রেণির সাপ্তাহিক রুটিন" userName={student.name} role="ছাত্র" />
+      <DashboardHeader title="ক্লাস রুটিন" subtitle="আপনার শ্রেণির সাপ্তাহিক রুটিন" userName={student?.name ?? 'শিক্ষার্থী'} role="ছাত্র" userImage={student?.image} />
       <div className="p-6">
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
           <div className="bg-[#1e1b4b] text-white px-5 py-4 text-center">
             <h2 className="font-bold text-base">এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা</h2>
             <p className="text-purple-200 text-xs mt-0.5">
-              {classInfo?.nameBn ?? student.class} — সাপ্তাহিক ক্লাস রুটিন | ২০২৪-২৫
+              {classInfo?.nameBn ?? student?.class} — সাপ্তাহিক ক্লাস রুটিন | ২০২৪-২৫
             </p>
           </div>
 

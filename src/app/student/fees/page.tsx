@@ -43,7 +43,7 @@ export default function StudentFeesPage() {
 
   return (
     <div>
-      <DashboardHeader title="ফি বিবরণ" subtitle="আপনার ফি পরিশোধের তথ্য" userName={student?.name ?? 'শিক্ষার্থী'} role="ছাত্র" />
+      <DashboardHeader title="ফি বিবরণ" subtitle="আপনার ফি পরিশোধের তথ্য" userName={student?.name ?? 'শিক্ষার্থী'} role="ছাত্র" userImage={student?.image} />
       <div className="p-6 space-y-6">
 
         {/* Summary cards */}

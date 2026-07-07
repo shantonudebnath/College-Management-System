@@ -103,7 +103,7 @@ export default function TeacherProfilePage() {
 
   return (
     <div>
-      <DashboardHeader title="আমার প্রোফাইল" subtitle="শিক্ষকের ব্যক্তিগত তথ্য" userName={teacher.name} role="শিক্ষক" />
+      <DashboardHeader title="আমার প্রোফাইল" subtitle="শিক্ষকের ব্যক্তিগত তথ্য" userName={teacher.name} role="শিক্ষক" userImage={profileImg} />
       <div className="p-6 space-y-6 max-w-4xl">
 
         {saved && (

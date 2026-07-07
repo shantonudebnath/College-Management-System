@@ -2,6 +2,7 @@
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { useNotices } from '@/context/NoticesContext';
 import { Bell, AlertCircle, Paperclip } from 'lucide-react';
+import { useStudentSession } from '@/hooks/useStudentSession';
 
 const TYPE_COLORS: Record<string, string> = {
   exam: 'bg-blue-100 text-blue-700', fee: 'bg-amber-100 text-amber-700',
@@ -12,12 +13,13 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default function StudentNoticePage() {
+  const { student } = useStudentSession();
   const { notices } = useNotices();
   const studentNotices = notices.filter(n => n.target === 'all' || n.target === 'student');
 
   return (
     <div>
-      <DashboardHeader title="নোটিশ বোর্ড" subtitle="আপনার জন্য নোটিশসমূহ" userName="Mohammad Rafiqul Islam" role="ছাত্র" />
+      <DashboardHeader title="নোটিশ বোর্ড" subtitle="আপনার জন্য নোটিশসমূহ" userName={student?.name ?? 'শিক্ষার্থী'} role="ছাত্র" userImage={student?.image} />
       <div className="p-6 space-y-4">
         {studentNotices.length === 0 && (
           <div className="text-center py-10 text-gray-400 text-sm">কোনো নোটিশ নেই।</div>

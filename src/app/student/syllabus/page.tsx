@@ -5,6 +5,7 @@ import { SYLLABUS } from '@/lib/data';
 import { BookOpen, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import type { Syllabus } from '@/lib/types';
 import { kvGet } from '@/lib/supabase/kv';
+import { useStudentSession } from '@/hooks/useStudentSession';
 
 const STATUS_MAP = {
   completed: { label: 'সম্পন্ন', color: 'bg-green-100 text-green-700', icon: CheckCircle },
@@ -13,6 +14,7 @@ const STATUS_MAP = {
 };
 
 export default function SyllabusPage() {
+  const { student } = useStudentSession();
   const [syllabus, setSyllabus] = useState<(Syllabus & { content?: string })[]>([]);
 
   useEffect(() => {
@@ -28,7 +30,7 @@ export default function SyllabusPage() {
 
   return (
     <div>
-      <DashboardHeader title="সিলেবাস" subtitle="বিষয়ভিত্তিক পাঠ্যক্রম ও অগ্রগতি" userName="Mohammad Rafiqul Islam" role="ছাত্র" />
+      <DashboardHeader title="সিলেবাস" subtitle="বিষয়ভিত্তিক পাঠ্যক্রম ও অগ্রগতি" userName={student?.name ?? 'শিক্ষার্থী'} role="ছাত্র" userImage={student?.image} />
       <div className="p-6 space-y-6">
 
         {/* Progress */}

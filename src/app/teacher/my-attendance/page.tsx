@@ -34,7 +34,7 @@ export default function TeacherMyAttendancePage() {
 
   return (
     <div>
-      <DashboardHeader title="আমার উপস্থিতি" subtitle="নিজের উপস্থিতি রেকর্ড দেখুন" userName={teacher?.name ?? 'শিক্ষক'} role="শিক্ষক" />
+      <DashboardHeader title="আমার উপস্থিতি" subtitle="নিজের উপস্থিতি রেকর্ড দেখুন" userName={teacher?.name ?? 'শিক্ষক'} role="শিক্ষক" userImage={teacher?.image} />
       <div className="p-6 space-y-5">
         {/* Today mark */}
         {!todayStatus ? (

@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { ClipboardList, CheckCircle, Calendar } from 'lucide-react';
+import { useStudentSession } from '@/hooks/useStudentSession';
 
 const FORMS = [
   { id: 'f1', title: 'দাখিল পরীক্ষার রেজিস্ট্রেশন ফর্ম', deadline: '2024-07-15', status: 'pending', desc: 'দাখিল পরীক্ষায় অংশগ্রহণের জন্য বাধ্যতামূলক রেজিস্ট্রেশন ফর্ম।' },
@@ -10,12 +11,13 @@ const FORMS = [
 ];
 
 export default function StudentFormsPage() {
+  const { student } = useStudentSession();
   const [submitted, setSubmitted] = useState<string[]>(['f2']);
   const [active, setActive] = useState<string | null>(null);
 
   return (
     <div>
-      <DashboardHeader title="ফর্ম ফিলআপ" subtitle="অ্যাডমিন নির্ধারিত ফর্মসমূহ" userName="Mohammad Rafiqul Islam" role="ছাত্র" />
+      <DashboardHeader title="ফর্ম ফিলআপ" subtitle="অ্যাডমিন নির্ধারিত ফর্মসমূহ" userName={student?.name ?? 'শিক্ষার্থী'} role="ছাত্র" userImage={student?.image} />
       <div className="p-6 space-y-4">
         {FORMS.map(form => (
           <div key={form.id} className="bg-white rounded-2xl border border-gray-100 hover:border-purple-200 transition-all p-5">

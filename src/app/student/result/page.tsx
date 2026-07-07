@@ -194,7 +194,7 @@ export default function StudentResultPage() {
 
   return (
     <div>
-      <DashboardHeader title="পরীক্ষার ফলাফল" subtitle="আপনার বিস্তারিত ফলাফল" userName={student?.name ?? 'শিক্ষার্থী'} role="ছাত্র" />
+      <DashboardHeader title="পরীক্ষার ফলাফল" subtitle="আপনার বিস্তারিত ফলাফল" userName={student?.name ?? 'শিক্ষার্থী'} role="ছাত্র" userImage={student?.image} />
       <div className="p-6 space-y-6">
 
         {!result || !isPublished ? (

@@ -108,7 +108,7 @@ export default function TeacherQuestionsPage() {
   return (
     <div>
       {ToastEl}
-      <DashboardHeader title="প্রশ্নপত্র দাখিল" subtitle="পরীক্ষার প্রশ্নপত্র PDF আপলোড করুন" userName={teacher?.name ?? 'শিক্ষক'} role="শিক্ষক" />
+      <DashboardHeader title="প্রশ্নপত্র দাখিল" subtitle="পরীক্ষার প্রশ্নপত্র PDF আপলোড করুন" userName={teacher?.name ?? 'শিক্ষক'} role="শিক্ষক" userImage={teacher?.image} />
       <div className="p-6 space-y-5">
 
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-3 text-sm text-amber-800">

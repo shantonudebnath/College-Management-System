@@ -111,7 +111,7 @@ export default function TeacherSyllabusPage() {
 
   return (
     <div>
-      <DashboardHeader title="সিলেবাস তৈরি" subtitle="শ্রেণি অনুযায়ী পাঠ্যক্রম পরিচালনা করুন" userName={teacher?.name ?? 'শিক্ষক'} role="শিক্ষক" />
+      <DashboardHeader title="সিলেবাস তৈরি" subtitle="শ্রেণি অনুযায়ী পাঠ্যক্রম পরিচালনা করুন" userName={teacher?.name ?? 'শিক্ষক'} role="শিক্ষক" userImage={teacher?.image} />
       <div className="p-6 space-y-5">
 
         {/* Class selector + progress */}

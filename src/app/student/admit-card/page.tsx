@@ -124,7 +124,7 @@ export default function AdmitCardPage() {
           }
         }
       `}</style>
-      <DashboardHeader title="এডমিট কার্ড" subtitle="পরীক্ষার প্রবেশপত্র" userName={student?.nameBn ?? student?.name ?? 'শিক্ষার্থী'} role="ছাত্র" />
+      <DashboardHeader title="এডমিট কার্ড" subtitle="পরীক্ষার প্রবেশপত্র" userName={student?.nameBn ?? student?.name ?? 'শিক্ষার্থী'} role="ছাত্র" userImage={student?.image} />
       <div className="p-6 space-y-4">
         {myAdmitCards.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center text-gray-400">

@@ -201,7 +201,7 @@ export default function StudentExamSchedulePage() {
   if (exams.length === 0 || myEntries.length === 0) {
     return (
       <div>
-        <DashboardHeader title="পরীক্ষার সময়সূচী" subtitle="আপনার পরীক্ষার তারিখ ও সময়" userName={displayName} role="ছাত্র" />
+        <DashboardHeader title="পরীক্ষার সময়সূচী" subtitle="আপনার পরীক্ষার তারিখ ও সময়" userName={displayName} role="ছাত্র" userImage={student?.image} />
         <div className="p-6">
           <div className="bg-white rounded-2xl border border-gray-100 py-16 text-center text-gray-400">
             <Calendar size={36} className="mx-auto mb-3 opacity-20" />
@@ -215,7 +215,7 @@ export default function StudentExamSchedulePage() {
 
   return (
     <div>
-      <DashboardHeader title="পরীক্ষার সময়সূচী" subtitle="আপনার পরীক্ষার তারিখ ও সময়" userName={displayName} role="ছাত্র" />
+      <DashboardHeader title="পরীক্ষার সময়সূচী" subtitle="আপনার পরীক্ষার তারিখ ও সময়" userName={displayName} role="ছাত্র" userImage={student?.image} />
       <div className="p-6 space-y-5">
 
         {/* Exam selector + header */}

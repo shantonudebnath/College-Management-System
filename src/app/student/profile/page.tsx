@@ -107,7 +107,7 @@ export default function StudentProfilePage() {
 
   return (
     <div>
-      <DashboardHeader title="আমার প্রোফাইল" subtitle="ব্যক্তিগত তথ্য ও পরিচয়" userName={displayName} role="ছাত্র" />
+      <DashboardHeader title="আমার প্রোফাইল" subtitle="ব্যক্তিগত তথ্য ও পরিচয়" userName={displayName} role="ছাত্র" userImage={profileImg ?? student?.image} />
       <div className="p-6 space-y-6 max-w-4xl">
 
         {saved && (

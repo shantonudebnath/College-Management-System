@@ -67,7 +67,7 @@ export default function TeacherAttendancePage() {
 
   return (
     <div>
-      <DashboardHeader title="উপস্থিতি গ্রহণ" subtitle="শ্রেণিভিত্তিক দৈনিক উপস্থিতি" userName={teacherName} role="শিক্ষক" />
+      <DashboardHeader title="উপস্থিতি গ্রহণ" subtitle="শ্রেণিভিত্তিক দৈনিক উপস্থিতি" userName={teacherName} role="শিক্ষক" userImage={currentTeacher?.image} />
       <div className="p-6 space-y-5">
 
         {!currentTeacherId && (

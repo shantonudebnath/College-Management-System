@@ -5,8 +5,10 @@ import { NOTES } from '@/lib/data';
 import { FileText, Download, BookOpen, Lightbulb, User, Search } from 'lucide-react';
 import type { Note } from '@/lib/types';
 import { kvGet } from '@/lib/supabase/kv';
+import { useStudentSession } from '@/hooks/useStudentSession';
 
 export default function StudentNotesPage() {
+  const { student } = useStudentSession();
   const [notes, setNotes] = useState<Note[]>([]);
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<'note' | 'suggestion'>('note');
@@ -35,7 +37,7 @@ export default function StudentNotesPage() {
 
   return (
     <div>
-      <DashboardHeader title="নোট ও সাজেশন" subtitle="শিক্ষকদের দেওয়া নোট ও সাজেশন" userName="Mohammad Rafiqul Islam" role="ছাত্র" />
+      <DashboardHeader title="নোট ও সাজেশন" subtitle="শিক্ষকদের দেওয়া নোট ও সাজেশন" userName={student?.name ?? 'শিক্ষার্থী'} role="ছাত্র" userImage={student?.image} />
       <div className="p-6 space-y-5">
 
         {/* Tabs */}

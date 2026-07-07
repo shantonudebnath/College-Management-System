@@ -22,7 +22,7 @@ export default function TeacherNoticePage() {
 
   return (
     <div>
-      <DashboardHeader title="নোটিশ বোর্ড" subtitle="অ্যাডমিনের পাঠানো নোটিশ" userName={teacher?.name ?? 'শিক্ষক'} role="শিক্ষক" />
+      <DashboardHeader title="নোটিশ বোর্ড" subtitle="অ্যাডমিনের পাঠানো নোটিশ" userName={teacher?.name ?? 'শিক্ষক'} role="শিক্ষক" userImage={teacher?.image} />
       <div className="p-6 space-y-4">
         {teacherNotices.length === 0 && (
           <div className="text-center py-10 text-gray-400 text-sm">কোনো নোটিশ নেই।</div>

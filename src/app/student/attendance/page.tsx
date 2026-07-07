@@ -67,6 +67,7 @@ export default function StudentAttendancePage() {
         subtitle="মাসভিত্তিক উপস্থিতি বিবরণ"
         userName={student?.nameBn ?? student?.name ?? 'শিক্ষার্থী'}
         role="ছাত্র"
+        userImage={student?.image}
       />
       <div className="p-6 space-y-6">
 

@@ -58,8 +58,11 @@ function TeacherInfo({ collapsed }: { collapsed: boolean }) {
   return (
     <div className="px-3 py-3 border-b border-gray-100">
       <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-purple-50">
-        <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center shrink-0 text-white text-xs font-bold">
-          {teacher ? (teacher.nameBn || teacher.name)[0] : '?'}
+        <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center shrink-0 text-white text-xs font-bold overflow-hidden">
+          {teacher?.image
+            ? <img src={teacher.image} alt={teacher.name} className="w-full h-full object-cover" />
+            : (teacher ? (teacher.nameBn || teacher.name)[0] : '?')
+          }
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-gray-800 text-xs truncate">

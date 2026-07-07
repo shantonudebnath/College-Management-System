@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, Award, CreditCard, IdCard, Calendar, BookOpen, FileDown, Bell, ChevronLeft, ChevronRight, GraduationCap, LogOut, ClipboardList, User, CheckSquare, X, LayoutGrid } from 'lucide-react';
 import Image from 'next/image';
+import { useStudentSession } from '@/hooks/useStudentSession';
 
 async function localLogout() {
   await fetch('/api/local-logout', { method: 'POST' });
@@ -25,6 +26,31 @@ const MENU = [
   { label: 'ফর্ম ফিলআপ', href: '/student/forms', icon: ClipboardList },
   { label: 'আমার প্রোফাইল', href: '/student/profile', icon: User },
 ];
+
+function StudentInfo({ collapsed }: { collapsed: boolean }) {
+  const { student } = useStudentSession();
+  if (collapsed) return null;
+  return (
+    <div className="px-3 py-3 border-b border-gray-100">
+      <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-purple-50">
+        <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center shrink-0 text-white text-xs font-bold overflow-hidden">
+          {student?.image
+            ? <img src={student.image} alt={student.name} className="w-full h-full object-cover" />
+            : (student ? (student.nameBn || student.name)[0] : '?')
+          }
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-gray-800 text-xs truncate">
+            {student ? (student.nameBn || student.name) : 'লোড হচ্ছে...'}
+          </p>
+          <p className="text-[10px] text-purple-500 truncate">
+            {student?.class ?? ''}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function SidebarContent({ collapsed, setCollapsed, onClose }: { collapsed: boolean; setCollapsed: (v: boolean) => void; onClose?: () => void }) {
   const pathname = usePathname();
@@ -53,6 +79,8 @@ function SidebarContent({ collapsed, setCollapsed, onClose }: { collapsed: boole
           </button>
         </div>
       </div>
+
+      <StudentInfo collapsed={collapsed} />
 
       <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
         {MENU.map(({ label, href, icon: Icon }) => {
