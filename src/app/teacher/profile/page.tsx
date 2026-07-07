@@ -1,15 +1,14 @@
-﻿'use client';
+'use client';
 import { useState, useRef, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { useTeachers } from '@/context/TeachersContext';
 import { useCurrentTeacher } from '@/context/CurrentTeacherContext';
 import { User, Phone, BookOpen, Edit3, Save, X, Camera, Award, Hash } from 'lucide-react';
-import { kvGet, kvSet } from '@/lib/supabase/kv';
 
-type ProfileForm = { phone: string; email: string; address: string; bio: string; };
+type ProfileForm = { phone: string; email: string; address: string; };
 
 export default function TeacherProfilePage() {
-  const { teachers } = useTeachers();
+  const { teachers, updateTeacher } = useTeachers();
   const { currentTeacherId, setCurrentTeacher } = useCurrentTeacher();
 
   // Resolve session → match teacher
@@ -26,27 +25,23 @@ export default function TeacherProfilePage() {
   }, [teachers]);
 
   const teacher = teachers.find(t => t.id === currentTeacherId) ?? null;
-  const STORAGE_KEY = `teacher_profile_${teacher?.id ?? 'default'}`;
 
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState<ProfileForm>({
-    phone: teacher?.phone ?? '',
-    email: teacher?.email ?? '',
-    address: teacher?.address ?? '',
-    bio: '',
-  });
+  const [form, setForm] = useState<ProfileForm>({ phone: '', email: '', address: '' });
   const [saved, setSaved] = useState(false);
   const [profileImg, setProfileImg] = useState<string | undefined>(undefined);
   const photoRef = useRef<HTMLInputElement>(null);
 
+  // Initialize form with teacher's actual data when it loads
   useEffect(() => {
-    if (!teacher?.id) return;
-    kvGet<{ form: ProfileForm; image?: string }>(STORAGE_KEY).then(data => {
-      if (data?.form) setForm(data.form);
-      else setForm({ phone: teacher.phone ?? '', email: teacher.email ?? '', address: teacher.address ?? '', bio: '' });
-      if (data?.image) setProfileImg(data.image);
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (teacher) {
+      setForm({
+        phone: teacher.phone ?? '',
+        email: teacher.email ?? '',
+        address: teacher.address ?? '',
+      });
+      if (teacher.image) setProfileImg(teacher.image);
+    }
   }, [teacher?.id]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,7 +53,14 @@ export default function TeacherProfilePage() {
   };
 
   const handleSave = async () => {
-    await kvSet(STORAGE_KEY, { form, image: profileImg });
+    if (!teacher) return;
+    await updateTeacher({
+      ...teacher,
+      phone: form.phone,
+      email: form.email,
+      address: form.address,
+      image: profileImg ?? teacher.image,
+    });
     setSaved(true);
     setEditing(false);
     setTimeout(() => setSaved(false), 3000);
@@ -127,8 +129,7 @@ export default function TeacherProfilePage() {
                 ['পদবি', teacher.designation],
                 ['বিভাগ', teacher.department],
                 ['যোগদানের তারিখ', teacher.joinDate],
-                ['অভিজ্ঞতা', '১৫ বছর'],
-                ['শ্রেণি দায়িত্ব', teacher.classes?.join(', ') ?? '৯ম, ১০ম'],
+                ['শ্রেণি দায়িত্ব', teacher.classes?.join(', ') ?? '—'],
               ].map(([label, value]) => (
                 <div key={String(label)} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
                   <span className="text-xs text-gray-500">{label}</span>
@@ -145,12 +146,7 @@ export default function TeacherProfilePage() {
             </h3>
             <div className="space-y-3">
               {[
-                ['জন্ম তারিখ', '১৮ জুন ১৯৮০'],
-                ['লিঙ্গ', 'পুরুষ'],
-                ['ধর্ম', 'ইসলাম'],
-                ['জাতীয়তা', 'বাংলাদেশি'],
-                ['রক্তের গ্রুপ', 'O+'],
-                ['NID', '198012345678901'],
+                ['যোগ্যতা', teacher.qualification ?? '—'],
               ].map(([label, value]) => (
                 <div key={label} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
                   <span className="text-xs text-gray-500">{label}</span>
@@ -160,10 +156,10 @@ export default function TeacherProfilePage() {
             </div>
           </div>
 
-          {/* Contact & Bio */}
+          {/* Contact */}
           <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-5">
             <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Phone size={16} className="text-purple-600" /> যোগাযোগ ও পরিচিতি
+              <Phone size={16} className="text-purple-600" /> যোগাযোগের তথ্য
               {editing && <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full ml-auto">সম্পাদনাযোগ্য</span>}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -176,45 +172,11 @@ export default function TeacherProfilePage() {
                       <input value={form[key]} onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}
                         className="w-full px-3 py-2 bg-gray-50 border border-purple-200 rounded-lg text-sm outline-none focus:border-purple-400" />
                     ) : (
-                      <p className="text-sm font-semibold text-gray-900">{form[key]}</p>
+                      <p className="text-sm font-semibold text-gray-900">{form[key] || '—'}</p>
                     )}
                   </div>
                 );
               })}
-              <div className="sm:col-span-2">
-                <label className="text-xs text-gray-500 block mb-1">সংক্ষিপ্ত পরিচিতি</label>
-                {editing ? (
-                  <textarea value={form.bio} onChange={e => setForm(p => ({ ...p, bio: e.target.value }))}
-                    rows={2} className="w-full px-3 py-2 bg-gray-50 border border-purple-200 rounded-lg text-sm outline-none focus:border-purple-400 resize-none" />
-                ) : (
-                  <p className="text-sm text-gray-700">{form.bio}</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Qualifications */}
-          <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-5">
-            <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <BookOpen size={16} className="text-purple-600" /> শিক্ষাগত যোগ্যতা
-            </h3>
-            <div className="space-y-3">
-              {[
-                { degree: 'কামিল (M.A.)', subject: 'আরবি সাহিত্য', institute: 'ঢাকা আলিয়া মাদ্রাসা', year: '২০০৩', grade: '১ম শ্রেণি' },
-                { degree: 'ফাযিল (B.A.)', subject: 'আরবি', institute: 'কুমিল্লা ইসলামিয়া মাদ্রাসা', year: '২০০১', grade: '১ম শ্রেণি' },
-                { degree: 'দাখিল', subject: 'সাধারণ', institute: 'এগারসিন্দুর ঈশাখান সিনিয়র মাদ্রাসা', year: '১৯৯৮', grade: 'A+' },
-              ].map((q) => (
-                <div key={q.degree} className="flex items-center gap-4 py-3 border-b border-gray-50 last:border-0">
-                  <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center shrink-0">
-                    <BookOpen size={16} className="text-purple-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-gray-900">{q.degree} — {q.subject}</p>
-                    <p className="text-xs text-gray-500">{q.institute} | {q.year}</p>
-                  </div>
-                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-semibold">{q.grade}</span>
-                </div>
-              ))}
             </div>
           </div>
         </div>

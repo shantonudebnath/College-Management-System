@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { MADRASHA_CLASSES } from '@/lib/data';
 import { User, Phone, BookOpen, Calendar, Edit3, Save, X, Camera, Hash } from 'lucide-react';
@@ -7,19 +7,37 @@ import { useStudentSession } from '@/hooks/useStudentSession';
 import { useStudents } from '@/context/StudentsContext';
 
 export default function StudentProfilePage() {
-  const { student, loading } = useStudentSession();
-  const { upsertStudent } = useStudents();
+  const { student: sessionStudent, loading } = useStudentSession();
+  const { students, upsertStudent } = useStudents();
+
+  // Use live reactive data from context so updates reflect immediately
+  const student = sessionStudent
+    ? (students.find(s => s.id === sessionStudent.id) ?? sessionStudent)
+    : null;
+
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
     phone: '',
     email: '',
     address: '',
-    guardian: '',
     guardianPhone: '',
   });
   const [saved, setSaved] = useState(false);
   const [profileImg, setProfileImg] = useState<string | undefined>(undefined);
   const photoRef = useRef<HTMLInputElement>(null);
+
+  // Initialize form with student's actual data when it loads
+  useEffect(() => {
+    if (student) {
+      setForm({
+        phone: student.phone ?? '',
+        email: '',
+        address: student.address ?? '',
+        guardianPhone: student.guardianPhone ?? '',
+      });
+      if (student.image) setProfileImg(student.image);
+    }
+  }, [student?.id]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -30,15 +48,14 @@ export default function StudentProfilePage() {
   };
 
   const handleSave = async () => {
-    if (student) {
-      await upsertStudent({
-        ...student,
-        phone: form.phone || student.phone,
-        address: form.address || student.address,
-        guardianPhone: form.guardianPhone || (student as unknown as Record<string, unknown>).guardianPhone as string,
-        image: profileImg ?? student.image,
-      });
-    }
+    if (!student) return;
+    await upsertStudent({
+      ...student,
+      phone: form.phone,
+      address: form.address,
+      guardianPhone: form.guardianPhone,
+      image: profileImg ?? student.image,
+    });
     setSaved(true);
     setEditing(false);
     setTimeout(() => setSaved(false), 3000);
@@ -156,28 +173,19 @@ export default function StudentProfilePage() {
               <div>
                 <label className="text-xs text-gray-500 block mb-1">মোবাইল নম্বর</label>
                 {editing ? (
-                  <input value={form.phone || student?.phone || ''} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))}
+                  <input value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))}
                     className="w-full px-3 py-2 bg-gray-50 border border-purple-200 rounded-lg text-sm outline-none focus:border-purple-400" />
                 ) : (
-                  <p className="text-sm font-semibold text-gray-900">{form.phone || student?.phone || '—'}</p>
-                )}
-              </div>
-              <div>
-                <label className="text-xs text-gray-500 block mb-1">ইমেইল</label>
-                {editing ? (
-                  <input value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
-                    className="w-full px-3 py-2 bg-gray-50 border border-purple-200 rounded-lg text-sm outline-none focus:border-purple-400" />
-                ) : (
-                  <p className="text-sm font-semibold text-gray-900">{form.email || '—'}</p>
+                  <p className="text-sm font-semibold text-gray-900">{form.phone || '—'}</p>
                 )}
               </div>
               <div>
                 <label className="text-xs text-gray-500 block mb-1">ঠিকানা</label>
                 {editing ? (
-                  <textarea value={form.address || student?.address || ''} onChange={e => setForm(p => ({ ...p, address: e.target.value }))}
+                  <textarea value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))}
                     rows={2} className="w-full px-3 py-2 bg-gray-50 border border-purple-200 rounded-lg text-sm outline-none focus:border-purple-400 resize-none" />
                 ) : (
-                  <p className="text-sm font-semibold text-gray-900">{form.address || student?.address || '—'}</p>
+                  <p className="text-sm font-semibold text-gray-900">{form.address || '—'}</p>
                 )}
               </div>
             </div>
@@ -202,10 +210,10 @@ export default function StudentProfilePage() {
               <div>
                 <label className="text-xs text-gray-500 block mb-1">অভিভাবকের মোবাইল</label>
                 {editing ? (
-                  <input value={form.guardianPhone || (student as { guardianPhone?: string })?.guardianPhone || ''} onChange={e => setForm(p => ({ ...p, guardianPhone: e.target.value }))}
+                  <input value={form.guardianPhone} onChange={e => setForm(p => ({ ...p, guardianPhone: e.target.value }))}
                     className="w-full px-3 py-2 bg-gray-50 border border-purple-200 rounded-lg text-sm outline-none focus:border-purple-400" />
                 ) : (
-                  <p className="text-sm font-semibold text-gray-900">{form.guardianPhone || (student as { guardianPhone?: string })?.guardianPhone || '—'}</p>
+                  <p className="text-sm font-semibold text-gray-900">{form.guardianPhone || '—'}</p>
                 )}
               </div>
             </div>
