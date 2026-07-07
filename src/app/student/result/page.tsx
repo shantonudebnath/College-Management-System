@@ -1,11 +1,12 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { EXAM_RESULTS, COLLEGE_INFO } from '@/lib/data';
 import type { ExamResult } from '@/lib/types';
-import { Award, CheckCircle, Download, Printer, Lock } from 'lucide-react';
+import { Award, CheckCircle, Download, Printer, Lock, Trophy } from 'lucide-react';
 import { useStudentSession } from '@/hooks/useStudentSession';
 import { useResults } from '@/context/ResultsContext';
+import { computeStudentMerit, meritLabel } from '@/lib/merit-utils';
 
 async function downloadMarksheetPDF(result: ExamResult) {
   const { jsPDF } = await import('jspdf');
@@ -180,6 +181,15 @@ export default function StudentResultPage() {
     }
   }, [student, storedResults, publishedExams]);
 
+  const meritInfo = useMemo(() => {
+    if (!result || !isPublished) return null;
+    const allRes = [...EXAM_RESULTS, ...storedResults];
+    const classExam = allRes.filter(
+      r => r.examName === result.examName && r.year === result.year && r.class === result.class
+    );
+    return computeStudentMerit(result.studentId, classExam);
+  }, [result, isPublished, storedResults]);
+
   if (sessionLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -210,7 +220,7 @@ export default function StudentResultPage() {
         ) : (
           <>
             {/* Result summary */}
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div className={`grid grid-cols-2 gap-4 ${meritInfo ? 'sm:grid-cols-5' : 'sm:grid-cols-4'}`}>
               {[
                 { label: 'মোট নম্বর', value: `${result.totalMarks}`, sub: `/${totalFullMarks}`, color: 'bg-purple-50 text-purple-700' },
                 { label: 'GPA', value: result.gpa.toFixed(2), sub: '/5.00', color: 'bg-green-50 text-green-700' },
@@ -223,6 +233,14 @@ export default function StudentResultPage() {
                   <p className="text-xs font-semibold mt-2 opacity-80">{label}</p>
                 </div>
               ))}
+              {meritInfo && (
+                <div className="bg-amber-50 text-amber-800 rounded-2xl p-5 text-center col-span-2 sm:col-span-1">
+                  <Trophy size={28} className="mx-auto mb-1 text-amber-500" />
+                  <p className="text-2xl font-bold">{meritLabel(meritInfo.position)}</p>
+                  <p className="text-xs opacity-70 mt-0.5">{meritInfo.total} জনের মধ্যে</p>
+                  <p className="text-xs font-semibold mt-2 opacity-80">মেধা স্থান</p>
+                </div>
+              )}
             </div>
 
             {/* Subject marks table */}

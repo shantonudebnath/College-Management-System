@@ -12,6 +12,7 @@ import { useResults } from '@/context/ResultsContext';
 import { useStudents } from '@/context/StudentsContext';
 import { kvGet, kvSet } from '@/lib/supabase/kv';
 import { printHtml } from '@/lib/print-utils';
+import { computeMeritMap, meritBadgeClass, meritLabel } from '@/lib/merit-utils';
 
 const MARK_SUBMISSION_KEY = 'nim_mark_submission_v1';
 
@@ -218,6 +219,7 @@ function ClassGroup({ classId, results }: { classId: string; results: ExamResult
   const cn   = MADRASHA_CLASSES.find(c => c.id === classId)?.nameBn ?? classId;
   const pass = results.filter(r => r.status === 'pass').length;
   const rate = results.length > 0 ? Math.round((pass / results.length) * 100) : 0;
+  const meritMap = useMemo(() => computeMeritMap(results), [results]);
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
@@ -241,6 +243,7 @@ function ClassGroup({ classId, results }: { classId: string; results: ExamResult
             <thead className="bg-gray-50 text-xs text-gray-500">
               <tr>
                 <th className="px-4 py-2.5 text-center w-10">ক্র.</th>
+                <th className="px-4 py-2.5 text-center">মেধা</th>
                 <th className="px-4 py-2.5 text-center">রোল</th>
                 <th className="px-4 py-2.5 text-left">নাম</th>
                 <th className="px-4 py-2.5 text-center">মোট</th>
@@ -251,28 +254,38 @@ function ClassGroup({ classId, results }: { classId: string; results: ExamResult
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {[...results].sort((a, b) => a.roll - b.roll).map((r, i) => (
-                <tr key={r.studentId + r.examName + r.year} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-2.5 text-center text-gray-400 text-xs">{i + 1}</td>
-                  <td className="px-4 py-2.5 text-center font-semibold text-gray-700">{r.roll}</td>
-                  <td className="px-4 py-2.5 font-medium text-gray-900">{r.studentName}</td>
-                  <td className="px-4 py-2.5 text-center text-gray-700 font-medium">
-                    {r.totalMarks}{r.totalFullMarks ? `/${r.totalFullMarks}` : ''}
-                  </td>
-                  <td className="px-4 py-2.5 text-center text-gray-500 text-xs">
-                    {r.percentage != null ? `${r.percentage.toFixed(1)}%` : '—'}
-                  </td>
-                  <td className="px-4 py-2.5 text-center font-bold text-[#006633]">{r.gpa.toFixed(2)}</td>
-                  <td className="px-4 py-2.5 text-center">
-                    <span className={`text-xs font-bold px-2.5 py-0.5 rounded-lg ${gradeChip(r.grade)}`}>{r.grade}</span>
-                  </td>
-                  <td className="px-4 py-2.5 text-center">
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${r.status === 'pass' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                      {r.status === 'pass' ? 'উত্তীর্ণ' : 'অনুত্তীর্ণ'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+              {[...results].sort((a, b) => a.roll - b.roll).map((r, i) => {
+                const merit = meritMap.get(r.studentId);
+                return (
+                  <tr key={r.studentId + r.examName + r.year} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-2.5 text-center text-gray-400 text-xs">{i + 1}</td>
+                    <td className="px-4 py-2.5 text-center">
+                      {merit != null && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${meritBadgeClass(merit)}`}>
+                          {meritLabel(merit)}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-2.5 text-center font-semibold text-gray-700">{r.roll}</td>
+                    <td className="px-4 py-2.5 font-medium text-gray-900">{r.studentName}</td>
+                    <td className="px-4 py-2.5 text-center text-gray-700 font-medium">
+                      {r.totalMarks}{r.totalFullMarks ? `/${r.totalFullMarks}` : ''}
+                    </td>
+                    <td className="px-4 py-2.5 text-center text-gray-500 text-xs">
+                      {r.percentage != null ? `${r.percentage.toFixed(1)}%` : '—'}
+                    </td>
+                    <td className="px-4 py-2.5 text-center font-bold text-[#006633]">{r.gpa.toFixed(2)}</td>
+                    <td className="px-4 py-2.5 text-center">
+                      <span className={`text-xs font-bold px-2.5 py-0.5 rounded-lg ${gradeChip(r.grade)}`}>{r.grade}</span>
+                    </td>
+                    <td className="px-4 py-2.5 text-center">
+                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${r.status === 'pass' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {r.status === 'pass' ? 'উত্তীর্ণ' : 'অনুত্তীর্ণ'}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -427,6 +440,8 @@ export default function AdminResultsPage() {
   const classLabel = classFilter
     ? (MADRASHA_CLASSES.find(c => c.id === classFilter)?.nameBn ?? classFilter)
     : 'সকল শ্রেণি';
+
+  const filteredMeritMap = useMemo(() => computeMeritMap(filtered), [filtered]);
 
   const showGrouped = !classFilter && !search;
   const groupedByClass = useMemo(() => {
@@ -700,6 +715,7 @@ export default function AdminResultsPage() {
                 <thead className="bg-gray-50 text-xs text-gray-500">
                   <tr>
                     <th className="px-4 py-3 text-center w-10">ক্র.</th>
+                    <th className="px-4 py-3 text-center">মেধা</th>
                     <th className="px-4 py-3 text-center">রোল</th>
                     <th className="px-4 py-3 text-left">নাম</th>
                     <th className="px-4 py-3 text-center">শ্রেণি</th>
@@ -711,31 +727,41 @@ export default function AdminResultsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {[...filtered].sort((a, b) => a.roll - b.roll).map((r, i) => (
-                    <tr key={r.studentId + r.examName + r.year} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 text-center text-gray-400 text-xs">{i + 1}</td>
-                      <td className="px-4 py-3 text-center font-semibold text-gray-700">{r.roll}</td>
-                      <td className="px-4 py-3 font-medium text-gray-900">{r.studentName}</td>
-                      <td className="px-4 py-3 text-center text-xs text-gray-500">
-                        {MADRASHA_CLASSES.find(c => c.id === r.class)?.nameBn ?? r.class}
-                      </td>
-                      <td className="px-4 py-3 text-center font-medium text-gray-700">
-                        {r.totalMarks}{r.totalFullMarks ? `/${r.totalFullMarks}` : ''}
-                      </td>
-                      <td className="px-4 py-3 text-center text-xs text-gray-500">
-                        {r.percentage != null ? `${r.percentage.toFixed(1)}%` : '—'}
-                      </td>
-                      <td className="px-4 py-3 text-center font-bold text-[#006633]">{r.gpa.toFixed(2)}</td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`text-xs font-bold px-2 py-0.5 rounded-lg ${gradeChip(r.grade)}`}>{r.grade}</span>
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${r.status === 'pass' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                          {r.status === 'pass' ? 'উত্তীর্ণ' : 'অনুত্তীর্ণ'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {[...filtered].sort((a, b) => a.roll - b.roll).map((r, i) => {
+                    const merit = filteredMeritMap.get(r.studentId);
+                    return (
+                      <tr key={r.studentId + r.examName + r.year} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3 text-center text-gray-400 text-xs">{i + 1}</td>
+                        <td className="px-4 py-3 text-center">
+                          {merit != null && (
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${meritBadgeClass(merit)}`}>
+                              {meritLabel(merit)}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-center font-semibold text-gray-700">{r.roll}</td>
+                        <td className="px-4 py-3 font-medium text-gray-900">{r.studentName}</td>
+                        <td className="px-4 py-3 text-center text-xs text-gray-500">
+                          {MADRASHA_CLASSES.find(c => c.id === r.class)?.nameBn ?? r.class}
+                        </td>
+                        <td className="px-4 py-3 text-center font-medium text-gray-700">
+                          {r.totalMarks}{r.totalFullMarks ? `/${r.totalFullMarks}` : ''}
+                        </td>
+                        <td className="px-4 py-3 text-center text-xs text-gray-500">
+                          {r.percentage != null ? `${r.percentage.toFixed(1)}%` : '—'}
+                        </td>
+                        <td className="px-4 py-3 text-center font-bold text-[#006633]">{r.gpa.toFixed(2)}</td>
+                        <td className="px-4 py-3 text-center">
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded-lg ${gradeChip(r.grade)}`}>{r.grade}</span>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${r.status === 'pass' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                            {r.status === 'pass' ? 'উত্তীর্ণ' : 'অনুত্তীর্ণ'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

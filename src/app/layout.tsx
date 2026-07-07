@@ -7,6 +7,7 @@ import { StudentsProvider } from '@/context/StudentsContext';
 import { FeesProvider } from '@/context/FeesContext';
 import { ResultsProvider } from '@/context/ResultsContext';
 import { AttendanceProvider } from '@/context/AttendanceContext';
+import SwRegister from '@/components/SwRegister';
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="apple-touch-icon" href="/logo.png" />
       </head>
       <body className="min-h-screen bg-[#f8f7ff] antialiased">
+        <SwRegister />
         <TeachersProvider><NoticesProvider><StudentsProvider><FeesProvider><ResultsProvider><AttendanceProvider>{children}</AttendanceProvider></ResultsProvider></FeesProvider></StudentsProvider></NoticesProvider></TeachersProvider>
       </body>
     </html>

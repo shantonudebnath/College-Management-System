@@ -9,6 +9,7 @@ import TeacherPreview from '@/components/home/TeacherPreview';
 import ImportantLinks from '@/components/home/ImportantLinks';
 import NewsSection from '@/components/home/NewsSection';
 import FaqSection from '@/components/home/FaqSection';
+import AppDownload from '@/components/home/AppDownload';
 
 export default function HomePage() {
   return (
@@ -24,6 +25,7 @@ export default function HomePage() {
         <TeacherPreview />
         <ImportantLinks />
         <FaqSection />
+        <AppDownload />
       </main>
       <Footer />
     </div>

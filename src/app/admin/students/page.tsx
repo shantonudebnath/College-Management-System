@@ -234,7 +234,10 @@ export default function AdminStudentsPage() {
     } else {
       setCreating(true);
       const ts = Date.now();
-      const roll = students.length + 1;
+      const maxRoll = students
+        .filter(s => s.class === finalClass)
+        .reduce((m, s) => Math.max(m, s.roll ?? 0), 0);
+      const roll = maxRoll + 1;
       const newSt: Student = {
         id: `s${ts}`,
         studentId: `STD-${new Date().getFullYear()}-${ts.toString().slice(-6)}`,
