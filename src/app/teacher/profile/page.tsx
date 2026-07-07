@@ -3,9 +3,27 @@ import { useState, useRef, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { useTeachers } from '@/context/TeachersContext';
 import { useCurrentTeacher } from '@/context/CurrentTeacherContext';
-import { User, Phone, BookOpen, Edit3, Save, X, Camera, Award, Hash } from 'lucide-react';
+import { User, Phone, BookOpen, Edit3, Save, X, Camera, Award, Hash, Loader2 } from 'lucide-react';
 
 type ProfileForm = { phone: string; email: string; address: string; };
+
+const compressImage = (file: File, maxSide = 400, quality = 0.75): Promise<string> =>
+  new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = new Image();
+      img.onload = () => {
+        const ratio = Math.min(maxSide / img.width, maxSide / img.height, 1);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * ratio);
+        canvas.height = Math.round(img.height * ratio);
+        canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = ev.target!.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
 
 export default function TeacherProfilePage() {
   const { teachers, updateTeacher } = useTeachers();
@@ -29,6 +47,8 @@ export default function TeacherProfilePage() {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<ProfileForm>({ phone: '', email: '', address: '' });
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [photoSaving, setPhotoSaving] = useState(false);
   const [profileImg, setProfileImg] = useState<string | undefined>(undefined);
   const photoRef = useRef<HTMLInputElement>(null);
 
@@ -44,26 +64,39 @@ export default function TeacherProfilePage() {
     }
   }, [teacher?.id]);
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setProfileImg(reader.result as string);
-    reader.readAsDataURL(file);
+    if (!file || !teacher) return;
+    setPhotoSaving(true);
+    try {
+      const compressed = await compressImage(file, 400, 0.75);
+      setProfileImg(compressed);
+      await updateTeacher({ ...teacher, image: compressed });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } finally {
+      setPhotoSaving(false);
+      if (photoRef.current) photoRef.current.value = '';
+    }
   };
 
   const handleSave = async () => {
     if (!teacher) return;
-    await updateTeacher({
-      ...teacher,
-      phone: form.phone,
-      email: form.email,
-      address: form.address,
-      image: profileImg ?? teacher.image,
-    });
-    setSaved(true);
-    setEditing(false);
-    setTimeout(() => setSaved(false), 3000);
+    setSaving(true);
+    try {
+      await updateTeacher({
+        ...teacher,
+        phone: form.phone,
+        email: form.email,
+        address: form.address,
+        image: profileImg ?? teacher.image,
+      });
+      setSaved(true);
+      setEditing(false);
+      setTimeout(() => setSaved(false), 3000);
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (!teacher) return <div className="p-6 text-gray-400">শিক্ষকের তথ্য পাওয়া যাচ্ছে না।</div>;
@@ -91,8 +124,8 @@ export default function TeacherProfilePage() {
                 }
               </div>
               <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
-              <button onClick={() => photoRef.current?.click()} className="absolute -bottom-1 -right-1 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-100 transition-colors" title="ছবি পরিবর্তন করুন">
-                <Camera size={13} className="text-purple-700" />
+              <button onClick={() => photoRef.current?.click()} disabled={photoSaving} className="absolute -bottom-1 -right-1 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-100 transition-colors disabled:opacity-60" title="ছবি পরিবর্তন করুন">
+                {photoSaving ? <Loader2 size={13} className="text-purple-700 animate-spin" /> : <Camera size={13} className="text-purple-700" />}
               </button>
             </div>
             <div className="flex-1">
@@ -182,9 +215,10 @@ export default function TeacherProfilePage() {
         </div>
 
         {editing && (
-          <button onClick={handleSave}
-            className="flex items-center gap-2 btn-primary px-6 py-3 rounded-xl text-sm font-semibold">
-            <Save size={16} /> পরিবর্তন সংরক্ষণ করুন
+          <button onClick={handleSave} disabled={saving}
+            className="flex items-center gap-2 btn-primary px-6 py-3 rounded-xl text-sm font-semibold disabled:opacity-60">
+            {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+            {saving ? 'সংরক্ষণ হচ্ছে...' : 'পরিবর্তন সংরক্ষণ করুন'}
           </button>
         )}
       </div>

@@ -2,9 +2,27 @@
 import { useState, useRef, useEffect } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { MADRASHA_CLASSES } from '@/lib/data';
-import { User, Phone, BookOpen, Calendar, Edit3, Save, X, Camera, Hash } from 'lucide-react';
+import { User, Phone, BookOpen, Calendar, Edit3, Save, X, Camera, Hash, Loader2 } from 'lucide-react';
 import { useStudentSession } from '@/hooks/useStudentSession';
 import { useStudents } from '@/context/StudentsContext';
+
+const compressImage = (file: File, maxSide = 400, quality = 0.75): Promise<string> =>
+  new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = new Image();
+      img.onload = () => {
+        const ratio = Math.min(maxSide / img.width, maxSide / img.height, 1);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * ratio);
+        canvas.height = Math.round(img.height * ratio);
+        canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = ev.target!.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
 
 export default function StudentProfilePage() {
   const { student: sessionStudent, loading } = useStudentSession();
@@ -23,6 +41,8 @@ export default function StudentProfilePage() {
     guardianPhone: '',
   });
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [photoSaving, setPhotoSaving] = useState(false);
   const [profileImg, setProfileImg] = useState<string | undefined>(undefined);
   const photoRef = useRef<HTMLInputElement>(null);
 
@@ -39,26 +59,39 @@ export default function StudentProfilePage() {
     }
   }, [student?.id]);
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setProfileImg(reader.result as string);
-    reader.readAsDataURL(file);
+    if (!file || !student) return;
+    setPhotoSaving(true);
+    try {
+      const compressed = await compressImage(file, 400, 0.75);
+      setProfileImg(compressed);
+      await upsertStudent({ ...student, image: compressed });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } finally {
+      setPhotoSaving(false);
+      if (photoRef.current) photoRef.current.value = '';
+    }
   };
 
   const handleSave = async () => {
     if (!student) return;
-    await upsertStudent({
-      ...student,
-      phone: form.phone,
-      address: form.address,
-      guardianPhone: form.guardianPhone,
-      image: profileImg ?? student.image,
-    });
-    setSaved(true);
-    setEditing(false);
-    setTimeout(() => setSaved(false), 3000);
+    setSaving(true);
+    try {
+      await upsertStudent({
+        ...student,
+        phone: form.phone,
+        address: form.address,
+        guardianPhone: form.guardianPhone,
+        image: profileImg ?? student.image,
+      });
+      setSaved(true);
+      setEditing(false);
+      setTimeout(() => setSaved(false), 3000);
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) {
@@ -95,8 +128,8 @@ export default function StudentProfilePage() {
                 }
               </div>
               <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
-              <button onClick={() => photoRef.current?.click()} className="absolute -bottom-1 -right-1 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-100 transition-colors" title="ছবি পরিবর্তন করুন">
-                <Camera size={13} className="text-purple-700" />
+              <button onClick={() => photoRef.current?.click()} disabled={photoSaving} className="absolute -bottom-1 -right-1 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-100 transition-colors disabled:opacity-60" title="ছবি পরিবর্তন করুন">
+                {photoSaving ? <Loader2 size={13} className="text-purple-700 animate-spin" /> : <Camera size={13} className="text-purple-700" />}
               </button>
             </div>
             <div>
@@ -221,9 +254,10 @@ export default function StudentProfilePage() {
         </div>
 
         {editing && (
-          <button onClick={handleSave}
-            className="flex items-center gap-2 btn-primary px-6 py-3 rounded-xl text-sm font-semibold">
-            <Save size={16} /> পরিবর্তন সংরক্ষণ করুন
+          <button onClick={handleSave} disabled={saving}
+            className="flex items-center gap-2 btn-primary px-6 py-3 rounded-xl text-sm font-semibold disabled:opacity-60">
+            {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+            {saving ? 'সংরক্ষণ হচ্ছে...' : 'পরিবর্তন সংরক্ষণ করুন'}
           </button>
         )}
       </div>
