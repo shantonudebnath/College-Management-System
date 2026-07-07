@@ -1,12 +1,26 @@
 const ls = typeof window !== 'undefined' ? window.localStorage : null;
 const lk = (k: string) => `nim_kv_${k}`;
 
+// Synchronous read from localStorage — returns instantly, no network
+export function kvGetSync<T>(key: string): T | null {
+  try {
+    const raw = ls?.getItem(lk(key));
+    return raw ? (JSON.parse(raw) as T) : null;
+  } catch { return null; }
+}
+
 export async function kvGet<T>(key: string): Promise<T | null> {
   try {
     const res = await fetch(`/api/kv?key=${encodeURIComponent(key)}`);
     if (res.ok) {
       const { value } = await res.json();
-      if (value !== null && value !== undefined) return value as T;
+      if (value !== null && value !== undefined) {
+        ls?.setItem(lk(key), JSON.stringify(value));
+        return value as T;
+      }
+      // Key exists in API but value is null — clear local cache
+      ls?.removeItem(lk(key));
+      return null;
     }
   } catch {}
   // Fallback: localStorage (offline or API error)

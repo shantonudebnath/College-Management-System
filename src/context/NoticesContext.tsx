@@ -2,7 +2,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { NOTICES } from '@/lib/data';
 import type { Notice } from '@/lib/types';
-import { kvGet, kvSet } from '@/lib/supabase/kv';
+import { kvGet, kvGetSync, kvSet } from '@/lib/supabase/kv';
 
 const NOTICES_KEY = 'notices_data';
 
@@ -21,8 +21,8 @@ const Ctx = createContext<NoticesCtx>({
 });
 
 export function NoticesProvider({ children }: { children: ReactNode }) {
-  const [notices, setNotices] = useState<Notice[]>([]);
-  const [ready, setReady] = useState(false);
+  const cached = kvGetSync<Notice[]>(NOTICES_KEY);
+  const [notices, setNotices] = useState<Notice[]>(cached ?? []);
 
   useEffect(() => {
     kvGet<Notice[]>(NOTICES_KEY).then(data => {
@@ -32,7 +32,6 @@ export function NoticesProvider({ children }: { children: ReactNode }) {
         setNotices(NOTICES);
         kvSet(NOTICES_KEY, NOTICES);
       }
-      setReady(true);
     });
   }, []);
 

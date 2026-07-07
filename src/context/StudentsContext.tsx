@@ -2,6 +2,20 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import type { Student } from '@/lib/types';
 
+const STUDENTS_CACHE_KEY = 'nim_students_cache';
+
+function readStudentCache(): Student[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(STUDENTS_CACHE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function writeStudentCache(students: Student[]) {
+  try { localStorage.setItem(STUDENTS_CACHE_KEY, JSON.stringify(students)); } catch {}
+}
+
 interface StudentsCtx {
   students: Student[];
   loading: boolean;
@@ -75,22 +89,26 @@ function fromRow(row: Record<string, unknown>): Student {
 }
 
 export function StudentsProvider({ children }: { children: ReactNode }) {
-  const [students, setStudentsState] = useState<Student[]>([]);
-  const [loading, setLoading] = useState(true);
+  const cached = readStudentCache();
+  const [students, setStudentsState] = useState<Student[]>(cached);
+  const [loading, setLoading] = useState(cached.length === 0);
 
   const refetch = useCallback(async () => {
-    setLoading(true);
+    if (students.length === 0) setLoading(true);
     try {
       const res = await fetch('/api/students');
       const { data } = await res.json();
       if (Array.isArray(data) && data.length > 0) {
-        setStudentsState(data.map(fromRow));
+        const mapped = data.map(fromRow);
+        setStudentsState(mapped);
+        writeStudentCache(mapped);
       }
     } catch {
       // fallback: keep existing state
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => { refetch(); }, [refetch]);

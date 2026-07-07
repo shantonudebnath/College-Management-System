@@ -2,6 +2,20 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import type { Teacher } from '@/lib/types';
 
+const TEACHERS_CACHE_KEY = 'nim_teachers_cache';
+
+function readTeacherCache(): Teacher[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(TEACHERS_CACHE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function writeTeacherCache(teachers: Teacher[]) {
+  try { localStorage.setItem(TEACHERS_CACHE_KEY, JSON.stringify(teachers)); } catch {}
+}
+
 interface TeachersCtx {
   teachers: Teacher[];
   loading: boolean;
@@ -67,9 +81,12 @@ function toRow(tc: Teacher) {
 }
 
 export function TeachersProvider({ children }: { children: ReactNode }) {
-  const [teachers, setTeachersState] = useState<Teacher[]>([]);
-  const [departmentOrder, setDeptOrderState] = useState<string[]>([]);
-  const [ready, setReady] = useState(false);
+  const cached = readTeacherCache();
+  const [teachers, setTeachersState] = useState<Teacher[]>(cached);
+  const [departmentOrder, setDeptOrderState] = useState<string[]>(
+    [...new Set(cached.map(t => t.department))]
+  );
+  const [ready, setReady] = useState(cached.length > 0);
 
   useEffect(() => {
     fetch('/api/teachers')
@@ -79,6 +96,7 @@ export function TeachersProvider({ children }: { children: ReactNode }) {
           const mapped = data.map(mapRow);
           setTeachersState(mapped);
           setDeptOrderState([...new Set(mapped.map((t: Teacher) => t.department))]);
+          writeTeacherCache(mapped);
         }
         setReady(true);
       })

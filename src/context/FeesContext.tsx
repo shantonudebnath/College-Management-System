@@ -3,6 +3,17 @@ import { createContext, useContext, useState, useEffect, useCallback, type React
 import type { Fee, Waiver } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
 
+const FEES_CACHE = 'nim_fees_cache';
+const WAIVERS_CACHE = 'nim_waivers_cache';
+
+function readCache<T>(key: string): T[] {
+  if (typeof window === 'undefined') return [];
+  try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : []; } catch { return []; }
+}
+function writeCache(key: string, data: unknown[]) {
+  try { localStorage.setItem(key, JSON.stringify(data)); } catch {}
+}
+
 interface FeesCtx {
   fees: Fee[];
   waivers: Waiver[];
@@ -59,20 +70,31 @@ function rowToWaiver(r: Record<string, unknown>): Waiver {
 }
 
 export function FeesProvider({ children }: { children: ReactNode }) {
-  const [fees, setFeesState] = useState<Fee[]>([]);
-  const [waivers, setWaiversState] = useState<Waiver[]>([]);
-  const [loading, setLoading] = useState(true);
+  const cachedFees = readCache<Fee>(FEES_CACHE);
+  const cachedWaivers = readCache<Waiver>(WAIVERS_CACHE);
+  const [fees, setFeesState] = useState<Fee[]>(cachedFees);
+  const [waivers, setWaiversState] = useState<Waiver[]>(cachedWaivers);
+  const [loading, setLoading] = useState(cachedFees.length === 0);
   const supabase = createClient();
 
   const refetch = useCallback(async () => {
-    setLoading(true);
+    if (fees.length === 0) setLoading(true);
     const [feesRes, waiversRes] = await Promise.all([
       supabase.from('fees').select('*').order('created_at', { ascending: false }),
       supabase.from('waivers').select('*'),
     ]);
-    if (!feesRes.error && feesRes.data) setFeesState(feesRes.data.map(rowToFee));
-    if (!waiversRes.error && waiversRes.data) setWaiversState(waiversRes.data.map(rowToWaiver));
+    if (!feesRes.error && feesRes.data) {
+      const mapped = feesRes.data.map(rowToFee);
+      setFeesState(mapped);
+      writeCache(FEES_CACHE, mapped);
+    }
+    if (!waiversRes.error && waiversRes.data) {
+      const mapped = waiversRes.data.map(rowToWaiver);
+      setWaiversState(mapped);
+      writeCache(WAIVERS_CACHE, mapped);
+    }
     setLoading(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase]);
 
   useEffect(() => { refetch(); }, [refetch]);

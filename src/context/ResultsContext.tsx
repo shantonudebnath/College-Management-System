@@ -3,6 +3,17 @@ import { createContext, useContext, useState, useEffect, useCallback, type React
 import type { ExamResult } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
 
+const RESULTS_CACHE = 'nim_results_cache';
+const PUBLISHED_CACHE = 'nim_published_cache';
+
+function readCache<T>(key: string): T[] {
+  if (typeof window === 'undefined') return [];
+  try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : []; } catch { return []; }
+}
+function writeCache(key: string, data: unknown[]) {
+  try { localStorage.setItem(key, JSON.stringify(data)); } catch {}
+}
+
 interface ResultsCtx {
   results: ExamResult[];
   publishedExams: string[];
@@ -58,20 +69,31 @@ function fromRow(r: Record<string, unknown>): ExamResult {
 }
 
 export function ResultsProvider({ children }: { children: ReactNode }) {
-  const [results, setResultsState] = useState<ExamResult[]>([]);
-  const [publishedExams, setPublishedExams] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const cachedResults = readCache<ExamResult>(RESULTS_CACHE);
+  const cachedPublished = readCache<string>(PUBLISHED_CACHE);
+  const [results, setResultsState] = useState<ExamResult[]>(cachedResults);
+  const [publishedExams, setPublishedExams] = useState<string[]>(cachedPublished);
+  const [loading, setLoading] = useState(cachedResults.length === 0);
   const supabase = createClient();
 
   const refetch = useCallback(async () => {
-    setLoading(true);
+    if (results.length === 0) setLoading(true);
     const [resRes, pubRes] = await Promise.all([
       supabase.from('results').select('*'),
       supabase.from('published_results').select('exam_name'),
     ]);
-    if (!resRes.error && resRes.data) setResultsState(resRes.data.map(fromRow));
-    if (!pubRes.error && pubRes.data) setPublishedExams(pubRes.data.map(r => r.exam_name));
+    if (!resRes.error && resRes.data) {
+      const mapped = resRes.data.map(fromRow);
+      setResultsState(mapped);
+      writeCache(RESULTS_CACHE, mapped);
+    }
+    if (!pubRes.error && pubRes.data) {
+      const pub = pubRes.data.map((r: Record<string, unknown>) => r.exam_name as string);
+      setPublishedExams(pub);
+      writeCache(PUBLISHED_CACHE, pub);
+    }
     setLoading(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase]);
 
   useEffect(() => { refetch(); }, [refetch]);
