@@ -1,6 +1,8 @@
 'use client';
 import { useState } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
+import { useTeachers } from '@/context/TeachersContext';
+import { useCurrentTeacher } from '@/context/CurrentTeacherContext';
 import { UserCheck, CheckCircle, XCircle, Clock, Calendar } from 'lucide-react';
 
 const MONTH_DATA = [
@@ -19,6 +21,9 @@ const STATUS = {
 };
 
 export default function TeacherMyAttendancePage() {
+  const { currentTeacherId } = useCurrentTeacher();
+  const { teachers } = useTeachers();
+  const teacher = teachers.find(t => t.id === currentTeacherId);
   const [marking, setMarking] = useState(false);
   const [todayStatus, setTodayStatus] = useState<string | null>(null);
 
@@ -29,7 +34,7 @@ export default function TeacherMyAttendancePage() {
 
   return (
     <div>
-      <DashboardHeader title="আমার উপস্থিতি" subtitle="নিজের উপস্থিতি রেকর্ড দেখুন" userName="Md. Shafiqul Islam" role="শিক্ষক" />
+      <DashboardHeader title="আমার উপস্থিতি" subtitle="নিজের উপস্থিতি রেকর্ড দেখুন" userName={teacher?.name ?? 'শিক্ষক'} role="শিক্ষক" />
       <div className="p-6 space-y-5">
         {/* Today mark */}
         {!todayStatus ? (

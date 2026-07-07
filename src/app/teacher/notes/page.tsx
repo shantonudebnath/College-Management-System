@@ -6,14 +6,17 @@ import { FileText, Plus, Trash2, Edit, Save, X, ChevronDown } from 'lucide-react
 import RichTextEditor from '@/components/ui/RichTextEditor';
 import type { Note } from '@/lib/types';
 import { kvGet, kvSet } from '@/lib/supabase/kv';
+import { useTeachers } from '@/context/TeachersContext';
+import { useCurrentTeacher } from '@/context/CurrentTeacherContext';
 
-const TEACHER_ID = 't3';
-const TEACHER_NAME = 'Md. Shafiqul Islam';
 const DEFAULT_CLASS = 'class-10';
 
 const emptyNote = { title: '', content: '', subject: '', type: 'note' as 'note' | 'suggestion' };
 
 export default function TeacherNotesPage() {
+  const { currentTeacherId } = useCurrentTeacher();
+  const { teachers } = useTeachers();
+  const teacher = teachers.find(t => t.id === currentTeacherId);
   const [notes, setNotes] = useState<Note[]>([]);
   const [showNew, setShowNew] = useState(false);
   const [newNote, setNewNote] = useState({ ...emptyNote });
@@ -22,7 +25,7 @@ export default function TeacherNotesPage() {
 
   useEffect(() => {
     kvGet<Note[]>('notes_store').then(data => {
-      setNotes(data ?? NOTES.filter(n => n.teacherId === TEACHER_ID || n.teacherId === 't1'));
+      setNotes(data ?? NOTES);
     });
   }, []);
 
@@ -36,8 +39,8 @@ export default function TeacherNotesPage() {
       content: newNote.content,
       class: DEFAULT_CLASS,
       subject: newNote.subject || (subjects[0] ?? 'সাধারণ'),
-      teacherId: TEACHER_ID,
-      teacherName: TEACHER_NAME,
+      teacherId: teacher?.id ?? 'unknown',
+      teacherName: teacher?.name ?? 'শিক্ষক',
       createdAt: new Date().toISOString().split('T')[0],
       type: newNote.type,
     };
@@ -69,7 +72,7 @@ export default function TeacherNotesPage() {
 
   return (
     <div>
-      <DashboardHeader title="আমার নোটস ও সাজেশন" subtitle="নোট তৈরি, সম্পাদনা ও পরিচালনা করুন" userName={TEACHER_NAME} role="শিক্ষক" />
+      <DashboardHeader title="আমার নোটস ও সাজেশন" subtitle="নোট তৈরি, সম্পাদনা ও পরিচালনা করুন" userName={teacher?.name ?? 'শিক্ষক'} role="শিক্ষক" />
       <div className="p-6 space-y-5">
 
         <button onClick={() => setShowNew(!showNew)} className="flex items-center gap-2 btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold">

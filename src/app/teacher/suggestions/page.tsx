@@ -1,6 +1,8 @@
 'use client';
 import { useState } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
+import { useTeachers } from '@/context/TeachersContext';
+import { useCurrentTeacher } from '@/context/CurrentTeacherContext';
 import { Upload, FileText, Trash2, CheckCircle } from 'lucide-react';
 
 const INITIAL = [
@@ -9,6 +11,9 @@ const INITIAL = [
 ];
 
 export default function TeacherSuggestionsPage() {
+  const { currentTeacherId } = useCurrentTeacher();
+  const { teachers } = useTeachers();
+  const teacher = teachers.find(t => t.id === currentTeacherId);
   const [items, setItems] = useState(INITIAL);
   const [form, setForm] = useState({ title: '', class: 'class-10', subject: '', content: '' });
   const [showForm, setShowForm] = useState(false);
@@ -25,7 +30,7 @@ export default function TeacherSuggestionsPage() {
 
   return (
     <div>
-      <DashboardHeader title="সাজেশন আপলোড" subtitle="ছাত্রদের জন্য সাজেশন আপলোড করুন" userName="Md. Shafiqul Islam" role="শিক্ষক" />
+      <DashboardHeader title="সাজেশন আপলোড" subtitle="ছাত্রদের জন্য সাজেশন আপলোড করুন" userName={teacher?.name ?? 'শিক্ষক'} role="শিক্ষক" />
       <div className="p-6 space-y-5">
         {uploaded && (
           <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-2xl p-4 text-green-800 font-medium text-sm">

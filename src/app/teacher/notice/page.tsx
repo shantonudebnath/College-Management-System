@@ -2,6 +2,8 @@
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { useNotices } from '@/context/NoticesContext';
 import { Bell, AlertCircle, Paperclip } from 'lucide-react';
+import { useTeachers } from '@/context/TeachersContext';
+import { useCurrentTeacher } from '@/context/CurrentTeacherContext';
 
 const TYPE_COLORS: Record<string, string> = {
   exam: 'bg-blue-100 text-blue-700', fee: 'bg-amber-100 text-amber-700',
@@ -13,11 +15,14 @@ const TYPE_LABELS: Record<string, string> = {
 
 export default function TeacherNoticePage() {
   const { notices } = useNotices();
+  const { currentTeacherId } = useCurrentTeacher();
+  const { teachers } = useTeachers();
+  const teacher = teachers.find(t => t.id === currentTeacherId);
   const teacherNotices = notices.filter(n => n.target === 'all' || n.target === 'teacher');
 
   return (
     <div>
-      <DashboardHeader title="নোটিশ বোর্ড" subtitle="অ্যাডমিনের পাঠানো নোটিশ" userName="Md. Shafiqul Islam" role="শিক্ষক" />
+      <DashboardHeader title="নোটিশ বোর্ড" subtitle="অ্যাডমিনের পাঠানো নোটিশ" userName={teacher?.name ?? 'শিক্ষক'} role="শিক্ষক" />
       <div className="p-6 space-y-4">
         {teacherNotices.length === 0 && (
           <div className="text-center py-10 text-gray-400 text-sm">কোনো নোটিশ নেই।</div>

@@ -6,6 +6,8 @@ import { HelpCircle, Plus, Send, Trash2, Lock, FileText, Upload, Eye, X, Downloa
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
 import { kvGet, kvSet } from '@/lib/supabase/kv';
 import { useToast } from '@/components/ui/Toast';
+import { useTeachers } from '@/context/TeachersContext';
+import { useCurrentTeacher } from '@/context/CurrentTeacherContext';
 
 interface QuestionPaper {
   id: string;
@@ -29,6 +31,9 @@ const emptyForm = {
 };
 
 export default function TeacherQuestionsPage() {
+  const { currentTeacherId } = useCurrentTeacher();
+  const { teachers } = useTeachers();
+  const teacher = teachers.find(t => t.id === currentTeacherId);
   const [questions, setQuestions] = useState<QuestionPaper[]>([]);
   const [form, setForm] = useState({ ...emptyForm });
   const [showForm, setShowForm] = useState(false);
@@ -81,7 +86,7 @@ export default function TeacherQuestionsPage() {
       fileName: pdfFile.name,
       fileData: pdfFile.data,
       fileSize: pdfFile.size,
-      teacherName: 'Md. Shafiqul Islam',
+      teacherName: teacher?.name ?? 'শিক্ষক',
     };
     const updated = [q, ...questions];
     setQuestions(updated);
@@ -103,7 +108,7 @@ export default function TeacherQuestionsPage() {
   return (
     <div>
       {ToastEl}
-      <DashboardHeader title="প্রশ্নপত্র দাখিল" subtitle="পরীক্ষার প্রশ্নপত্র PDF আপলোড করুন" userName="Md. Shafiqul Islam" role="শিক্ষক" />
+      <DashboardHeader title="প্রশ্নপত্র দাখিল" subtitle="পরীক্ষার প্রশ্নপত্র PDF আপলোড করুন" userName={teacher?.name ?? 'শিক্ষক'} role="শিক্ষক" />
       <div className="p-6 space-y-5">
 
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-3 text-sm text-amber-800">

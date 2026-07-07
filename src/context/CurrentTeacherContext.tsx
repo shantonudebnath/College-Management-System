@@ -1,6 +1,7 @@
 'use client';
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { kvGet } from '@/lib/supabase/kv';
+import { useTeachers } from './TeachersContext';
 
 const CLASS_TEACHERS_KEY = 'nim_class_teachers_v1';
 
@@ -21,23 +22,35 @@ const Ctx = createContext<CurrentTeacherCtx>({
 });
 
 export function CurrentTeacherProvider({ children }: { children: ReactNode }) {
+  const { teachers } = useTeachers();
   const [currentTeacherId, setIdState] = useState<string | null>(null);
   const [assignedClassId, setAssignedClassId] = useState<string | null>(null);
   const [classTeachers, setClassTeachers] = useState<ClassTeacher[]>([]);
+  const [sessionTchId, setSessionTchId] = useState<string | null>(null);
 
   useEffect(() => {
     kvGet<ClassTeacher[]>(CLASS_TEACHERS_KEY).then(ct => {
       if (ct) setClassTeachers(ct);
     });
-    // Note: deliberately NOT reading localStorage — session cookie is the sole authority
+    // Auto-resolve logged-in teacher from session on mount
+    fetch('/api/session')
+      .then(r => r.ok ? r.json() : null)
+      .then((s: { id: string; role: string } | null) => {
+        if (s && s.role === 'teacher') setSessionTchId(s.id);
+      })
+      .catch(() => {});
   }, []);
 
+  // When teachers list is ready AND session known, set currentTeacherId
   useEffect(() => {
-    if (currentTeacherId && classTeachers.length > 0) {
-      const cls = classTeachers.find(a => a.teacherId === currentTeacherId)?.classId ?? null;
+    if (!sessionTchId || teachers.length === 0) return;
+    const matched = teachers.find(t => t.teacherId === sessionTchId);
+    if (matched && matched.id !== currentTeacherId) {
+      setIdState(matched.id);
+      const cls = classTeachers.find(a => a.teacherId === matched.id)?.classId ?? null;
       setAssignedClassId(cls);
     }
-  }, [currentTeacherId, classTeachers]);
+  }, [sessionTchId, teachers, classTeachers]);
 
   const setCurrentTeacher = (id: string) => {
     setIdState(id);

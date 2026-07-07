@@ -6,6 +6,8 @@ import { BookOpen, Plus, Save, CheckCircle, Clock, AlertCircle, Trash2, X, Chevr
 import RichTextEditor from '@/components/ui/RichTextEditor';
 import type { Syllabus } from '@/lib/types';
 import { kvGet, kvSet } from '@/lib/supabase/kv';
+import { useTeachers } from '@/context/TeachersContext';
+import { useCurrentTeacher } from '@/context/CurrentTeacherContext';
 
 const STATUS_OPTIONS = [
   { value: 'completed', label: 'সম্পন্ন', color: 'bg-green-100 text-green-700' },
@@ -23,6 +25,9 @@ const emptyForm = {
 };
 
 export default function TeacherSyllabusPage() {
+  const { currentTeacherId } = useCurrentTeacher();
+  const { teachers } = useTeachers();
+  const teacher = teachers.find(t => t.id === currentTeacherId);
   const [syllabus, setSyllabus] = useState<Syllabus[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ ...emptyForm });
@@ -106,7 +111,7 @@ export default function TeacherSyllabusPage() {
 
   return (
     <div>
-      <DashboardHeader title="সিলেবাস তৈরি" subtitle="শ্রেণি অনুযায়ী পাঠ্যক্রম পরিচালনা করুন" userName="Md. Shafiqul Islam" role="শিক্ষক" />
+      <DashboardHeader title="সিলেবাস তৈরি" subtitle="শ্রেণি অনুযায়ী পাঠ্যক্রম পরিচালনা করুন" userName={teacher?.name ?? 'শিক্ষক'} role="শিক্ষক" />
       <div className="p-6 space-y-5">
 
         {/* Class selector + progress */}
