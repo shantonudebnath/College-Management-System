@@ -1,9 +1,11 @@
 'use client';
 import { useEffect, useState } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import { STUDENTS, TEACHERS, NOTICES, FEES, MADRASHA_CLASSES } from '@/lib/data';
+import { STUDENTS, FEES, MADRASHA_CLASSES } from '@/lib/data';
 import type { Student } from '@/lib/types';
 import { useStudents } from '@/context/StudentsContext';
+import { useTeachers } from '@/context/TeachersContext';
+import { useNotices } from '@/context/NoticesContext';
 import { Users, GraduationCap, CreditCard, Bell, TrendingUp, AlertCircle, Award } from 'lucide-react';
 import Link from 'next/link';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
@@ -36,6 +38,8 @@ const LEVEL_NAMES: Record<string, string> = {
 
 export default function AdminDashboard() {
   const { students: ctxStudents } = useStudents();
+  const { teachers } = useTeachers();
+  const { notices } = useNotices();
   const students = ctxStudents.length > 0 ? ctxStudents : STUDENTS;
 
   const totalFees = FEES.reduce((s, f) => s + f.amount, 0);
@@ -66,9 +70,9 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { icon: Users, label: 'মোট শিক্ষার্থী', value: students.length.toString(), sub: `${students.filter(s => s.gender?.toLowerCase() === 'male').length}জন ছাত্র, ${students.filter(s => s.gender?.toLowerCase() === 'female').length}জন ছাত্রী`, color: 'bg-purple-50 text-purple-600', href: '/admin/students' },
-            { icon: GraduationCap, label: 'মোট শিক্ষক', value: TEACHERS.length.toString(), sub: `${TEACHERS.length} সক্রিয়`, color: 'bg-blue-50 text-blue-600', href: '/admin/teachers' },
+            { icon: GraduationCap, label: 'মোট শিক্ষক', value: teachers.length.toString(), sub: `${teachers.length} সক্রিয়`, color: 'bg-blue-50 text-blue-600', href: '/admin/teachers' },
             { icon: CreditCard, label: 'ফি সংগৃহীত', value: `৳${(paidFees/1000).toFixed(0)}K`, sub: `${totalFees > 0 ? Math.round((paidFees/totalFees)*100) : 0}% সংগৃহীত`, color: 'bg-green-50 text-green-600', href: '/admin/fees' },
-            { icon: Bell, label: 'সক্রিয় নোটিশ', value: NOTICES.length.toString(), sub: `${NOTICES.filter(n=>n.isImportant).length}টি জরুরি`, color: 'bg-amber-50 text-amber-600', href: '/admin/notices' },
+            { icon: Bell, label: 'সক্রিয় নোটিশ', value: notices.length.toString(), sub: `${notices.filter(n=>n.isImportant).length}টি জরুরি`, color: 'bg-amber-50 text-amber-600', href: '/admin/notices' },
           ].map(({ icon: Icon, label, value, sub, color, href }) => (
             <Link key={label} href={href} className="bg-white rounded-2xl p-5 border border-gray-100 hover:border-purple-200 hover:shadow-md transition-all group">
               <div className={`w-10 h-10 ${color} rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}><Icon size={20} /></div>
@@ -147,7 +151,10 @@ export default function AdminDashboard() {
               <h3 className="font-semibold text-gray-900">সাম্প্রতিক নোটিশ</h3>
               <Link href="/admin/notices" className="text-xs text-purple-600 hover:underline">সব দেখুন</Link>
             </div>
-            {NOTICES.slice(0,4).map(n => (
+            {notices.length === 0 && (
+              <div className="px-5 py-8 text-center text-gray-400 text-xs">কোনো নোটিশ নেই</div>
+            )}
+            {notices.slice(0,4).map(n => (
               <div key={n.id} className="px-5 py-3 border-b border-gray-50 last:border-0 flex items-center gap-3">
                 {n.isImportant ? <AlertCircle size={14} className="text-red-400 shrink-0" /> : <Bell size={14} className="text-gray-300 shrink-0" />}
                 <div className="flex-1 min-w-0">

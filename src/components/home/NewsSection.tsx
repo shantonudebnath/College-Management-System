@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { NOTICES, COLLEGE_INFO } from '@/lib/data';
+import { COLLEGE_INFO } from '@/lib/data';
 import { useNotices } from '@/context/NoticesContext';
 import { Bell, BookOpen, FileText, Users, ChevronRight, AlertCircle, Phone, MapPin, Mail } from 'lucide-react';
 
@@ -45,7 +45,7 @@ const TYPE_CONFIG: Record<string, { border: string; badge: string; dot: string; 
 
 export default function NewsSection() {
   const { notices: liveNotices } = useNotices();
-  const notices = (liveNotices.length > 0 ? liveNotices : NOTICES).slice(0, 6);
+  const notices = liveNotices.slice(0, 6);
 
   return (
     <section className="py-16 bg-[#f8faf8]">
@@ -87,6 +87,12 @@ export default function NewsSection() {
             </div>
 
             <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+              {notices.length === 0 && (
+                <div className="px-5 py-10 text-center text-gray-400 text-sm">
+                  <Bell size={28} className="mx-auto mb-2 opacity-30" />
+                  <p>কোনো নোটিশ নেই। শীঘ্রই প্রকাশিত হবে।</p>
+                </div>
+              )}
               {notices.map((notice, i) => {
                 const cfg = TYPE_CONFIG[notice.type] ?? TYPE_CONFIG.general;
                 return (

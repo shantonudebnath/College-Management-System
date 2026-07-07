@@ -5,9 +5,9 @@ import { MADRASHA_CLASSES } from '@/lib/data';
 import { LayoutGrid } from 'lucide-react';
 import { kvGet } from '@/lib/supabase/kv';
 import { useStudentSession } from '@/hooks/useStudentSession';
+import { useTeachers } from '@/context/TeachersContext';
 
 const LS_KEY = 'master_routine_v2';
-const TEACHERS_KEY = 'nim_teachers_v1';
 
 const DAYS = [
   { id: 'sat', label: 'শনিবার', short: 'শনি' },
@@ -70,17 +70,14 @@ export default function StudentRoutinePage() {
   const { student: sessionStudent } = useStudentSession();
   const student = sessionStudent;
   const [routine, setRoutine] = useState<MasterRoutine>({ periods: [], schedule: {} });
-  const [teachers, setTeachers] = useState<TeacherBasic[]>([]);
+  const { teachers: ctxTeachers } = useTeachers();
+  const teachers: TeacherBasic[] = ctxTeachers.map(t => ({ id: t.id, name: t.name, designation: t.designation }));
 
   const classInfo = MADRASHA_CLASSES.find(c => c.id === (student?.class ?? ''));
 
   useEffect(() => {
-    Promise.all([
-      kvGet<MasterRoutine>(LS_KEY),
-      kvGet<TeacherBasic[]>(TEACHERS_KEY),
-    ]).then(([routineData, teachersData]) => {
+    kvGet<MasterRoutine>(LS_KEY).then(routineData => {
       if (routineData) setRoutine(routineData);
-      if (teachersData) setTeachers(teachersData);
     });
   }, []);
 
