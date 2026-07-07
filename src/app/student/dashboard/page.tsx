@@ -1,14 +1,16 @@
 'use client';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import { NOTICES, EXAM_RESULTS, EXAM_SCHEDULE } from '@/lib/data';
+import { EXAM_RESULTS, EXAM_SCHEDULE } from '@/lib/data';
 import { Award, CreditCard, Bell, Calendar, BookOpen, FileDown, CheckCircle, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useStudentSession } from '@/hooks/useStudentSession';
 import { useFees } from '@/context/FeesContext';
+import { useNotices } from '@/context/NoticesContext';
 
 export default function StudentDashboard() {
   const { student, loading } = useStudentSession();
   const { fees: allFees } = useFees();
+  const { notices } = useNotices();
 
   if (loading) {
     return (
@@ -24,7 +26,7 @@ export default function StudentDashboard() {
   const latestResult = EXAM_RESULTS.find(r => r.studentId === studentId);
   const studentClass = student?.class ?? 'class-10';
   const upcomingExams = EXAM_SCHEDULE.filter(e => e.class === studentClass).slice(0, 3);
-  const latestNotices = NOTICES.slice(0, 4);
+  const latestNotices = notices.filter(n => n.target === 'all' || n.target === 'student').slice(0, 4);
 
   const displayName = student ? (student.name) : 'শিক্ষার্থী';
   const displayNameBn = student?.nameBn ?? '';

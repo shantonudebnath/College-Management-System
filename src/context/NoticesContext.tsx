@@ -26,10 +26,9 @@ export function NoticesProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     kvGet<Notice[]>(NOTICES_KEY).then(data => {
-      if (data && data.length > 0) {
+      if (data !== null) {
         setNotices(data);
       } else {
-        // Seed KV with hardcoded notices on first run
         setNotices(NOTICES);
         kvSet(NOTICES_KEY, NOTICES);
       }

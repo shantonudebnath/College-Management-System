@@ -12,8 +12,8 @@ export default function NoticeTicker() {
     loadWebsiteContent().then(c => setExtraTicker(c.noticeTicker.map(n => n.text)));
   }, []);
 
-  const urgent = notices.filter(n => n.isImportant).map(n => n.title);
-  const allItems = [...extraTicker, ...urgent];
+  const noticeItems = notices.map(n => (n.isImportant ? `🔴 ${n.title}` : n.title));
+  const allItems = [...extraTicker, ...noticeItems];
 
   if (allItems.length === 0) return null;
 
@@ -27,7 +27,7 @@ export default function NoticeTicker() {
         <div className="overflow-hidden flex-1 relative">
           <div className="notice-marquee inline-block text-xs text-gray-700 font-medium whitespace-nowrap">
             {allItems.map((text, i) => (
-              <span key={i} className="mx-8">🔔 {text}</span>
+              <span key={i} className="mx-8">📢 {text}</span>
             ))}
           </div>
         </div>
