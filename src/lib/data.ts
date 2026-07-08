@@ -310,177 +310,23 @@ export function getGradeScale(classId: string) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const STUDENTS: Student[] = [
-  { id: 's1', studentId: 'STD-2024-001', name: 'Mohammad Rafiqul Islam', nameBn: 'মোহাম্মদ রফিকুল ইসলাম', fatherName: 'Mohammad Kamal Uddin', motherName: 'Fatema Begum', class: 'class-10', section: 'A', roll: 1, session: '2024-25', dob: '2008-05-15', gender: 'Male', religion: 'Islam', phone: '01712345678', address: 'Dhaka, Bangladesh', registrationStatus: 'approved', feeStatus: 'paid', createdAt: '2024-01-10' },
-  { id: 's2', studentId: 'STD-2024-002', name: 'Fatema Akter', nameBn: 'ফাতেমা আক্তার', fatherName: 'Abdul Karim', motherName: 'Rahela Begum', class: 'class-10', section: 'A', roll: 2, session: '2024-25', dob: '2008-08-22', gender: 'Female', religion: 'Islam', phone: '01812345678', address: 'Chittagong, Bangladesh', registrationStatus: 'approved', feeStatus: 'due', createdAt: '2024-01-12' },
-  { id: 's3', studentId: 'STD-2024-003', name: 'Md. Shahidul Alam', nameBn: 'মো. শাহিদুল আলম', fatherName: 'Shahjahan Ali', motherName: 'Moriam Begum', class: 'class-9', section: 'A', roll: 1, session: '2024-25', dob: '2009-03-10', gender: 'Male', religion: 'Islam', phone: '01912345678', address: 'Sylhet, Bangladesh', registrationStatus: 'approved', feeStatus: 'paid', createdAt: '2024-01-15' },
-  { id: 's4', studentId: 'STD-2024-004', name: 'Nusrat Jahan', nameBn: 'নুসরাত জাহান', fatherName: 'Md. Rashidul Haque', motherName: 'Shirin Akter', class: 'class-8', section: 'A', roll: 3, session: '2024-25', dob: '2010-11-05', gender: 'Female', religion: 'Islam', phone: '01612345678', address: 'Rajshahi, Bangladesh', registrationStatus: 'approved', feeStatus: 'partial', createdAt: '2024-01-18' },
-  { id: 's5', studentId: 'STD-2024-005', name: 'Md. Tariqul Hasan', nameBn: 'মো. তারিকুল হাসান', fatherName: 'Harunur Rashid', motherName: 'Taslima Begum', class: 'class-7', section: 'A', roll: 5, session: '2024-25', dob: '2011-07-20', gender: 'Male', religion: 'Islam', phone: '01512345678', address: 'Khulna, Bangladesh', registrationStatus: 'approved', feeStatus: 'paid', createdAt: '2024-01-20' },
-
-  // আলিম ১ম বর্ষ — ২০২৫-২৬ সেশন
-  { id: 'alim-01', studentId: 'STD-2025-001', name: 'Mohammad Abdullah Al Mamun', nameBn: 'মোহাম্মদ আব্দুল্লাহ আল মামুন', fatherName: 'Mohammad Abdus Salam', motherName: 'Rina Begum', class: 'class-alim-1', section: 'A', roll: 1, session: '2025-26', dob: '2006-03-12', gender: 'Male', religion: 'Islam', phone: '01711001001', address: 'এগারসিন্দুর, পাকুন্দিয়া, কিশোরগঞ্জ', registrationStatus: 'approved', feeStatus: 'paid', createdAt: '2025-01-05' },
-  { id: 'alim-02', studentId: 'STD-2025-002', name: 'Md. Riazul Islam', nameBn: 'মো. রিয়াজুল ইসলাম', fatherName: 'Md. Mizanur Rahman', motherName: 'Halima Begum', class: 'class-alim-1', section: 'A', roll: 2, session: '2025-26', dob: '2006-07-25', gender: 'Male', religion: 'Islam', phone: '01711001002', address: 'হোসেন্দি, পাকুন্দিয়া, কিশোরগঞ্জ', registrationStatus: 'approved', feeStatus: 'paid', createdAt: '2025-01-05' },
-  { id: 'alim-03', studentId: 'STD-2025-003', name: 'Md. Saiful Amin', nameBn: 'মো. সাইফুল আমিন', fatherName: 'Md. Shamsul Alam', motherName: 'Moriam Khatun', class: 'class-alim-1', section: 'A', roll: 3, session: '2025-26', dob: '2006-11-08', gender: 'Male', religion: 'Islam', phone: '01711001003', address: 'জাঙ্গালিয়া, পাকুন্দিয়া, কিশোরগঞ্জ', registrationStatus: 'approved', feeStatus: 'due', createdAt: '2025-01-06' },
-  { id: 'alim-04', studentId: 'STD-2025-004', name: 'Md. Junaid Ahmed', nameBn: 'মো. জুনায়েদ আহমেদ', fatherName: 'Md. Habibur Rahman', motherName: 'Taslima Begum', class: 'class-alim-1', section: 'A', roll: 4, session: '2025-26', dob: '2007-02-14', gender: 'Male', religion: 'Islam', phone: '01811001004', address: 'নারান্দি, পাকুন্দিয়া, কিশোরগঞ্জ', registrationStatus: 'approved', feeStatus: 'paid', createdAt: '2025-01-06' },
-  { id: 'alim-05', studentId: 'STD-2025-005', name: 'Mohammad Imtiaz Hossain', nameBn: 'মোহাম্মদ ইমতিয়াজ হোসেন', fatherName: 'Mohammad Hafizur Rahman', motherName: 'Nasrin Akter', class: 'class-alim-1', section: 'A', roll: 5, session: '2025-26', dob: '2006-09-30', gender: 'Male', religion: 'Islam', phone: '01911001005', address: 'পাকুন্দিয়া সদর, কিশোরগঞ্জ', registrationStatus: 'approved', feeStatus: 'paid', createdAt: '2025-01-07' },
-  { id: 'alim-06', studentId: 'STD-2025-006', name: 'Md. Mahfuzur Rahman', nameBn: 'মো. মাহফুজুর রহমান', fatherName: 'Md. Lutfor Rahman', motherName: 'Minara Begum', class: 'class-alim-1', section: 'A', roll: 6, session: '2025-26', dob: '2007-05-18', gender: 'Male', religion: 'Islam', phone: '01611001006', address: 'এগারসিন্দুর, পাকুন্দিয়া, কিশোরগঞ্জ', registrationStatus: 'approved', feeStatus: 'partial', createdAt: '2025-01-07' },
-  { id: 'alim-07', studentId: 'STD-2025-007', name: 'Mohammad Salahuddin', nameBn: 'মোহাম্মদ সালাহউদ্দিন', fatherName: 'Mohammad Abdul Karim', motherName: 'Fatema Khatun', class: 'class-alim-1', section: 'A', roll: 7, session: '2025-26', dob: '2006-12-22', gender: 'Male', religion: 'Islam', phone: '01511001007', address: 'চাঁদপুর, পাকুন্দিয়া, কিশোরগঞ্জ', registrationStatus: 'approved', feeStatus: 'paid', createdAt: '2025-01-08' },
-  { id: 'alim-08', studentId: 'STD-2025-008', name: 'Md. Ariful Haq', nameBn: 'মো. আরিফুল হক', fatherName: 'Md. Fazlur Rahman', motherName: 'Rehana Begum', class: 'class-alim-1', section: 'A', roll: 8, session: '2025-26', dob: '2007-08-05', gender: 'Male', religion: 'Islam', phone: '01711001008', address: 'হোসেন্দি, পাকুন্দিয়া, কিশোরগঞ্জ', registrationStatus: 'approved', feeStatus: 'due', createdAt: '2025-01-08' },
-  { id: 'alim-09', studentId: 'STD-2025-009', name: 'Md. Tawhidur Rahman', nameBn: 'মো. তাওহীদুর রহমান', fatherName: 'Mohammad Nurul Islam', motherName: 'Sufia Khatun', class: 'class-alim-1', section: 'A', roll: 9, session: '2025-26', dob: '2006-04-17', gender: 'Male', religion: 'Islam', phone: '01811001009', address: 'জাঙ্গালিয়া, পাকুন্দিয়া, কিশোরগঞ্জ', registrationStatus: 'approved', feeStatus: 'paid', createdAt: '2025-01-09' },
-  { id: 'alim-10', studentId: 'STD-2025-010', name: 'Md. Nasirul Islam', nameBn: 'মো. নাসিরুল ইসলাম', fatherName: 'Md. Shahidul Islam', motherName: 'Roksana Begum', class: 'class-alim-1', section: 'A', roll: 10, session: '2025-26', dob: '2007-01-28', gender: 'Male', religion: 'Islam', phone: '01911001010', address: 'নারান্দি, পাকুন্দিয়া, কিশোরগঞ্জ', registrationStatus: 'approved', feeStatus: 'paid', createdAt: '2025-01-09' },
-  { id: 'alim-11', studentId: 'STD-2025-011', name: 'Md. Omar Faruk', nameBn: 'মো. ওমর ফারুক', fatherName: 'Md. Abul Hossain', motherName: 'Nargis Begum', class: 'class-alim-1', section: 'A', roll: 11, session: '2025-26', dob: '2006-10-03', gender: 'Male', religion: 'Islam', phone: '01611001011', address: 'পাকুন্দিয়া সদর, কিশোরগঞ্জ', registrationStatus: 'approved', feeStatus: 'partial', createdAt: '2025-01-10' },
-  { id: 'alim-12', studentId: 'STD-2025-012', name: 'Mohammad Yusuf Ali', nameBn: 'মোহাম্মদ ইউসুফ আলী', fatherName: 'Mohammad Amir Ali', motherName: 'Jamila Khatun', class: 'class-alim-1', section: 'A', roll: 12, session: '2025-26', dob: '2007-06-11', gender: 'Male', religion: 'Islam', phone: '01511001012', address: 'এগারসিন্দুর, পাকুন্দিয়া, কিশোরগঞ্জ', registrationStatus: 'approved', feeStatus: 'due', createdAt: '2025-01-10' },
-  { id: 'alim-13', studentId: 'STD-2025-013', name: 'Mosammat Ayesha Siddika', nameBn: 'মোসাম্মত আয়েশা সিদ্দিকা', fatherName: 'Md. Badrul Alam', motherName: 'Salma Begum', class: 'class-alim-1', section: 'A', roll: 13, session: '2025-26', dob: '2006-08-20', gender: 'Female', religion: 'Islam', phone: '01711001013', address: 'হোসেন্দি, পাকুন্দিয়া, কিশোরগঞ্জ', registrationStatus: 'approved', feeStatus: 'paid', createdAt: '2025-01-11' },
-  { id: 'alim-14', studentId: 'STD-2025-014', name: 'Mosammat Khadija Khanam', nameBn: 'মোসাম্মত খাদিজা খানম', fatherName: 'Mohammad Abdul Mannan', motherName: 'Amena Khatun', class: 'class-alim-1', section: 'A', roll: 14, session: '2025-26', dob: '2007-03-07', gender: 'Female', religion: 'Islam', phone: '01811001014', address: 'জাঙ্গালিয়া, পাকুন্দিয়া, কিশোরগঞ্জ', registrationStatus: 'approved', feeStatus: 'paid', createdAt: '2025-01-11' },
-  { id: 'alim-15', studentId: 'STD-2025-015', name: 'Mosammat Hafsa Begum', nameBn: 'মোসাম্মত হাফসা বেগম', fatherName: 'Md. Ruhul Amin', motherName: 'Kulsum Begum', class: 'class-alim-1', section: 'A', roll: 15, session: '2025-26', dob: '2006-11-15', gender: 'Female', religion: 'Islam', phone: '01911001015', address: 'নারান্দি, পাকুন্দিয়া, কিশোরগঞ্জ', registrationStatus: 'approved', feeStatus: 'due', createdAt: '2025-01-12' },
-  { id: 'alim-16', studentId: 'STD-2025-016', name: 'Mosammat Rahela Khatun', nameBn: 'মোসাম্মত রাহেলা খাতুন', fatherName: 'Mohammad Nurul Huda', motherName: 'Rahima Begum', class: 'class-alim-1', section: 'A', roll: 16, session: '2025-26', dob: '2007-07-22', gender: 'Female', religion: 'Islam', phone: '01611001016', address: 'পাকুন্দিয়া সদর, কিশোরগঞ্জ', registrationStatus: 'approved', feeStatus: 'paid', createdAt: '2025-01-12' },
-  { id: 'alim-17', studentId: 'STD-2025-017', name: 'Mosammat Mariyam Akter', nameBn: 'মোসাম্মত মারিয়াম আক্তার', fatherName: 'Md. Bashir Ahmed', motherName: 'Monowara Begum', class: 'class-alim-1', section: 'A', roll: 17, session: '2025-26', dob: '2006-05-09', gender: 'Female', religion: 'Islam', phone: '01511001017', address: 'এগারসিন্দুর, পাকুন্দিয়া, কিশোরগঞ্জ', registrationStatus: 'approved', feeStatus: 'paid', createdAt: '2025-01-13' },
-  { id: 'alim-18', studentId: 'STD-2025-018', name: 'Mosammat Jannatul Ferdous', nameBn: 'মোসাম্মত জান্নাতুল ফেরদৌস', fatherName: 'Mohammad Ismail Hossain', motherName: 'Hasina Khatun', class: 'class-alim-1', section: 'A', roll: 18, session: '2025-26', dob: '2007-09-16', gender: 'Female', religion: 'Islam', phone: '01711001018', address: 'হোসেন্দি, পাকুন্দিয়া, কিশোরগঞ্জ', registrationStatus: 'approved', feeStatus: 'partial', createdAt: '2025-01-13' },
-  { id: 'alim-19', studentId: 'STD-2025-019', name: 'Mosammat Sumaiya Begum', nameBn: 'মোসাম্মত সুমাইয়া বেগম', fatherName: 'Md. Moniruzzaman', motherName: 'Bilkis Begum', class: 'class-alim-1', section: 'A', roll: 19, session: '2025-26', dob: '2006-02-28', gender: 'Female', religion: 'Islam', phone: '01811001019', address: 'চাঁদপুর, পাকুন্দিয়া, কিশোরগঞ্জ', registrationStatus: 'approved', feeStatus: 'due', createdAt: '2025-01-14' },
-  { id: 'alim-20', studentId: 'STD-2025-020', name: 'Mosammat Nafisa Islam', nameBn: 'মোসাম্মত নাফিসা ইসলাম', fatherName: 'Mohammad Abdur Rahman', motherName: 'Saleha Begum', class: 'class-alim-1', section: 'A', roll: 20, session: '2025-26', dob: '2007-04-01', gender: 'Female', religion: 'Islam', phone: '01911001020', address: 'জাঙ্গালিয়া, পাকুন্দিয়া, কিশোরগঞ্জ', registrationStatus: 'approved', feeStatus: 'paid', createdAt: '2025-01-14' },
 ];
 
-export const TEACHERS: Teacher[] = [
-  { id: 't1', teacherId: 'TCH-001', name: 'Maulana Abdul Haque', nameBn: 'মাওলানা আব্দুল হক', designation: 'Principal', department: 'Quran & Hadith', subject: ['Quran Majid', 'Hadith Sharif'], classes: ['class-9', 'class-10'], phone: '01711111111', email: 'principal@madrasha.edu.bd', address: 'Dhaka', qualification: 'Kamil (Hadith), Islamic University', joinDate: '2010-01-15', image: '' },
-  { id: 't2', teacherId: 'TCH-002', name: 'Md. Mahbubur Rahman', nameBn: 'মো. মাহবুবুর রহমান', designation: 'Assistant Teacher', department: 'Arabic', subject: ['Arabic Language', 'Arabic Literature'], classes: ['class-6', 'class-7', 'class-8'], phone: '01722222222', email: 'mahbub@madrasha.edu.bd', address: 'Dhaka', qualification: 'Kamil (Adab), Islamic University', joinDate: '2015-03-10', image: '' },
-  { id: 't3', teacherId: 'TCH-003', name: 'Md. Shafiqul Islam', nameBn: 'মো. শফিকুল ইসলাম', designation: 'Assistant Teacher', department: 'Mathematics & Science', subject: ['Mathematics', 'General Science'], classes: ['class-8', 'class-9', 'class-10'], phone: '01733333333', email: 'shafiq@madrasha.edu.bd', address: 'Dhaka', qualification: 'B.Sc, Dhaka University', joinDate: '2016-06-01', image: '' },
-  { id: 't4', teacherId: 'TCH-004', name: 'Mst. Hosneara Begum', nameBn: 'মোস্ত. হোসনেয়ারা বেগম', designation: 'Assistant Teacher', department: 'Bengali & English', subject: ['Bengali', 'English'], classes: ['class-6', 'class-7'], phone: '01744444444', email: 'hosneara@madrasha.edu.bd', address: 'Dhaka', qualification: 'M.A (Bengali), Dhaka University', joinDate: '2018-09-05', image: '' },
-  { id: 't5', teacherId: 'TCH-005', name: 'Maulana Mizanur Rahman', nameBn: 'মাওলানা মিজানুর রহমান', designation: 'Senior Teacher', department: 'Fiqh & Aqeedah', subject: ['Aqeedah & Fiqh', 'Hadith & Fiqh', 'Islamic History'], classes: ['class-8', 'class-9', 'class-10'], phone: '01755555555', email: 'mizan@madrasha.edu.bd', address: 'Dhaka', qualification: 'Kamil (Fiqh), Islamic University', joinDate: '2012-07-20', image: '' },
-  { id: 't6', teacherId: 'TCH-006', name: 'Md. Anisur Rahman', nameBn: 'মো. আনিসুর রহমান', designation: 'Assistant Teacher', department: 'Ebtedayi', subject: ['Bengali', 'English', 'Mathematics', 'Quran Majid'], classes: ['class-1', 'class-2', 'class-3'], phone: '01766666666', email: 'anis@madrasha.edu.bd', address: 'Dhaka', qualification: 'B.A, National University', joinDate: '2019-01-10', image: '' },
-];
+export const TEACHERS: Teacher[] = [];
 
-export const NOTICES: Notice[] = [
-  { id: 'n1', title: 'দাখিল পরীক্ষার ফরম পূরণ নোটিশ', content: 'আগামী ১৫ জুলাই ২০২৪ থেকে দাখিল পরীক্ষার ফরম পূরণ শুরু হবে। সকল ছাত্রছাত্রীদের নির্ধারিত সময়ের মধ্যে ফরম পূরণ করতে হবে।', date: '2024-06-01', type: 'exam', target: 'all', isImportant: true, postedBy: 'Admin' },
-  { id: 'n2', title: 'বার্ষিক পরীক্ষার সময়সূচী', content: 'আগামী ১ নভেম্বর থেকে বার্ষিক পরীক্ষা শুরু হবে। পরীক্ষার সময়সূচী পরবর্তীতে জানানো হবে।', date: '2024-05-25', type: 'exam', target: 'all', isImportant: true, postedBy: 'Admin' },
-  { id: 'n3', title: 'মাসিক বেতন পরিশোধের নোটিশ', content: 'আগামী ১০ জুনের মধ্যে মাসিক বেতন পরিশোধ করতে হবে। অন্যথায় বিলম্ব মাশুল আরোপ করা হবে।', date: '2024-06-01', type: 'fee', target: 'student', isImportant: true, postedBy: 'Admin' },
-  { id: 'n4', title: 'শিক্ষক প্রশিক্ষণ কর্মশালা', content: 'আগামী ২০ জুন শিক্ষক প্রশিক্ষণ কর্মশালা অনুষ্ঠিত হবে। সকল শিক্ষকদের উপস্থিত থাকতে অনুরোধ করা হচ্ছে।', date: '2024-06-05', type: 'general', target: 'teacher', isImportant: false, postedBy: 'Admin' },
-  { id: 'n5', title: 'ঈদুল আযহা উপলক্ষে ছুটির নোটিশ', content: 'ঈদুল আযহা উপলক্ষে ১৬ জুন থেকে ২৫ জুন পর্যন্ত মাদ্রাসা বন্ধ থাকবে।', date: '2024-06-10', type: 'holiday', target: 'all', isImportant: false, postedBy: 'Admin' },
-  { id: 'n6', title: 'অর্ধবার্ষিক পরীক্ষার ফলাফল', content: 'অর্ধবার্ষিক পরীক্ষার ফলাফল প্রকাশিত হয়েছে। শিক্ষার্থীরা তাদের রোল নম্বর দিয়ে ফলাফল দেখতে পারবে।', date: '2024-05-20', type: 'result', target: 'all', isImportant: false, postedBy: 'Admin' },
-];
+export const NOTICES: Notice[] = [];
 
-// Static seed results — uses updated SubjectResult shape
-export const EXAM_RESULTS: ExamResult[] = [
-  {
-    studentId: 's1', studentName: 'Mohammad Rafiqul Islam', class: 'class-10', roll: 1,
-    subjects: [
-      { name: 'Quran Majid & Tajwid', fullMark: 100, cqMarks: 85, mcqMarks: 0, practicalMarks: 0, marks: 85, grade: 'A+', gpa: 5.0, isPassed: true },
-      { name: 'Hadith Sharif',        fullMark: 100, cqMarks: 78, mcqMarks: 0, practicalMarks: 0, marks: 78, grade: 'A',  gpa: 4.0, isPassed: true },
-      { name: 'Arabic 1st Paper',     fullMark: 100, cqMarks: 72, mcqMarks: 0, practicalMarks: 0, marks: 72, grade: 'A-', gpa: 3.5, isPassed: true },
-      { name: 'Arabic 2nd Paper',     fullMark: 100, cqMarks: 68, mcqMarks: 0, practicalMarks: 0, marks: 68, grade: 'A-', gpa: 3.5, isPassed: true },
-      { name: 'Bengali 1st Paper',    fullMark: 100, cqMarks: 60, mcqMarks: 20, practicalMarks: 0, marks: 80, grade: 'A+', gpa: 5.0, isPassed: true },
-      { name: 'English 1st Paper',    fullMark: 100, cqMarks: 65, mcqMarks: 0, practicalMarks: 0, marks: 65, grade: 'A-', gpa: 3.5, isPassed: true },
-      { name: 'Mathematics',          fullMark: 100, cqMarks: 60, mcqMarks: 28, practicalMarks: 0, marks: 88, grade: 'A+', gpa: 5.0, isPassed: true },
-      { name: 'Islamic History',      fullMark: 100, cqMarks: 52, mcqMarks: 23, practicalMarks: 0, marks: 75, grade: 'A',  gpa: 4.0, isPassed: true },
-      { name: 'Aqaid & Fiqh',        fullMark: 100, cqMarks: 90, mcqMarks: 0, practicalMarks: 0, marks: 90, grade: 'A+', gpa: 5.0, isPassed: true },
-      { name: 'ICT',                  fullMark: 50,  cqMarks: 0,  mcqMarks: 20, practicalMarks: 22, marks: 42, grade: 'A+', gpa: 5.0, isPassed: true },
-    ],
-    totalMarks: 761, totalFullMarks: 950, percentage: 80.1, gpa: 4.35, grade: 'A+', status: 'pass', examName: 'অর্ধবার্ষিক পরীক্ষা', year: '2024'
-  },
-  {
-    studentId: 's2', studentName: 'Fatema Akter', class: 'class-10', roll: 2,
-    subjects: [
-      { name: 'Quran Majid & Tajwid', fullMark: 100, cqMarks: 75, mcqMarks: 0, practicalMarks: 0, marks: 75, grade: 'A',  gpa: 4.0, isPassed: true },
-      { name: 'Hadith Sharif',        fullMark: 100, cqMarks: 70, mcqMarks: 0, practicalMarks: 0, marks: 70, grade: 'A',  gpa: 4.0, isPassed: true },
-      { name: 'Arabic 1st Paper',     fullMark: 100, cqMarks: 65, mcqMarks: 0, practicalMarks: 0, marks: 65, grade: 'A-', gpa: 3.5, isPassed: true },
-      { name: 'Arabic 2nd Paper',     fullMark: 100, cqMarks: 62, mcqMarks: 0, practicalMarks: 0, marks: 62, grade: 'A-', gpa: 3.5, isPassed: true },
-      { name: 'Bengali 1st Paper',    fullMark: 100, cqMarks: 50, mcqMarks: 22, practicalMarks: 0, marks: 72, grade: 'A-', gpa: 3.5, isPassed: true },
-      { name: 'English 1st Paper',    fullMark: 100, cqMarks: 58, mcqMarks: 0, practicalMarks: 0, marks: 58, grade: 'B',  gpa: 3.0, isPassed: true },
-      { name: 'Mathematics',          fullMark: 100, cqMarks: 38, mcqMarks: 17, practicalMarks: 0, marks: 55, grade: 'B',  gpa: 3.0, isPassed: true },
-      { name: 'Islamic History',      fullMark: 100, cqMarks: 48, mcqMarks: 20, practicalMarks: 0, marks: 68, grade: 'A-', gpa: 3.5, isPassed: true },
-      { name: 'Aqaid & Fiqh',        fullMark: 100, cqMarks: 80, mcqMarks: 0, practicalMarks: 0, marks: 80, grade: 'A+', gpa: 5.0, isPassed: true },
-      { name: 'ICT',                  fullMark: 50,  cqMarks: 0,  mcqMarks: 16, practicalMarks: 18, marks: 34, grade: 'A-', gpa: 3.5, isPassed: true },
-    ],
-    totalMarks: 639, totalFullMarks: 950, percentage: 67.3, gpa: 3.65, grade: 'A-', status: 'pass', examName: 'অর্ধবার্ষিক পরীক্ষা', year: '2024'
-  },
-  // ── বার্ষিক পরীক্ষা ২০২৪ demo data ─────────────────────────────────────────
-  {
-    id: 'bar-s1-2024',
-    studentId: 's1', studentName: 'Mohammad Rafiqul Islam', class: 'class-10', roll: 1,
-    subjects: [
-      { name: 'Quran Majid & Tajwid', fullMark: 100, cqMarks: 90, mcqMarks: 0,  practicalMarks: 0,  marks: 90, grade: 'A+', gpa: 5.0, isPassed: true },
-      { name: 'Hadith Sharif',        fullMark: 100, cqMarks: 82, mcqMarks: 0,  practicalMarks: 0,  marks: 82, grade: 'A+', gpa: 5.0, isPassed: true },
-      { name: 'Arabic 1st Paper',     fullMark: 100, cqMarks: 75, mcqMarks: 0,  practicalMarks: 0,  marks: 75, grade: 'A',  gpa: 4.0, isPassed: true },
-      { name: 'Arabic 2nd Paper',     fullMark: 100, cqMarks: 70, mcqMarks: 0,  practicalMarks: 0,  marks: 70, grade: 'A',  gpa: 4.0, isPassed: true },
-      { name: 'Bengali 1st Paper',    fullMark: 100, cqMarks: 65, mcqMarks: 20, practicalMarks: 0,  marks: 85, grade: 'A+', gpa: 5.0, isPassed: true },
-      { name: 'English 1st Paper',    fullMark: 100, cqMarks: 70, mcqMarks: 0,  practicalMarks: 0,  marks: 70, grade: 'A',  gpa: 4.0, isPassed: true },
-      { name: 'Mathematics',          fullMark: 100, cqMarks: 64, mcqMarks: 28, practicalMarks: 0,  marks: 92, grade: 'A+', gpa: 5.0, isPassed: true },
-      { name: 'Islamic History',      fullMark: 100, cqMarks: 57, mcqMarks: 23, practicalMarks: 0,  marks: 80, grade: 'A+', gpa: 5.0, isPassed: true },
-      { name: 'Aqaid & Fiqh',        fullMark: 100, cqMarks: 88, mcqMarks: 0,  practicalMarks: 0,  marks: 88, grade: 'A+', gpa: 5.0, isPassed: true },
-      { name: 'ICT',                  fullMark: 50,  cqMarks: 0,  mcqMarks: 22, practicalMarks: 23, marks: 45, grade: 'A+', gpa: 5.0, isPassed: true },
-    ],
-    totalMarks: 777, totalFullMarks: 950, percentage: 81.8, gpa: 4.70, grade: 'A+', status: 'pass', examName: 'বার্ষিক পরীক্ষা', year: '2024',
-    createdAt: '2024-11-20T10:00:00.000Z',
-  },
-  {
-    id: 'bar-s2-2024',
-    studentId: 's2', studentName: 'Fatema Akter', class: 'class-10', roll: 2,
-    subjects: [
-      { name: 'Quran Majid & Tajwid', fullMark: 100, cqMarks: 80, mcqMarks: 0,  practicalMarks: 0,  marks: 80, grade: 'A+', gpa: 5.0, isPassed: true },
-      { name: 'Hadith Sharif',        fullMark: 100, cqMarks: 75, mcqMarks: 0,  practicalMarks: 0,  marks: 75, grade: 'A',  gpa: 4.0, isPassed: true },
-      { name: 'Arabic 1st Paper',     fullMark: 100, cqMarks: 68, mcqMarks: 0,  practicalMarks: 0,  marks: 68, grade: 'A-', gpa: 3.5, isPassed: true },
-      { name: 'Arabic 2nd Paper',     fullMark: 100, cqMarks: 65, mcqMarks: 0,  practicalMarks: 0,  marks: 65, grade: 'A-', gpa: 3.5, isPassed: true },
-      { name: 'Bengali 1st Paper',    fullMark: 100, cqMarks: 56, mcqMarks: 22, practicalMarks: 0,  marks: 78, grade: 'A',  gpa: 4.0, isPassed: true },
-      { name: 'English 1st Paper',    fullMark: 100, cqMarks: 62, mcqMarks: 0,  practicalMarks: 0,  marks: 62, grade: 'A-', gpa: 3.5, isPassed: true },
-      { name: 'Mathematics',          fullMark: 100, cqMarks: 43, mcqMarks: 17, practicalMarks: 0,  marks: 60, grade: 'A-', gpa: 3.5, isPassed: true },
-      { name: 'Islamic History',      fullMark: 100, cqMarks: 49, mcqMarks: 23, practicalMarks: 0,  marks: 72, grade: 'A',  gpa: 4.0, isPassed: true },
-      { name: 'Aqaid & Fiqh',        fullMark: 100, cqMarks: 85, mcqMarks: 0,  practicalMarks: 0,  marks: 85, grade: 'A+', gpa: 5.0, isPassed: true },
-      { name: 'ICT',                  fullMark: 50,  cqMarks: 0,  mcqMarks: 19, practicalMarks: 21, marks: 40, grade: 'A',  gpa: 4.0, isPassed: true },
-    ],
-    totalMarks: 685, totalFullMarks: 950, percentage: 72.1, gpa: 4.00, grade: 'A', status: 'pass', examName: 'বার্ষিক পরীক্ষা', year: '2024',
-    createdAt: '2024-11-20T10:00:00.000Z',
-  },
-];
+export const EXAM_RESULTS: ExamResult[] = [];
 
-export const FEES: Fee[] = [
-  { id: 'f1', studentId: 's1', studentName: 'Mohammad Rafiqul Islam', class: 'class-10', feeType: 'মাসিক বেতন (জানুয়ারি)', amount: 500, dueDate: '2024-01-15', paidDate: '2024-01-10', status: 'paid', receiptNo: 'RCP-2024-001' },
-  { id: 'f2', studentId: 's1', studentName: 'Mohammad Rafiqul Islam', class: 'class-10', feeType: 'মাসিক বেতন (ফেব্রুয়ারি)', amount: 500, dueDate: '2024-02-15', paidDate: '2024-02-12', status: 'paid', receiptNo: 'RCP-2024-002' },
-  { id: 'f3', studentId: 's1', studentName: 'Mohammad Rafiqul Islam', class: 'class-10', feeType: 'পরীক্ষা ফি', amount: 800, dueDate: '2024-05-30', paidDate: '2024-05-25', status: 'paid', receiptNo: 'RCP-2024-003' },
-  { id: 'f4', studentId: 's2', studentName: 'Fatema Akter', class: 'class-10', feeType: 'মাসিক বেতন (জানুয়ারি)', amount: 500, dueDate: '2024-01-15', paidDate: '2024-01-14', status: 'paid', receiptNo: 'RCP-2024-004' },
-  { id: 'f5', studentId: 's2', studentName: 'Fatema Akter', class: 'class-10', feeType: 'মাসিক বেতন (ফেব্রুয়ারি)', amount: 500, dueDate: '2024-02-15', status: 'due' },
-  { id: 'f6', studentId: 's2', studentName: 'Fatema Akter', class: 'class-10', feeType: 'পরীক্ষা ফি', amount: 800, dueDate: '2024-05-30', status: 'due' },
-];
+export const FEES: Fee[] = [];
 
-export const EXAM_SCHEDULE: ExamSchedule[] = [
-  { id: 'es1', examName: 'বার্ষিক পরীক্ষা ২০২৪', class: 'class-10', date: '2024-11-01', startTime: '10:00', endTime: '13:00', subject: 'Quran Majid & Tajwid', room: 'Room 101' },
-  { id: 'es2', examName: 'বার্ষিক পরীক্ষা ২০২৪', class: 'class-10', date: '2024-11-03', startTime: '10:00', endTime: '13:00', subject: 'Hadith Sharif', room: 'Room 101' },
-  { id: 'es3', examName: 'বার্ষিক পরীক্ষা ২০২৪', class: 'class-10', date: '2024-11-05', startTime: '10:00', endTime: '13:00', subject: 'Arabic 1st Paper', room: 'Room 102' },
-  { id: 'es4', examName: 'বার্ষিক পরীক্ষা ২০২৪', class: 'class-10', date: '2024-11-07', startTime: '10:00', endTime: '13:00', subject: 'Bengali 1st Paper', room: 'Room 101' },
-  { id: 'es5', examName: 'বার্ষিক পরীক্ষা ২০২৪', class: 'class-10', date: '2024-11-10', startTime: '10:00', endTime: '13:00', subject: 'English 1st Paper', room: 'Room 103' },
-  { id: 'es6', examName: 'বার্ষিক পরীক্ষা ২০২৪', class: 'class-10', date: '2024-11-12', startTime: '10:00', endTime: '13:00', subject: 'Mathematics', room: 'Room 102' },
-];
+export const EXAM_SCHEDULE: ExamSchedule[] = [];
 
-export const SYLLABUS: Syllabus[] = [
-  { class: 'class-10', subject: 'Quran Majid & Tajwid', chapter: 'সূরা আল-বাকারা (১-৫০ আয়াত)', topics: ['তাফসীর', 'হিফয', 'তাজউইদ'], status: 'completed' },
-  { class: 'class-10', subject: 'Quran Majid & Tajwid', chapter: 'সূরা আল-ইমরান (১-৩০ আয়াত)', topics: ['তাফসীর', 'বাংলা অনুবাদ'], status: 'completed' },
-  { class: 'class-10', subject: 'Mathematics', chapter: 'বীজগাণিতিক রাশি', topics: ['বহুপদী', 'উৎপাদকে বিশ্লেষণ', 'সূত্রাবলী'], status: 'ongoing' },
-  { class: 'class-10', subject: 'Mathematics', chapter: 'সেট ও ফাংশন', topics: ['সেটের ধারণা', 'সেটের প্রকারভেদ', 'ফাংশনের ধারণা'], status: 'pending' },
-  { class: 'class-10', subject: 'English 1st Paper', chapter: 'Reading Comprehension', topics: ['Passage 1-5', 'Summary Writing'], status: 'completed' },
-  { class: 'class-10', subject: 'English 1st Paper', chapter: 'Grammar & Composition', topics: ['Tense', 'Voice', 'Narration', 'Essay Writing'], status: 'ongoing' },
-];
+export const SYLLABUS: Syllabus[] = [];
 
-export const NOTES: Note[] = [
-  { id: 'note1', title: 'Quran Majid - সূরা ইয়াসিনের তাফসীর নোট', content: 'সূরা ইয়াসিনের প্রথম ১০ আয়াতের বিস্তারিত তাফসীর এবং শিক্ষার্থীদের জন্য গুরুত্বপূর্ণ নোট।', class: 'class-10', subject: 'Quran Majid & Tajwid', teacherId: 't1', teacherName: 'Maulana Abdul Haque', createdAt: '2024-05-15', type: 'note' },
-  { id: 'note2', title: 'Mathematics - বীজগণিত সাজেশন', content: 'বার্ষিক পরীক্ষার জন্য গণিতের গুরুত্বপূর্ণ প্রশ্নসমূহ এবং সমাধান পদ্ধতি।', class: 'class-10', subject: 'Mathematics', teacherId: 't3', teacherName: 'Md. Shafiqul Islam', createdAt: '2024-05-20', type: 'suggestion' },
-  { id: 'note3', title: 'English Grammar Notes', content: 'Complete grammar notes covering tense, voice, narration, and essay writing for the annual exam.', class: 'class-10', subject: 'English 1st Paper', teacherId: 't4', teacherName: 'Mst. Hosneara Begum', createdAt: '2024-05-22', type: 'note' },
-];
+export const NOTES: Note[] = [];
 
-export const ROUTINE_DATA = [
-  { day: 'Saturday', periods: [
-    { time: '08:00-08:45', subject: 'Quran Majid & Tajwid', teacher: 'Maulana Abdul Haque', class: 'class-10' },
-    { time: '08:45-09:30', subject: 'Mathematics', teacher: 'Md. Shafiqul Islam', class: 'class-10' },
-    { time: '09:30-10:15', subject: 'Bengali 1st Paper', teacher: 'Mst. Hosneara Begum', class: 'class-10' },
-    { time: '10:15-10:30', subject: 'Break', teacher: '', class: '' },
-    { time: '10:30-11:15', subject: 'Arabic 1st Paper', teacher: 'Md. Mahbubur Rahman', class: 'class-10' },
-    { time: '11:15-12:00', subject: 'English 1st Paper', teacher: 'Mst. Hosneara Begum', class: 'class-10' },
-  ]},
-  { day: 'Sunday', periods: [
-    { time: '08:00-08:45', subject: 'Hadith Sharif', teacher: 'Maulana Abdul Haque', class: 'class-10' },
-    { time: '08:45-09:30', subject: 'Science', teacher: 'Md. Shafiqul Islam', class: 'class-10' },
-    { time: '09:30-10:15', subject: 'Aqaid & Fiqh', teacher: 'Maulana Mizanur Rahman', class: 'class-10' },
-    { time: '10:15-10:30', subject: 'Break', teacher: '', class: '' },
-    { time: '10:30-11:15', subject: 'Islamic History', teacher: 'Maulana Mizanur Rahman', class: 'class-10' },
-    { time: '11:15-12:00', subject: 'Arabic 2nd Paper', teacher: 'Md. Mahbubur Rahman', class: 'class-10' },
-  ]},
-];
+export const ROUTINE_DATA: { day: string; periods: { time: string; subject: string; teacher: string; class: string }[] }[] = [];
 
 export const COLLEGE_INFO = {
   name: 'Egaro Sendur Ishakhan Senior Madrasha',
