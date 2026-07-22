@@ -37,7 +37,7 @@ export default function AdminAdmissionsPage() {
         class: app.applyingClass,
         roll: ts % 10000,
         section: 'A',
-        gender: 'male',
+        gender: 'পুরুষ',
         phone: app.phone,
         address: app.address,
         fatherName: app.fatherName,

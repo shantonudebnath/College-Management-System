@@ -188,9 +188,20 @@ function buildYearFinal(year: string, allResults: ExamResult[]): ExamResult[] {
     const totalMarks = avgSubjects.reduce((s, r) => s + r.marks, 0);
     const totalFull  = avgSubjects.reduce((s, r) => s + r.fullMark, 0);
     const pct = totalFull > 0 ? Math.round((totalMarks / totalFull) * 1000) / 10 : 0;
-    const gpa = Math.round((avgSubjects.reduce((s, r) => s + r.gpa, 0) / (avgSubjects.length || 1)) * 100) / 100;
     const gi  = getGradeInfo(totalMarks, totalFull, barR.class);
-    const failed = avgSubjects.filter(r => !r.isPassed).map(r => r.name);
+
+    // Bangladesh Board GPA: compulsory average + optional bonus max(0, GP − 2.0)
+    const compulsory = avgSubjects.filter(r => !r.isOptional);
+    const optional   = avgSubjects.filter(r =>  r.isOptional);
+    const compulsoryGpa = compulsory.length > 0
+      ? compulsory.reduce((s, r) => s + r.gpa, 0) / compulsory.length : 0;
+    const optionalBonus = optional.reduce((b, r) => b + Math.max(0, r.gpa - 2.0), 0);
+    const gpa = Math.round((compulsoryGpa + optionalBonus) * 100) / 100;
+
+    // Fail only on compulsory failure; optional fail doesn't cause overall failure
+    const failedCompulsory = compulsory.filter(r => !r.isPassed).map(r => r.name);
+    const failedOptional   = optional.filter(r => !r.isPassed).map(r => r.name);
+    const allFailed = [...failedCompulsory, ...failedOptional];
 
     return {
       ...barR,
@@ -201,9 +212,9 @@ function buildYearFinal(year: string, allResults: ExamResult[]): ExamResult[] {
       percentage: pct,
       gpa,
       grade: gi.grade,
-      status: (failed.length === 0 ? 'pass' : 'fail') as 'pass' | 'fail',
+      status: (failedCompulsory.length === 0 ? 'pass' : 'fail') as 'pass' | 'fail',
       examName: FINAL_EXAM,
-      failedSubjects: failed.length > 0 ? failed : undefined,
+      failedSubjects: allFailed.length > 0 ? allFailed : undefined,
       createdAt: new Date().toISOString(),
     };
   });

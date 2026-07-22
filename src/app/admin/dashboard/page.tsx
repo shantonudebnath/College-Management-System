@@ -6,6 +6,7 @@ import type { Student } from '@/lib/types';
 import { useStudents } from '@/context/StudentsContext';
 import { useTeachers } from '@/context/TeachersContext';
 import { useNotices } from '@/context/NoticesContext';
+import { useFees } from '@/context/FeesContext';
 import { Users, GraduationCap, CreditCard, Bell, TrendingUp, AlertCircle, Award } from 'lucide-react';
 import Link from 'next/link';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
@@ -36,14 +37,26 @@ const LEVEL_NAMES: Record<string, string> = {
 };
 
 
+function isMale(gender?: string): boolean {
+  const g = gender?.toLowerCase() ?? '';
+  return g === 'male' || g === 'পুরুষ';
+}
+function isFemale(gender?: string): boolean {
+  const g = gender?.toLowerCase() ?? '';
+  return g === 'female' || g === 'মহিলা';
+}
+
 export default function AdminDashboard() {
   const { students: ctxStudents } = useStudents();
   const { teachers } = useTeachers();
   const { notices } = useNotices();
+  const { fees: liveFees } = useFees();
   const students = ctxStudents.length > 0 ? ctxStudents : STUDENTS;
 
-  const totalFees = FEES.reduce((s, f) => s + f.amount, 0);
-  const paidFees = FEES.filter(f => f.status === 'paid').reduce((s, f) => s + f.amount, 0);
+  // Use live fees; fall back to hardcoded if context hasn't loaded yet
+  const feesSource = liveFees.length > 0 ? liveFees : FEES;
+  const totalFees = feesSource.reduce((s, f) => s + f.amount, 0);
+  const paidFees = feesSource.filter(f => f.status === 'paid').reduce((s, f) => s + f.amount, 0);
 
   // Build class distribution from real student data
   const levelCounts: Record<string, number> = {};
@@ -69,7 +82,7 @@ export default function AdminDashboard() {
         {/* KPI cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { icon: Users, label: 'মোট শিক্ষার্থী', value: students.length.toString(), sub: `${students.filter(s => s.gender?.toLowerCase() === 'male').length}জন ছাত্র, ${students.filter(s => s.gender?.toLowerCase() === 'female').length}জন ছাত্রী`, color: 'bg-purple-50 text-purple-600', href: '/admin/students' },
+            { icon: Users, label: 'মোট শিক্ষার্থী', value: students.length.toString(), sub: `${students.filter(s => isMale(s.gender)).length}জন ছাত্র, ${students.filter(s => isFemale(s.gender)).length}জন ছাত্রী`, color: 'bg-purple-50 text-purple-600', href: '/admin/students' },
             { icon: GraduationCap, label: 'মোট শিক্ষক', value: teachers.length.toString(), sub: `${teachers.length} সক্রিয়`, color: 'bg-blue-50 text-blue-600', href: '/admin/teachers' },
             { icon: CreditCard, label: 'ফি সংগৃহীত', value: `৳${(paidFees/1000).toFixed(0)}K`, sub: `${totalFees > 0 ? Math.round((paidFees/totalFees)*100) : 0}% সংগৃহীত`, color: 'bg-green-50 text-green-600', href: '/admin/fees' },
             { icon: Bell, label: 'সক্রিয় নোটিশ', value: notices.length.toString(), sub: `${notices.filter(n=>n.isImportant).length}টি জরুরি`, color: 'bg-amber-50 text-amber-600', href: '/admin/notices' },

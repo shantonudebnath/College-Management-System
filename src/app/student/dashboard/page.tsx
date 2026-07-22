@@ -6,11 +6,13 @@ import Link from 'next/link';
 import { useStudentSession } from '@/hooks/useStudentSession';
 import { useFees } from '@/context/FeesContext';
 import { useNotices } from '@/context/NoticesContext';
+import { useResults } from '@/context/ResultsContext';
 
 export default function StudentDashboard() {
   const { student, loading } = useStudentSession();
   const { fees: allFees } = useFees();
   const { notices } = useNotices();
+  const { results: storedResults } = useResults();
 
   if (loading) {
     return (
@@ -23,7 +25,19 @@ export default function StudentDashboard() {
   const studentId = student?.id ?? '';
   const studentFees = allFees.filter(f => f.studentId === studentId);
   const pendingFees = studentFees.filter(f => f.status !== 'paid').length;
-  const latestResult = EXAM_RESULTS.find(r => r.studentId === studentId);
+
+  // Prefer live results over hardcoded; deduplicate by studentId+examName+year keeping most recent
+  const allResults = [...EXAM_RESULTS, ...storedResults];
+  const seen = new Map<string, typeof allResults[0]>();
+  for (const r of allResults) {
+    const key = `${r.studentId}||${r.examName}||${r.year}`;
+    const prev = seen.get(key);
+    if (!prev || (r.createdAt ?? '') >= (prev.createdAt ?? '')) seen.set(key, r);
+  }
+  const latestResult = [...seen.values()]
+    .filter(r => r.studentId === studentId)
+    .sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
+    .at(0) ?? null;
   const studentClass = student?.class ?? 'class-10';
   const upcomingExams = EXAM_SCHEDULE.filter(e => e.class === studentClass).slice(0, 3);
   const latestNotices = notices.filter(n => n.target === 'all' || n.target === 'student').slice(0, 4);

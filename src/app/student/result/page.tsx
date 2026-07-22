@@ -167,8 +167,14 @@ export default function StudentResultPage() {
   useEffect(() => {
     if (!student) return;
 
-    const all = [...EXAM_RESULTS, ...storedResults];
-    const found = all
+    // Deduplicate by studentId+examName+year; live (storedResults) beats static on same key
+    const seen = new Map<string, typeof EXAM_RESULTS[0]>();
+    for (const r of [...EXAM_RESULTS, ...storedResults]) {
+      const key = `${r.studentId}||${r.examName}||${r.year}`;
+      const prev = seen.get(key);
+      if (!prev || (r.createdAt ?? '') >= (prev.createdAt ?? '')) seen.set(key, r);
+    }
+    const found = [...seen.values()]
       .filter(r => r.studentId === student.id)
       .sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
       .at(0) ?? null;
