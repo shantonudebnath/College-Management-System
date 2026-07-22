@@ -47,45 +47,61 @@ export interface SubjectMarksInput {
   practicalObtained: number;
 }
 
-/**
- * Calculates SubjectResult for one subject given the marks entered per component.
- * For mixed subjects (CQ + Practical), also checks each component separately:
- *   - Theory component (CQ + MCQ): must score ≥ 40% of theory total
- *   - Practical component: must score ≥ 40% of practical total
- * If either component fails, the subject is failed regardless of total.
- */
-export function calculateSubjectResult(input: SubjectMarksInput, classId: string): SubjectResult {
-  const { subject, cqObtained, mcqObtained, practicalObtained } = input;
-  const totalObtained = cqObtained + mcqObtained + practicalObtained;
+// Simplified input: user enters only the total obtained marks
+export interface SubjectTotalInput {
+  subject: Subject;
+  totalObtained: number;
+}
+
+export function calculateSubjectResult(
+  input: SubjectMarksInput | SubjectTotalInput,
+  classId: string
+): SubjectResult {
+  const { subject } = input;
+
+  let totalObtained: number;
+  let cqObtained = 0, mcqObtained = 0, practicalObtained = 0;
+
+  if ('totalObtained' in input) {
+    totalObtained = input.totalObtained;
+    // No component-level pass check when using total-only input
+  } else {
+    cqObtained        = input.cqObtained;
+    mcqObtained       = input.mcqObtained;
+    practicalObtained = input.practicalObtained;
+    totalObtained     = cqObtained + mcqObtained + practicalObtained;
+  }
 
   const gradeInfo = getGradeInfo(totalObtained, subject.fullMark, classId);
   let isPassed = gradeInfo.isPassed;
 
-  // Component-level pass check for practical subjects in দাখিল/আলিম
-  const isEbtedayi = EBTEDAYI_CLASSES.includes(classId);
-  if (!isEbtedayi && subject.practicalMark > 0) {
-    const theoryFull = subject.cqMark + subject.mcqMark;
-    const theoryObtained = cqObtained + mcqObtained;
-
-    if (theoryFull > 0) {
-      const theoryPct = Math.round((theoryObtained / theoryFull) * 100);
-      if (theoryPct < 40) isPassed = false;
+  // Component-level pass check only for the old 3-field input path
+  if (!('totalObtained' in input)) {
+    const isEbtedayi = EBTEDAYI_CLASSES.includes(classId);
+    if (!isEbtedayi && subject.practicalMark > 0) {
+      const theoryFull     = subject.cqMark + subject.mcqMark;
+      const theoryObtained = cqObtained + mcqObtained;
+      if (theoryFull > 0) {
+        const theoryPct = Math.round((theoryObtained / theoryFull) * 100);
+        if (theoryPct < 40) isPassed = false;
+      }
+      const practicalPct = Math.round((practicalObtained / subject.practicalMark) * 100);
+      if (practicalPct < 40) isPassed = false;
     }
-    const practicalPct = Math.round((practicalObtained / subject.practicalMark) * 100);
-    if (practicalPct < 40) isPassed = false;
   }
 
   return {
-    name: subject.name,
-    nameBn: subject.nameBn,
-    fullMark: subject.fullMark,
-    cqMarks: cqObtained,
-    mcqMarks: mcqObtained,
-    practicalMarks: practicalObtained,
-    marks: totalObtained,
-    grade: gradeInfo.grade,
-    gpa: gradeInfo.gpa,
+    name:            subject.name,
+    nameBn:          subject.nameBn,
+    fullMark:        subject.fullMark,
+    cqMarks:         cqObtained,
+    mcqMarks:        mcqObtained,
+    practicalMarks:  practicalObtained,
+    marks:           totalObtained,
+    grade:           gradeInfo.grade,
+    gpa:             gradeInfo.gpa,
     isPassed,
+    isOptional:      subject.isOptional,
   };
 }
 
@@ -95,9 +111,12 @@ export function calculateSubjectResult(input: SubjectMarksInput, classId: string
 
 /**
  * Calculates a complete ExamResult for a student.
- * GPA = average of all subject GPAs.
- * Overall grade is derived from the total percentage.
- * Status is fail if any subject is failed.
+ *
+ * Bangladesh Education Board GPA rules (দাখিল/আলিম):
+ *   - Status FAIL only if any COMPULSORY subject fails.
+ *     Failing an optional (চতুর্থ) subject does NOT cause overall failure.
+ *   - GPA = average of compulsory subject GPs
+ *           + bonus for each optional subject: max(0, optionalGP − 2.00)
  */
 export function calculateExamResult(params: {
   studentId: string;
@@ -105,7 +124,7 @@ export function calculateExamResult(params: {
   classId: string;
   roll: number;
   section?: string;
-  subjectInputs: SubjectMarksInput[];
+  subjectInputs: (SubjectMarksInput | SubjectTotalInput)[];
   examName: string;
   year: string;
 }): ExamResult {
@@ -118,21 +137,31 @@ export function calculateExamResult(params: {
   const totalMarks     = subjectResults.reduce((s, r) => s + r.marks, 0);
   const totalFullMarks = subjectResults.reduce((s, r) => s + r.fullMark, 0);
   const percentage     = totalFullMarks > 0
-    ? Math.round((totalMarks / totalFullMarks) * 1000) / 10  // 1 decimal
+    ? Math.round((totalMarks / totalFullMarks) * 1000) / 10
     : 0;
 
-  const isEbtedayi = EBTEDAYI_CLASSES.includes(classId);
   const overallGradeInfo = getGradeInfo(totalMarks, totalFullMarks, classId);
+  const isEbtedayi = EBTEDAYI_CLASSES.includes(classId);
 
-  // GPA: average of all subjects (for দাখিল/আলিম); 0 for ইবতেদায়ি
-  const gpa = isEbtedayi
-    ? 0
-    : Math.round(
-        (subjectResults.reduce((s, r) => s + r.gpa, 0) / (subjectResults.length || 1)) * 100
-      ) / 100;
+  // Separate compulsory and optional subjects
+  const compulsory = subjectResults.filter(r => !r.isOptional);
+  const optional   = subjectResults.filter(r =>  r.isOptional);
 
-  const failedSubjects = subjectResults.filter(r => !r.isPassed).map(r => r.name);
-  const status: 'pass' | 'fail' = failedSubjects.length === 0 ? 'pass' : 'fail';
+  // Status: fail only if a COMPULSORY subject is failed
+  const failedCompulsory = compulsory.filter(r => !r.isPassed).map(r => r.name);
+  const failedOptional   = optional.filter(r => !r.isPassed).map(r => r.name);
+  const allFailed        = [...failedCompulsory, ...failedOptional];
+  const status: 'pass' | 'fail' = failedCompulsory.length === 0 ? 'pass' : 'fail';
+
+  // GPA (Bangladesh Education Board method)
+  let gpa = 0;
+  if (!isEbtedayi) {
+    const compulsoryGpa = compulsory.length > 0
+      ? compulsory.reduce((s, r) => s + r.gpa, 0) / compulsory.length
+      : 0;
+    const optionalBonus = optional.reduce((b, r) => b + Math.max(0, r.gpa - 2.0), 0);
+    gpa = Math.round((compulsoryGpa + optionalBonus) * 100) / 100;
+  }
 
   return {
     id: `res-${studentId}-${examName}-${year}-${Date.now()}`,
@@ -150,7 +179,7 @@ export function calculateExamResult(params: {
     status,
     examName,
     year,
-    failedSubjects: failedSubjects.length > 0 ? failedSubjects : undefined,
+    failedSubjects: allFailed.length > 0 ? allFailed : undefined,
     createdAt: new Date().toISOString(),
   };
 }

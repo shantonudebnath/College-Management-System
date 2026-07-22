@@ -11,11 +11,11 @@ import { Save, Search, ChevronDown, CheckCircle, AlertCircle, BookOpen, User, X,
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
-type MarksMap = Record<string, { cq: string; mcq: string; practical: string }>;
+type MarksMap = Record<string, { total: string }>;
 
 function emptyMarks(subjects: Subject[]): MarksMap {
   const m: MarksMap = {};
-  subjects.forEach(s => { m[s.name] = { cq: '0', mcq: '0', practical: '0' }; });
+  subjects.forEach(s => { m[s.name] = { total: '0' }; });
   return m;
 }
 
@@ -116,11 +116,7 @@ export default function AdminResultEntryPage() {
       const prefilled: MarksMap = {};
       subjects.forEach(s => {
         const sr = existingResult.subjects.find(r => r.name === s.name);
-        prefilled[s.name] = {
-          cq:        String(sr?.cqMarks ?? 0),
-          mcq:       String(sr?.mcqMarks ?? 0),
-          practical: String(sr?.practicalMarks ?? 0),
-        };
+        prefilled[s.name] = { total: String(sr?.marks ?? 0) };
       });
       setMarks(prefilled);
     } else {
@@ -131,28 +127,35 @@ export default function AdminResultEntryPage() {
 
   // ── live calculation per subject ──
   const calcSubjects = useMemo(() => subjects.map(s => {
-    const m = marks[s.name] ?? { cq: '0', mcq: '0', practical: '0' };
-    const cq        = clamp(m.cq, s.cqMark);
-    const mcq       = clamp(m.mcq, s.mcqMark);
-    const practical = clamp(m.practical, s.practicalMark);
-    const total     = cq + mcq + practical;
-    const info      = getGradeInfo(total, s.fullMark, selectedClass);
-    return { ...s, cqObtained: cq, mcqObtained: mcq, practicalObtained: practical, total, ...info };
+    const m     = marks[s.name] ?? { total: '0' };
+    const total = clamp(m.total, s.fullMark);
+    const info  = getGradeInfo(total, s.fullMark, selectedClass);
+    return { ...s, totalObtained: total, total, ...info };
   }), [marks, subjects, selectedClass]);
 
   const totalObtained  = calcSubjects.reduce((a, s) => a + s.total, 0);
   const totalFullMarks = calcSubjects.reduce((a, s) => a + s.fullMark, 0);
   const percentage     = totalFullMarks > 0 ? Math.round((totalObtained / totalFullMarks) * 1000) / 10 : 0;
-  const avgGpa         = calcSubjects.length > 0
-    ? Math.round((calcSubjects.reduce((a, s) => a + s.gpa, 0) / calcSubjects.length) * 100) / 100
-    : 0;
-  const failedCount  = calcSubjects.filter(s => !s.isPassed).length;
+  const overallGrade   = getGradeInfo(totalObtained, totalFullMarks, selectedClass).grade;
+
+  // Bangladesh Board: only compulsory failures count toward overall status
+  const compulsorySubjects = calcSubjects.filter(s => !s.isOptional);
+  const optionalSubjects   = calcSubjects.filter(s =>  s.isOptional);
+  const failedCount = compulsorySubjects.filter(s => !s.isPassed).length;
   const overallStatus: 'pass' | 'fail' = failedCount === 0 ? 'pass' : 'fail';
-  const overallGrade = getGradeInfo(totalObtained, totalFullMarks, selectedClass).grade;
+
+  // GPA: compulsory average + optional bonus (max(0, GP − 2.0))
+  const compulsoryGpa = compulsorySubjects.length > 0
+    ? compulsorySubjects.reduce((a, s) => a + s.gpa, 0) / compulsorySubjects.length
+    : 0;
+  const optionalBonus = optionalSubjects.reduce((b, s) => b + Math.max(0, s.gpa - 2.0), 0);
+  const avgGpa = calcSubjects.length > 0
+    ? Math.round((compulsoryGpa + optionalBonus) * 100) / 100
+    : 0;
 
   // ── mark input handler ──
-  function updateMark(subjectName: string, field: 'cq' | 'mcq' | 'practical', val: string) {
-    setMarks(prev => ({ ...prev, [subjectName]: { ...(prev[subjectName] ?? { cq: '0', mcq: '0', practical: '0' }), [field]: val } }));
+  function updateMark(subjectName: string, val: string) {
+    setMarks(prev => ({ ...prev, [subjectName]: { total: val } }));
   }
 
   // ── save ──
@@ -166,10 +169,8 @@ export default function AdminResultEntryPage() {
       roll:         selectedStudent.roll,
       section:      selectedStudent.section,
       subjectInputs: calcSubjects.map(s => ({
-        subject:           subjects.find(x => x.name === s.name)!,
-        cqObtained:        s.cqObtained,
-        mcqObtained:       s.mcqObtained,
-        practicalObtained: s.practicalObtained,
+        subject:       subjects.find(x => x.name === s.name)!,
+        totalObtained: s.totalObtained,
       })),
       examName: activeExamName,
       year:     examYear,
@@ -318,12 +319,10 @@ export default function AdminResultEntryPage() {
                   <tr>
                     <th className="px-4 py-3 text-left w-8">#</th>
                     <th className="px-4 py-3 text-left">বিষয়</th>
-                    <th className="px-3 py-3 text-center text-blue-600">CQ<br/><span className="font-normal text-gray-400 text-[10px]">সৃজনশীল</span></th>
-                    <th className="px-3 py-3 text-center text-green-600">MCQ<br/><span className="font-normal text-gray-400 text-[10px]">বহু নির্বাচনি</span></th>
-                    <th className="px-3 py-3 text-center text-amber-600">ব্যবহারিক</th>
-                    <th className="px-3 py-3 text-center font-semibold">মোট</th>
+                    <th className="px-3 py-3 text-center font-semibold text-purple-700">প্রাপ্ত নম্বর</th>
                     <th className="px-3 py-3 text-center">পূর্ণমান</th>
                     <th className="px-3 py-3 text-center">গ্রেড</th>
+                    <th className="px-3 py-3 text-center">জিপিএ</th>
                     <th className="px-3 py-3 text-center">ফলাফল</th>
                   </tr>
                 </thead>
@@ -337,64 +336,36 @@ export default function AdminResultEntryPage() {
                         {s.isOptional && <span className="text-[10px] text-purple-500 bg-purple-50 px-1.5 py-0.5 rounded-full">ঐচ্ছিক</span>}
                       </td>
 
-                      {/* CQ input */}
+                      {/* Total marks input */}
                       <td className="px-3 py-2.5">
-                        {s.cqMark > 0 ? (
-                          <div className="flex flex-col items-center">
-                            <input
-                              type="number" min={0} max={s.cqMark}
-                              value={marks[s.name]?.cq ?? '0'}
-                              onChange={e => updateMark(s.name, 'cq', e.target.value)}
-                              className="w-16 text-center px-2 py-1 border border-gray-200 rounded-lg text-sm outline-none focus:border-blue-400 focus:bg-blue-50"
-                            />
-                            <span className="text-[10px] text-gray-400 mt-0.5">/{s.cqMark}</span>
-                          </div>
-                        ) : <span className="block text-center text-gray-200">—</span>}
+                        <div className="flex flex-col items-center">
+                          <input
+                            type="number" min={0} max={s.fullMark}
+                            value={marks[s.name]?.total ?? '0'}
+                            onChange={e => updateMark(s.name, e.target.value)}
+                            className="w-20 text-center px-2 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-purple-400 focus:bg-purple-50 font-semibold"
+                          />
+                          <span className="text-[10px] text-gray-400 mt-0.5">/{s.fullMark}</span>
+                        </div>
                       </td>
 
-                      {/* MCQ input */}
-                      <td className="px-3 py-2.5">
-                        {s.mcqMark > 0 ? (
-                          <div className="flex flex-col items-center">
-                            <input
-                              type="number" min={0} max={s.mcqMark}
-                              value={marks[s.name]?.mcq ?? '0'}
-                              onChange={e => updateMark(s.name, 'mcq', e.target.value)}
-                              className="w-16 text-center px-2 py-1 border border-gray-200 rounded-lg text-sm outline-none focus:border-green-400 focus:bg-green-50"
-                            />
-                            <span className="text-[10px] text-gray-400 mt-0.5">/{s.mcqMark}</span>
-                          </div>
-                        ) : <span className="block text-center text-gray-200">—</span>}
-                      </td>
-
-                      {/* Practical input */}
-                      <td className="px-3 py-2.5">
-                        {s.practicalMark > 0 ? (
-                          <div className="flex flex-col items-center">
-                            <input
-                              type="number" min={0} max={s.practicalMark}
-                              value={marks[s.name]?.practical ?? '0'}
-                              onChange={e => updateMark(s.name, 'practical', e.target.value)}
-                              className="w-16 text-center px-2 py-1 border border-gray-200 rounded-lg text-sm outline-none focus:border-amber-400 focus:bg-amber-50"
-                            />
-                            <span className="text-[10px] text-gray-400 mt-0.5">/{s.practicalMark}</span>
-                          </div>
-                        ) : <span className="block text-center text-gray-200">—</span>}
-                      </td>
-
-                      {/* Total */}
-                      <td className="px-3 py-2.5 text-center font-bold text-gray-900">{s.total}</td>
                       {/* Full mark */}
                       <td className="px-3 py-2.5 text-center text-gray-400">{s.fullMark}</td>
                       {/* Grade */}
                       <td className="px-3 py-2.5 text-center">
                         <span className={`text-xs font-bold px-2 py-0.5 rounded-lg ${GRADE_COLOR[s.grade] ?? 'text-gray-600 bg-gray-50'}`}>{s.grade}</span>
                       </td>
+                      {/* GPA */}
+                      <td className="px-3 py-2.5 text-center text-sm font-semibold text-gray-700">{s.gpa.toFixed(2)}</td>
                       {/* Pass/Fail */}
                       <td className="px-3 py-2.5 text-center">
-                        {s.isPassed
-                          ? <span className="text-xs text-green-600 font-semibold flex items-center justify-center gap-1"><CheckCircle size={11} />উত্তীর্ণ</span>
-                          : <span className="text-xs text-red-600 font-semibold flex items-center justify-center gap-1"><AlertCircle size={11} />অনুত্তীর্ণ</span>}
+                        {s.isOptional
+                          ? (s.isPassed
+                              ? <span className="text-xs text-green-600 font-semibold flex items-center justify-center gap-1"><CheckCircle size={11} />উত্তীর্ণ</span>
+                              : <span className="text-xs text-amber-600 font-semibold flex items-center justify-center gap-1"><AlertCircle size={11} />ঐচ্ছিক ফেল</span>)
+                          : (s.isPassed
+                              ? <span className="text-xs text-green-600 font-semibold flex items-center justify-center gap-1"><CheckCircle size={11} />উত্তীর্ণ</span>
+                              : <span className="text-xs text-red-600 font-semibold flex items-center justify-center gap-1"><AlertCircle size={11} />অনুত্তীর্ণ</span>)}
                       </td>
                     </tr>
                   ))}
@@ -422,7 +393,13 @@ export default function AdminResultEntryPage() {
               {failedCount > 0 && (
                 <div className="mb-4 flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
                   <AlertCircle size={16} className="shrink-0 mt-0.5" />
-                  <span><strong>{failedCount}টি বিষয়ে</strong> অনুত্তীর্ণ: {calcSubjects.filter(s => !s.isPassed).map(s => s.nameBn).join('، ')}</span>
+                  <span><strong>{failedCount}টি আবশ্যিক বিষয়ে</strong> অনুত্তীর্ণ: {compulsorySubjects.filter(s => !s.isPassed).map(s => s.nameBn).join('، ')}</span>
+                </div>
+              )}
+              {failedCount === 0 && optionalSubjects.some(s => !s.isPassed) && (
+                <div className="mb-4 flex items-start gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                  <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                  <span>ঐচ্ছিক বিষয়ে অনুত্তীর্ণ: {optionalSubjects.filter(s => !s.isPassed).map(s => s.nameBn).join('، ')} — সামগ্রিক ফলাফলে প্রভাব নেই।</span>
                 </div>
               )}
 

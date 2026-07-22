@@ -87,6 +87,7 @@ export interface SubjectResult {
   grade: string;
   gpa: number;
   isPassed: boolean;
+  isOptional?: boolean;
 }
 
 export interface ExamResult {

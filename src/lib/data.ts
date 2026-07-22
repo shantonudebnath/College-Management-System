@@ -73,7 +73,6 @@ export const SUBJECTS_BY_CLASS: Record<string, Subject[]> = {
     { name: 'Quran Majid & Tajwid',     nameBn: 'কুরআন মাজিদ ও তাজভিদ',     fullMark: 100, passMark: 40, cqMark: 80,  mcqMark: 0, practicalMark: 20, type: 'mixed' },
     { name: 'Arabic 2nd Paper',         nameBn: 'আরবি ২য় পত্র',              fullMark: 50,  passMark: 20, cqMark: 50,  mcqMark: 0, practicalMark: 0,  type: 'theory' },
     { name: 'Aqaid & Fiqh',            nameBn: 'আকাইদ ও ফিকহ',              fullMark: 100, passMark: 40, cqMark: 100, mcqMark: 0, practicalMark: 0,  type: 'theory' },
-    { name: 'General Knowledge',        nameBn: 'সাধারণ জ্ঞান',               fullMark: 100, passMark: 40, cqMark: 100, mcqMark: 0, practicalMark: 0,  type: 'theory' },
     { name: 'English',                  nameBn: 'ইংরেজি',                    fullMark: 100, passMark: 40, cqMark: 100, mcqMark: 0, practicalMark: 0,  type: 'theory' },
     { name: 'Bengali',                  nameBn: 'বাংলা',                     fullMark: 100, passMark: 40, cqMark: 100, mcqMark: 0, practicalMark: 0,  type: 'theory' },
     { name: 'Bangladesh & World Studies', nameBn: 'বাংলাদেশ ও বিশ্বপরিচয়', fullMark: 100, passMark: 40, cqMark: 100, mcqMark: 0, practicalMark: 0,  type: 'theory' },
@@ -93,7 +92,6 @@ export const SUBJECTS_BY_CLASS: Record<string, Subject[]> = {
     { name: 'Arabic 2nd Paper',         nameBn: 'আরবি ২য় পত্র',              fullMark: 100, passMark: 40, cqMark: 100, mcqMark: 0, practicalMark: 0, type: 'theory' },
     { name: 'Bangladesh & World Studies', nameBn: 'বাংলাদেশ ও বিশ্বপরিচয়', fullMark: 100, passMark: 40, cqMark: 100, mcqMark: 0, practicalMark: 0, type: 'theory' },
     { name: 'English',                  nameBn: 'ইংরেজি',                    fullMark: 100, passMark: 40, cqMark: 100, mcqMark: 0, practicalMark: 0, type: 'theory' },
-    { name: 'General Knowledge',        nameBn: 'সাধারণ জ্ঞান',               fullMark: 100, passMark: 40, cqMark: 100, mcqMark: 0, practicalMark: 0, type: 'theory' },
   ],
 
   // ৫ম শ্রেণি (পঞ্চম) — ৯ বিষয়, মোট ৯০০ নম্বর
@@ -106,7 +104,6 @@ export const SUBJECTS_BY_CLASS: Record<string, Subject[]> = {
     { name: 'Science',                  nameBn: 'বিজ্ঞান',                    fullMark: 100, passMark: 40, cqMark: 100, mcqMark: 0, practicalMark: 0, type: 'theory' },
     { name: 'English',                  nameBn: 'ইংরেজি',                    fullMark: 100, passMark: 40, cqMark: 100, mcqMark: 0, practicalMark: 0, type: 'theory' },
     { name: 'Bangladesh & World Studies', nameBn: 'বাংলাদেশ ও বিশ্বপরিচয়', fullMark: 100, passMark: 40, cqMark: 100, mcqMark: 0, practicalMark: 0, type: 'theory' },
-    { name: 'General Knowledge',        nameBn: 'সাধারণ জ্ঞান',               fullMark: 100, passMark: 40, cqMark: 100, mcqMark: 0, practicalMark: 0, type: 'theory' },
     { name: 'Mathematics',              nameBn: 'গণিত',                      fullMark: 100, passMark: 40, cqMark: 100, mcqMark: 0, practicalMark: 0, type: 'theory' },
   ],
 
@@ -129,7 +126,6 @@ export const SUBJECTS_BY_CLASS: Record<string, Subject[]> = {
     { name: 'ICT',                      nameBn: 'তথ্য ও যোগাযোগ প্রযুক্তি',  fullMark: 50,  passMark: 17, cqMark: 0,   mcqMark: 25, practicalMark: 25, type: 'mixed',     subjectCode: '140' },
     { name: 'Aqaid & Fiqh',            nameBn: 'আকাইদ ও ফিকহ',              fullMark: 100, passMark: 33, cqMark: 100, mcqMark: 0,  practicalMark: 0,  type: 'theory' },
     { name: 'Mathematics',              nameBn: 'গণিত',                      fullMark: 100, passMark: 33, cqMark: 70,  mcqMark: 30, practicalMark: 0,  type: 'mixed' },
-    { name: 'General Knowledge',        nameBn: 'সাধারণ জ্ঞান',               fullMark: 100, passMark: 33, cqMark: 100, mcqMark: 0,  practicalMark: 0,  type: 'theory' },
     { name: 'Bangladesh & World Studies', nameBn: 'বাংলাদেশ ও বিশ্বপরিচয়', fullMark: 100, passMark: 33, cqMark: 70,  mcqMark: 30, practicalMark: 0,  type: 'mixed' },
     // ব্যবহারিক বিষয় (যেকোনো ১টি)
     { name: 'Physical Education & Health', nameBn: 'শারীরিক শিক্ষা ও স্বাস্থ্য', fullMark: 50, passMark: 20, cqMark: 0, mcqMark: 0, practicalMark: 50, type: 'practical', isOptional: true, optionalGroup: 'pe' },
@@ -150,7 +146,6 @@ export const SUBJECTS_BY_CLASS: Record<string, Subject[]> = {
     { name: 'ICT',                      nameBn: 'তথ্য ও যোগাযোগ প্রযুক্তি',  fullMark: 50,  passMark: 17, cqMark: 0,   mcqMark: 25, practicalMark: 25, type: 'mixed',     subjectCode: '140' },
     { name: 'Aqaid & Fiqh',            nameBn: 'আকাইদ ও ফিকহ',              fullMark: 100, passMark: 33, cqMark: 100, mcqMark: 0,  practicalMark: 0,  type: 'theory' },
     { name: 'Mathematics',              nameBn: 'গণিত',                      fullMark: 100, passMark: 33, cqMark: 70,  mcqMark: 30, practicalMark: 0,  type: 'mixed' },
-    { name: 'General Knowledge',        nameBn: 'সাধারণ জ্ঞান',               fullMark: 100, passMark: 33, cqMark: 100, mcqMark: 0,  practicalMark: 0,  type: 'theory' },
     { name: 'Bangladesh & World Studies', nameBn: 'বাংলাদেশ ও বিশ্বপরিচয়', fullMark: 100, passMark: 33, cqMark: 70,  mcqMark: 30, practicalMark: 0,  type: 'mixed' },
     { name: 'Physical Education & Health', nameBn: 'শারীরিক শিক্ষা ও স্বাস্থ্য', fullMark: 50, passMark: 20, cqMark: 0, mcqMark: 0, practicalMark: 50, type: 'practical', isOptional: true, optionalGroup: 'pe' },
     { name: 'Work & Life Skills',       nameBn: 'কর্ম ও জীবনমুখী শিক্ষা',   fullMark: 50,  passMark: 20, cqMark: 0,   mcqMark: 0,  practicalMark: 50, type: 'practical', isOptional: true, optionalGroup: 'vocational' },
@@ -165,7 +160,6 @@ export const SUBJECTS_BY_CLASS: Record<string, Subject[]> = {
     { name: 'Bengali 1st Paper',        nameBn: 'বাংলা ১ম পত্র',             fullMark: 100, passMark: 33, cqMark: 70,  mcqMark: 30, practicalMark: 0,  type: 'mixed' },
     { name: 'Bengali 2nd Paper',        nameBn: 'বাংলা ২য় পত্র',             fullMark: 50,  passMark: 17, cqMark: 35,  mcqMark: 15, practicalMark: 0,  type: 'mixed' },
     { name: 'ICT',                      nameBn: 'তথ্য ও যোগাযোগ প্রযুক্তি',  fullMark: 50,  passMark: 17, cqMark: 0,   mcqMark: 25, practicalMark: 25, type: 'mixed',     subjectCode: '140' },
-    { name: 'General Knowledge',        nameBn: 'সাধারণ জ্ঞান',               fullMark: 100, passMark: 33, cqMark: 100, mcqMark: 0,  practicalMark: 0,  type: 'theory' },
     { name: 'Arabic 1st Paper',         nameBn: 'আরবি ১ম পত্র',              fullMark: 100, passMark: 33, cqMark: 100, mcqMark: 0,  practicalMark: 0,  type: 'theory' },
     { name: 'Arabic 2nd Paper',         nameBn: 'আরবি ২য় পত্র',              fullMark: 100, passMark: 33, cqMark: 100, mcqMark: 0,  practicalMark: 0,  type: 'theory' },
     { name: 'Bangladesh & World Studies', nameBn: 'বাংলাদেশ ও বিশ্বপরিচয়', fullMark: 100, passMark: 33, cqMark: 70,  mcqMark: 30, practicalMark: 0,  type: 'mixed' },
