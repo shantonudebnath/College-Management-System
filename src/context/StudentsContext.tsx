@@ -1,6 +1,8 @@
 'use client';
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import type { Student } from '@/lib/types';
+import { onStudentsChange } from '@/lib/supabase/realtime';
+import { useAutoRefetch } from '@/lib/hooks/useAutoRefetch';
 
 const STUDENTS_CACHE_KEY = 'nim_students_cache';
 
@@ -112,6 +114,8 @@ export function StudentsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => { refetch(); }, [refetch]);
+  useAutoRefetch(refetch);
+  useEffect(() => onStudentsChange(refetch), [refetch]);
 
   const setStudents = async (updated: Student[]) => {
     setStudentsState(updated);

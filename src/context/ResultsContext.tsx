@@ -2,6 +2,8 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import type { ExamResult } from '@/lib/types';
 import { kvGet, kvGetSync, kvSet } from '@/lib/supabase/kv';
+import { onKvChange } from '@/lib/supabase/realtime';
+import { useAutoRefetch } from '@/lib/hooks/useAutoRefetch';
 
 const RESULTS_KEY = 'results_data';
 const PUBLISHED_KEY = 'published_results_data';
@@ -56,6 +58,12 @@ export function ResultsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => { refetch(); }, [refetch]);
+  useAutoRefetch(refetch);
+  useEffect(() => {
+    const u1 = onKvChange(RESULTS_KEY, refetch);
+    const u2 = onKvChange(PUBLISHED_KEY, refetch);
+    return () => { u1(); u2(); };
+  }, [refetch]);
 
   const upsertResult = async (result: ExamResult) => {
     // Match by studentId+examName+year (not id) so re-saves update instead of duplicate

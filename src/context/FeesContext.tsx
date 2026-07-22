@@ -2,6 +2,8 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import type { Fee, Waiver } from '@/lib/types';
 import { kvGet, kvGetSync, kvSet } from '@/lib/supabase/kv';
+import { onKvChange } from '@/lib/supabase/realtime';
+import { useAutoRefetch } from '@/lib/hooks/useAutoRefetch';
 
 const FEES_KEY = 'fees_data';
 const WAIVERS_KEY = 'waivers_data';
@@ -40,6 +42,12 @@ export function FeesProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => { refetch(); }, [refetch]);
+  useAutoRefetch(refetch);
+  useEffect(() => {
+    const u1 = onKvChange(FEES_KEY, refetch);
+    const u2 = onKvChange(WAIVERS_KEY, refetch);
+    return () => { u1(); u2(); };
+  }, [refetch]);
 
   const upsertFee = async (fee: Fee) => {
     const updated = fees.find(f => f.id === fee.id)

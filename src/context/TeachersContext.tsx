@@ -1,6 +1,8 @@
 'use client';
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import type { Teacher } from '@/lib/types';
+import { onTeachersChange } from '@/lib/supabase/realtime';
+import { useAutoRefetch } from '@/lib/hooks/useAutoRefetch';
 
 const TEACHERS_CACHE_KEY = 'nim_teachers_cache';
 
@@ -88,20 +90,25 @@ export function TeachersProvider({ children }: { children: ReactNode }) {
   );
   const [ready, setReady] = useState(cached.length > 0);
 
-  useEffect(() => {
-    fetch('/api/teachers')
-      .then(r => r.json())
-      .then(({ data }) => {
-        if (Array.isArray(data) && data.length > 0) {
-          const mapped = data.map(mapRow);
-          setTeachersState(mapped);
-          setDeptOrderState([...new Set(mapped.map((t: Teacher) => t.department))]);
-          writeTeacherCache(mapped);
-        }
-        setReady(true);
-      })
-      .catch(() => setReady(true));
+  const refetch = useCallback(async () => {
+    try {
+      const r = await fetch('/api/teachers');
+      const { data } = await r.json();
+      if (Array.isArray(data) && data.length > 0) {
+        const mapped = data.map(mapRow);
+        setTeachersState(mapped);
+        setDeptOrderState([...new Set(mapped.map((t: Teacher) => t.department))]);
+        writeTeacherCache(mapped);
+      }
+      setReady(true);
+    } catch {
+      setReady(true);
+    }
   }, []);
+
+  useEffect(() => { refetch(); }, [refetch]);
+  useAutoRefetch(refetch);
+  useEffect(() => onTeachersChange(refetch), [refetch]);
 
   const upsertToApi = async (rows: object | object[]) => {
     const res = await fetch('/api/teachers', {
