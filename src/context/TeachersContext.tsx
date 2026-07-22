@@ -113,17 +113,29 @@ export function TeachersProvider({ children }: { children: ReactNode }) {
   };
 
   const addTeacher = async (t: Teacher) => {
-    setTeachersState(prev => [...prev, t]);
+    setTeachersState(prev => {
+      const next = [...prev, t];
+      writeTeacherCache(next);
+      return next;
+    });
     await upsertToApi(toRow(t));
   };
 
   const updateTeacher = async (t: Teacher) => {
-    setTeachersState(prev => prev.map(x => x.id === t.id ? t : x));
+    setTeachersState(prev => {
+      const next = prev.map(x => x.id === t.id ? t : x);
+      writeTeacherCache(next);
+      return next;
+    });
     await upsertToApi(toRow(t));
   };
 
   const deleteTeacher = async (id: string) => {
-    setTeachersState(prev => prev.filter(x => x.id !== id));
+    setTeachersState(prev => {
+      const next = prev.filter(x => x.id !== id);
+      writeTeacherCache(next);
+      return next;
+    });
     await fetch('/api/teachers', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },

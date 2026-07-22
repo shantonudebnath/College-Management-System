@@ -98,7 +98,7 @@ export function StudentsProvider({ children }: { children: ReactNode }) {
     try {
       const res = await fetch('/api/students');
       const { data } = await res.json();
-      if (Array.isArray(data) && data.length > 0) {
+      if (Array.isArray(data)) {
         const mapped = data.map(fromRow);
         setStudentsState(mapped);
         writeStudentCache(mapped);
@@ -126,7 +126,9 @@ export function StudentsProvider({ children }: { children: ReactNode }) {
   const upsertStudent = async (student: Student) => {
     setStudentsState(prev => {
       const exists = prev.find(s => s.id === student.id);
-      return exists ? prev.map(s => s.id === student.id ? student : s) : [...prev, student];
+      const next = exists ? prev.map(s => s.id === student.id ? student : s) : [...prev, student];
+      writeStudentCache(next);
+      return next;
     });
     const res = await fetch('/api/students', {
       method: 'POST',
@@ -137,7 +139,11 @@ export function StudentsProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteStudent = async (id: string) => {
-    setStudentsState(prev => prev.filter(s => s.id !== id));
+    setStudentsState(prev => {
+      const next = prev.filter(s => s.id !== id);
+      writeStudentCache(next);
+      return next;
+    });
     await fetch('/api/students', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
