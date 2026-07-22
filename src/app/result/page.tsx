@@ -99,7 +99,9 @@ export default function ResultPage() {
     setLoading(true);
     await new Promise(r => setTimeout(r, 600));
 
-    if (!publishedExams.some(k => k.startsWith(exam + '||'))) {
+    // Find the published entry for this exam (format: "examName||year")
+    const pubEntry = publishedExams.find(k => k.startsWith(exam + '||'));
+    if (!pubEntry) {
       setResult(null);
       setSearched(true);
       setNotPublished(true);
@@ -108,8 +110,15 @@ export default function ResultPage() {
     }
 
     setNotPublished(false);
+    const pubYear = pubEntry.split('||')[1];
     const all = [...EXAM_RESULTS, ...storedResults];
-    const found = all.find(r => r.roll === parseInt(roll) && r.class === classId && r.examName === exam);
+    // Filter by published year to avoid returning stale or wrong-year results
+    const found = all.find(r =>
+      r.roll === parseInt(roll) &&
+      r.class === classId &&
+      r.examName === exam &&
+      r.year === pubYear
+    );
     setResult(found || null);
     setSearched(true);
     setLoading(false);

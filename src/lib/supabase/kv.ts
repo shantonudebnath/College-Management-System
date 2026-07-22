@@ -18,7 +18,23 @@ export async function kvGet<T>(key: string): Promise<T | null> {
         ls?.setItem(lk(key), JSON.stringify(value));
         return value as T;
       }
-      // Key exists in API but value is null — clear local cache
+      // Supabase returned null — only clear local cache if local is also null/absent
+      // (prevents data loss when a kvSet POST failed silently)
+      const localRaw = ls?.getItem(lk(key));
+      if (!localRaw || localRaw === 'null') {
+        ls?.removeItem(lk(key));
+        return null;
+      }
+      // Local has data but Supabase doesn't — trust local, re-sync to Supabase
+      const localVal = JSON.parse(localRaw) as T;
+      if (localVal !== null && localVal !== undefined) {
+        fetch('/api/kv', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key, value: localVal }),
+        }).catch(() => {});
+        return localVal;
+      }
       ls?.removeItem(lk(key));
       return null;
     }

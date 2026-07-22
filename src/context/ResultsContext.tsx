@@ -23,12 +23,21 @@ const Ctx = createContext<ResultsCtx>({
   publishExam: async () => {}, unpublishExam: async () => {},
 });
 
-function resultId(r: ExamResult) {
-  return r.id ?? `${r.studentId}-${r.examName}-${r.year}`;
+// Deduplicate results: per studentId+examName+year, keep the most recent by createdAt
+function deduplicateResults(raw: ExamResult[]): ExamResult[] {
+  const seen = new Map<string, ExamResult>();
+  for (const r of raw) {
+    const key = `${r.studentId}||${r.examName}||${r.year}`;
+    const prev = seen.get(key);
+    if (!prev || (r.createdAt ?? '') >= (prev.createdAt ?? '')) seen.set(key, r);
+  }
+  return [...seen.values()];
 }
 
 export function ResultsProvider({ children }: { children: ReactNode }) {
-  const [results, setResultsState] = useState<ExamResult[]>(kvGetSync<ExamResult[]>(RESULTS_KEY) ?? []);
+  const [results, setResultsState] = useState<ExamResult[]>(
+    deduplicateResults(kvGetSync<ExamResult[]>(RESULTS_KEY) ?? [])
+  );
   const [publishedExams, setPublishedExams] = useState<string[]>(kvGetSync<string[]>(PUBLISHED_KEY) ?? []);
   const [loading, setLoading] = useState(true);
 
@@ -37,7 +46,11 @@ export function ResultsProvider({ children }: { children: ReactNode }) {
       kvGet<ExamResult[]>(RESULTS_KEY),
       kvGet<string[]>(PUBLISHED_KEY),
     ]);
-    setResultsState(resData ?? []);
+    const raw = resData ?? [];
+    const deduped = deduplicateResults(raw);
+    setResultsState(deduped);
+    // Auto-repair: if duplicates existed in storage, write back the clean array
+    if (deduped.length < raw.length) await kvSet(RESULTS_KEY, deduped);
     setPublishedExams(pubData ?? []);
     setLoading(false);
   }, []);
@@ -45,11 +58,13 @@ export function ResultsProvider({ children }: { children: ReactNode }) {
   useEffect(() => { refetch(); }, [refetch]);
 
   const upsertResult = async (result: ExamResult) => {
-    const id = resultId(result);
-    const withId = { ...result, id };
-    const updated = results.find(r => r.id === id)
-      ? results.map(r => r.id === id ? withId : r)
-      : [...results, withId];
+    // Match by studentId+examName+year (not id) so re-saves update instead of duplicate
+    const existsIdx = results.findIndex(
+      r => r.studentId === result.studentId && r.examName === result.examName && r.year === result.year
+    );
+    const updated = existsIdx >= 0
+      ? results.map((r, i) => i === existsIdx ? result : r)
+      : [...results, result];
     setResultsState(updated);
     await kvSet(RESULTS_KEY, updated);
   };
