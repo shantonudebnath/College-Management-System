@@ -5,29 +5,30 @@ const NIM_SESSION = 'nim_session';
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
   const protectedPrefixes = ['/admin', '/student', '/teacher/'];
   const isProtected = protectedPrefixes.some(p => pathname.startsWith(p));
+  const isLoginPage = pathname === '/login';
 
-  if (!isProtected) return NextResponse.next({ request });
+  if (!isProtected && !isLoginPage) return NextResponse.next({ request });
 
-  // Check local session cookie for student/teacher routes
-  const nimCookie = request.cookies.get(NIM_SESSION)?.value;
-  if (nimCookie) {
+  // Parse local session cookie (student / teacher)
+  let nimRole: string | null = null;
+  const nimRaw = request.cookies.get(NIM_SESSION)?.value;
+  if (nimRaw) {
     try {
-      const { role } = JSON.parse(nimCookie) as { id: string; role: string };
-      if (pathname.startsWith('/student') && role === 'student') return NextResponse.next({ request });
-      if (pathname.startsWith('/teacher') && role === 'teacher') return NextResponse.next({ request });
-      if (pathname.startsWith('/admin') && role === 'admin') return NextResponse.next({ request });
-    } catch { /* invalid cookie — fall through to Supabase check */ }
+      nimRole = (JSON.parse(nimRaw) as { role: string }).role;
+    } catch { /* ignore */ }
   }
 
-  // Fall back to Supabase session check (used for admin)
+  // Check Supabase session (admin)
+  let supabaseUser = null;
   let supabaseResponse = NextResponse.next({ request });
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (supabaseUrl && supabaseAnonKey) {
-    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+  if (url && key) {
+    const supabase = createServerClient(url, key, {
       cookies: {
         getAll() { return request.cookies.getAll(); },
         setAll(cookiesToSet) {
@@ -40,16 +41,30 @@ export async function proxy(request: NextRequest) {
       },
     });
     const { data: { user } } = await supabase.auth.getUser();
-    if (user) return supabaseResponse;
+    supabaseUser = user;
   }
 
-  const url = request.nextUrl.clone();
-  url.pathname = '/login';
-  return NextResponse.redirect(url);
+  // Already on login page — redirect to dashboard if authenticated
+  if (isLoginPage) {
+    if (nimRole === 'student') return NextResponse.redirect(new URL('/student/dashboard', request.url));
+    if (nimRole === 'teacher') return NextResponse.redirect(new URL('/teacher/dashboard', request.url));
+    if (supabaseUser) return NextResponse.redirect(new URL('/admin/dashboard', request.url));
+    return NextResponse.next({ request });
+  }
+
+  // Protected routes — allow if authenticated with correct role
+  if (pathname.startsWith('/student') && nimRole === 'student') return NextResponse.next({ request });
+  if (pathname.startsWith('/teacher') && nimRole === 'teacher') return NextResponse.next({ request });
+  if (pathname.startsWith('/admin') && supabaseUser) return supabaseResponse;
+
+  // Not authenticated — redirect to login
+  const loginUrl = request.nextUrl.clone();
+  loginUrl.pathname = '/login';
+  return NextResponse.redirect(loginUrl);
 }
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|icon\\.png|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };
